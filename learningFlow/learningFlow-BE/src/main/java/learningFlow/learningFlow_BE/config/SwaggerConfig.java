@@ -1,21 +1,41 @@
 package learningFlow.learningFlow_BE.config;
 
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
 @Configuration
 public class SwaggerConfig {
+
     @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.OAS_30) // OpenAPI 3.0 적용
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("learningFlow.learningFlow_BE.web.controller")) // Controller 경로 설정
-                .paths(PathSelectors.any())
-                .build();
+    public OpenAPI openAPI() {
+        Info info = new Info()
+                .title("LearningFlow API")
+                .description("LearningFlow API 명세서")
+                .version("1.0.0");
+
+        String jwtSchemeName = "JWT TOKEN";
+
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList(jwtSchemeName);
+
+        Components components = new Components()
+                .addSecuritySchemes(jwtSchemeName, new SecurityScheme()
+                        .name(jwtSchemeName)
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT"));
+
+        return new OpenAPI()
+                .info(info)
+                .addServersItem(new Server().url("/"))
+                .addSecurityItem(securityRequirement)
+                .components(components);
     }
 }
 

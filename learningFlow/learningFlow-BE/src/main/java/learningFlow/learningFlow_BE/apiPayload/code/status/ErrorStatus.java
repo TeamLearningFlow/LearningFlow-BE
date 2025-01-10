@@ -21,8 +21,17 @@ public enum ErrorStatus implements BaseErrorCode {
 
 
     // 멤버 관려 에러
-    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
-    NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4002", "닉네임은 필수 입니다."),
+    USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "사용자를 찾을 수 없습니다."),
+    NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "닉네임은 필수 입니다."),
+
+    //Resources 관련 에어
+    RESOURCES_NOT_FOUND(HttpStatus.NOT_FOUND,"RESOURCE4001","강의 에피소드를 찾을 수 없습니다."),
+
+    //페이징 시 페이지 범위를 벗어났을 때
+    PAGE_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "PAGE4001","페이지 범위에 맞지 않는 페이지 값 입니다."),
+
+    //컬렉션 관련 에러
+    COLLECTION_NOT_FOUND(HttpStatus.NOT_FOUND,"COLLECTION4001","해당 컬렉션을 찾을 수 없습니다."),
 
     // 예시,,,
     ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다.");
