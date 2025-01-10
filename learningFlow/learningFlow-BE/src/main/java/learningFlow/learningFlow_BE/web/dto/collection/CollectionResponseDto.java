@@ -1,6 +1,5 @@
 package learningFlow.learningFlow_BE.web.dto.collection;
 
-import learningFlow.learningFlow_BE.domain.enums.Category;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
