@@ -6,6 +6,7 @@ import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,8 +14,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "collections")
-public class Collections extends BaseEntity {
+@Table(name = "collection")
+public class Collection extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,4 +46,15 @@ public class Collections extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MediaType mediaType;
+
+    @ManyToOne
+    @JoinColumn(name = "image_id")
+    private Image image;
+
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    private List<UserCollection> userCollections;
+
+    @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
+    private List<CollectionEpisode> episodes;
+
 }
