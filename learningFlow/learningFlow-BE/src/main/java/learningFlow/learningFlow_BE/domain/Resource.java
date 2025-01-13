@@ -35,7 +35,6 @@ public class Resource extends BaseEntity {
     @Column(name = "embedded_url",nullable = false)
     private String embeddedUrl; // 임베드 url
 
-
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
 }

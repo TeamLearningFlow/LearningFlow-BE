@@ -20,7 +20,10 @@ public class User extends BaseEntity {
     @Column(name = "login_id", nullable = false, unique = true)
     private String loginId;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
     private String email;
 
     @Column(name = "provider_id", nullable = true)
