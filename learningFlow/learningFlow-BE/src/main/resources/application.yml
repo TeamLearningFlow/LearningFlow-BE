@@ -11,6 +11,18 @@ spring:
   sql:
     init:
       mode: always                                   # SQL ??? ??
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-ID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT-SECRET}
+            scope:
+              - email
+              - profile
+
 
 server:
   port: 8080                                         # Spring Boot ?????? ?? ??
+

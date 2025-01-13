@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,15 +19,8 @@ public class Resource extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collections_id", nullable = false)
-    private Collections collections;
-
     @Column(nullable = false)
     private String title;
-
-    @Column(name = "course_progress", nullable = false)
-    private Integer courseProgress;
 
     @Column(name = "resource_details", nullable = false)
     private String resourceDetails;
@@ -35,5 +30,11 @@ public class Resource extends BaseEntity {
     private ResourceType type;
 
     @Column(nullable = false)
-    private String url;
+    private String url; // 자료 링크
+
+    @Column(name = "embedded_url",nullable = false)
+    private String embeddedUrl; // 임베드 url
+
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
+    private List<CollectionEpisode> episodes;
 }

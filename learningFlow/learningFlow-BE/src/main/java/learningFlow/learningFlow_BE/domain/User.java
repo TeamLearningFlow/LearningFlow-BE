@@ -20,7 +20,10 @@ public class User extends BaseEntity {
     @Column(name = "login_id", nullable = false, unique = true)
     private String loginId;
 
-    @Column(nullable = true)
+    @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
     private String email;
 
     @Column(name = "provider_id", nullable = true)
@@ -37,8 +40,11 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Job job;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_interests")
+    @Enumerated(EnumType.STRING)
     @Column(name = "interest_field", nullable = true)
-    private String interestField;
+    private List<Category> interestFields;
 
     @Column(name = "birth_day", nullable = false)
     private LocalDate birthDay;
@@ -51,20 +57,18 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Role role;
 
-    @Lob
-    @Column(name = "profile_photo", nullable = true)
-    private byte[] profilePhoto;
-
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean inactive;
-
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "prefer_type", nullable = false)
     private MediaType preferType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id")
+    private Image image;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<UserCollection> userCollections;
+
 }
