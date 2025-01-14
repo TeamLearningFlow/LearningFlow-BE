@@ -44,13 +44,6 @@ dependencies {
 
 	//로그인 관련 설정
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
-/*
-	//JWT 토큰, 일단 비활성화
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-*/
 }
 
 tasks.named('test') {
