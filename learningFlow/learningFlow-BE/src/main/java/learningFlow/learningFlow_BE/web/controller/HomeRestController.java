@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.domain.User;
-import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDto.HomeInfoDto;
+import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO.HomeInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +30,7 @@ public class HomeRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER4001", description = "사용자를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
-    public ApiResponse<HomeInfoDto> getHome(@AuthenticationPrincipal User user) {
+    public ApiResponse<HomeInfoDTO> getHome(@AuthenticationPrincipal User user) {
         // TODO : 추후 구현될 로직을 위한 주석
         /**
          * 1. 현재 로그인한 사용자 정보 조회

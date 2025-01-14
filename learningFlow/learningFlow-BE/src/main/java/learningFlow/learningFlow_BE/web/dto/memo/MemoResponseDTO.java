@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-public class MemoResponseDto {
+public class MemoResponseDTO {
 
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class MemoInfoDto {
+    public static class MemoInfoDTO {
         String memoContents;
     }
 }

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-public class CollectionResponseDto {
+public class CollectionResponseDTO {
 
     @Getter
     @Builder

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.domain.User;
-import learningFlow.learningFlow_BE.web.dto.user.UserResponseDto;
+import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +30,7 @@ public class UserRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER4001", description = "사용자를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
-    public ApiResponse<UserResponseDto.UserInfoDto> updateUserInfo(
+    public ApiResponse<UserResponseDTO.UserInfoDTO> updateUserInfo(
             @RequestBody Map<String, String> request,
             @AuthenticationPrincipal User user
     ) {
@@ -74,7 +74,7 @@ public class UserRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER4001", description = "사용자를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
-    public ApiResponse<UserResponseDto.UserInfoDto> getUserInfo(@AuthenticationPrincipal User user) {
+    public ApiResponse<UserResponseDTO.UserInfoDTO> getUserInfo(@AuthenticationPrincipal User user) {
 
         /**
          * Spring Security 사용하기 때문에 @AuthenticationPrincipal를 통해 바로 현재 인증된 사용자의 정보를 가져올 수 있어요.
