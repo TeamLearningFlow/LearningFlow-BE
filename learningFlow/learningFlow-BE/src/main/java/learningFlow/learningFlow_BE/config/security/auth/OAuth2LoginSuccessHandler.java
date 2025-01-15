@@ -11,14 +11,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+
+import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginResponseDTO;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+
+    private final RememberMeServices rememberMeServices;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -35,10 +40,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return;
         }
 
+        HttpSession session = request.getSession(false);
+        Boolean rememberMe = (Boolean) session.getAttribute("OAUTH2_REMEMBER_ME");
+
+        if (rememberMe != null && rememberMe) {
+            rememberMeServices.loginSuccess(request, response, authentication);
+        }
+
+        session.removeAttribute("OAUTH2_REMEMBER_ME");
+
         // 기존 사용자인 경우
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
         UserResponseDTO.UserLoginResponseDTO loginResponse =
-                UserResponseDTO.UserLoginResponseDTO.from(principalDetails.getUser());
+                toUserLoginResponseDTO(principalDetails.getUser());
 
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
