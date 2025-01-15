@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 "/reset-password"
                         ).permitAll()
                         .requestMatchers(
-                                "/register", "/login", "/login/google", "/oauth2/**", "/logout",
+                                "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout",
                                 "/home/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
