@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.config.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import learningFlow.learningFlow_BE.config.security.auth.OAuth2LoginSuccessHandler;
 import learningFlow.learningFlow_BE.service.user.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
 @EnableWebSecurity
@@ -45,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout",
                                 "/home/**").permitAll()
+
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -54,6 +57,15 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
+                .exceptionHandling(handler -> handler
+                        .defaultAuthenticationEntryPointFor(
+                                (request, response, authException) -> {
+                                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                                    response.setContentType("application/json;charset=UTF-8");
+                                    response.getWriter().write("{\"error\": \"존재하지 않는 경로입니다.\"}");
+                                },
+                                new AntPathRequestMatcher("/**")
+                        ))
                 .rememberMe(remember -> remember
                         .rememberMeServices(rememberMeServices))
                 .logout(logout -> logout
