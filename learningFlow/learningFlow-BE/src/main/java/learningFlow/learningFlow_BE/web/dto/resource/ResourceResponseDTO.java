@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-public class ResourceResponseDto {
+public class ResourceResponseDTO {
 
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder
-    public static class ResourceUrlDto {
+    public static class ResourceUrlDTO {
         String embeddedUrl;
     }
 }

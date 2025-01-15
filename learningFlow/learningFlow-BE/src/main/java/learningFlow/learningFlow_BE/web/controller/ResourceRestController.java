@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
-import learningFlow.learningFlow_BE.web.dto.memo.MemoRequestDto;
-import learningFlow.learningFlow_BE.web.dto.memo.MemoResponseDto;
-import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDto;
+import learningFlow.learningFlow_BE.web.dto.memo.MemoRequestDTO;
+import learningFlow.learningFlow_BE.web.dto.memo.MemoResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -33,7 +33,7 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
     })
-    public ApiResponse<ResourceResponseDto.ResourceUrlDto> watchEpisode(@PathVariable("episode-id") Long episodeId) {
+    public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchEpisode(@PathVariable("episode-id") Long episodeId) {
         /**
          * 강의 시청 하는 API로 강좌로 이동하는 API 이기 때문에 일단 Resource의 Url을 반환하게 해놓았어요.
          */
@@ -50,7 +50,7 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "메모를 추가할 강의 에피소드 ID")
     })
-    public ApiResponse<MemoResponseDto.MemoInfoDto> createMemo(@PathVariable("episode-id") Long episodeId, @RequestBody MemoRequestDto.MemoJoinDto request) {
+    public ApiResponse<MemoResponseDTO.MemoInfoDTO> createMemo(@PathVariable("episode-id") Long episodeId, @RequestBody MemoRequestDTO.MemoJoinDTO request) {
         /**
          * 메모를 생성하고 저장하게 되면 자신이 쓴 메모를 보여주는게 맞을 것 같아서 일단 메모 contents를 반환하게 해놓았어요.
          */

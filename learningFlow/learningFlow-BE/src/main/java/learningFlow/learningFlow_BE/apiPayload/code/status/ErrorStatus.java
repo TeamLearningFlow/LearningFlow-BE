@@ -34,7 +34,10 @@ public enum ErrorStatus implements BaseErrorCode {
     COLLECTION_NOT_FOUND(HttpStatus.NOT_FOUND,"COLLECTION4001","해당 컬렉션을 찾을 수 없습니다."),
 
     // 예시,,,
-    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다.");
+    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다."),
+
+    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),;
 
 
     private final HttpStatus httpStatus;

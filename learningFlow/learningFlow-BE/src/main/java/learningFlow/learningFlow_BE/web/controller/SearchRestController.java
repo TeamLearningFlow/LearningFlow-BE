@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import learningFlow.learningFlow_BE.validation.annotation.CheckPage;
-import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDto;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -40,7 +40,7 @@ public class SearchRestController {
             @Parameter(name = "interest", description = "관심 분야", required = false),
             @Parameter(name = "page", description = "페이지 번호", required = true)
     })
-    public ApiResponse<CollectionResponseDto.CollectionListDto> searchEpisodes(
+    public ApiResponse<CollectionResponseDTO.CollectionListDto> searchEpisodes(
             @RequestParam String keyword,
             @RequestParam(required = false) MediaType mediaType, // 미디어 타입 필터
             @RequestParam(required = false) Integer difficulty, // 난이도 필터

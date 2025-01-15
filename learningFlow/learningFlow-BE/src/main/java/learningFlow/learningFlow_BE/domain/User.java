@@ -3,6 +3,9 @@ package learningFlow.learningFlow_BE.domain;
 import jakarta.persistence.*;
 import learningFlow.learningFlow_BE.domain.enums.*;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +14,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Builder
 @Entity
 @Table(name = "user")
