@@ -2,7 +2,6 @@ package learningFlow.learningFlow_BE.config.security;
 
 import learningFlow.learningFlow_BE.config.security.auth.OAuth2LoginSuccessHandler;
 import learningFlow.learningFlow_BE.service.user.CustomOAuth2UserService;
-import learningFlow.learningFlow_BE.service.user.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -17,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 
 @Slf4j
 @EnableWebSecurity
@@ -26,8 +24,8 @@ import org.springframework.security.web.authentication.rememberme.TokenBasedReme
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final CustomUserDetailsService customUserDetailsService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final RememberMeServices rememberMeServices;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -40,10 +38,13 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/find/**",
+                                "/reset-password"
                         ).permitAll()
-                        // 기존 허용 경로
-                        .requestMatchers("/register", "/login", "/login/google", "/oauth2/**").permitAll()
+                        .requestMatchers(
+                                "/register", "/login", "/login/google", "/oauth2/**", "/logout",
+                                "/home/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -54,19 +55,12 @@ public class SecurityConfig {
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
                 .rememberMe(remember -> remember
-                        .rememberMeServices(rememberMeServices()));
+                        .rememberMeServices(rememberMeServices))
+                .logout(logout -> logout
+                        .deleteCookies("JSESSIONID", "remember-me")
+                );
 
         return http.build();
-    }
-
-    @Bean
-    public RememberMeServices rememberMeServices() {
-        TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices(
-                "uniqueAndSecret",
-                customUserDetailsService
-        );
-        rememberMeServices.setTokenValiditySeconds(60 * 60 * 24 * 7); // 7일
-        return rememberMeServices;
     }
 
     @Bean
