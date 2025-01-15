@@ -34,7 +34,6 @@ spring:
             enable: true
         transport:
           protocol: smtp
-        debug: true
 
 app:
   url: http://localhost:8080
