@@ -4,10 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.domain.EmailVerificationToken;
 import learningFlow.learningFlow_BE.domain.PasswordResetToken;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.enums.Role;
 import learningFlow.learningFlow_BE.domain.enums.SocialType;
+import learningFlow.learningFlow_BE.repository.EmailVerificationTokenRepository;
 import learningFlow.learningFlow_BE.repository.PasswordResetTokenRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
@@ -44,23 +46,59 @@ public class AuthService {
     private final RememberMeServices rememberMeServices;
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
 
     @Transactional
-    public UserResponseDTO.UserLoginResponseDTO register(UserRequestDTO.UserRegisterDTO requestDTO) {
+    public void initialRegister(UserRequestDTO.InitialRegisterDTO requestDTO) {
         // 이메일 중복 체크
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
             throw new RuntimeException("이미 사용중인 이메일입니다.");
         }
 
-        // 로그인 ID 생성 (LOCAL_UUID 앞 8자리)
+        // 진행 중인 이메일 인증이 있는지 확인
+        if (emailVerificationTokenRepository.existsByEmailAndVerifiedFalse(requestDTO.getEmail())) {
+            throw new RuntimeException("이미 진행 중인 이메일 인증이 있습니다. 이메일을 확인해주세요.");
+        }
+
+        // 토큰 생성
+        String token = UUID.randomUUID().toString();
+
+        // 이메일 인증 토큰 저장
+        EmailVerificationToken verificationToken = EmailVerificationToken.builder()
+                .token(token)
+                .email(requestDTO.getEmail())
+                .password(passwordEncoder.encode(requestDTO.getPassword()))
+                .expiryDate(LocalDateTime.now().plusHours(24))
+                .verified(false)
+                .build();
+
+        emailVerificationTokenRepository.save(verificationToken);
+
+        // 인증 이메일 발송
+        emailService.sendVerificationEmail(requestDTO.getEmail(), token);
+    }
+
+    @Transactional
+    public UserResponseDTO.UserLoginResponseDTO completeRegister(UserRequestDTO.CompleteRegisterDTO requestDTO) {
+        // 토큰 유효성 검증
+        EmailVerificationToken token = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(requestDTO.getToken())
+                .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
+
+        if (token.isExpired()) {
+            emailVerificationTokenRepository.delete(token);
+            throw new RuntimeException("만료된 토큰입니다. 회원가입을 다시 진행해주세요.");
+        }
+
+        // 로그인 ID 생성
         String uuid = UUID.randomUUID().toString().substring(0, 8);
         String loginId = "LOCAL_" + uuid;
 
+        // 새로운 유저 생성
         User user = User.builder()
                 .loginId(loginId)
+                .email(token.getEmail())
+                .pw(token.getPassword())
                 .name(requestDTO.getName())
-                .email(requestDTO.getEmail())
-                .pw(passwordEncoder.encode(requestDTO.getPassword()))
                 .job(requestDTO.getJob())
                 .interestFields(requestDTO.getInterestFields())
                 .birthDay(requestDTO.getBirthDay())
@@ -72,6 +110,10 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        // 토큰 verified 처리
+        emailVerificationTokenRepository.delete(token);
+
         return toUserLoginResponseDTO(savedUser);
     }
 
@@ -113,7 +155,6 @@ public class AuthService {
             throw new RuntimeException("이메일 또는 비밀번호가 잘못되었습니다.");
         }
     }
-
 
     @Transactional
     public void sendPasswordResetEmail(UserRequestDTO.FindPasswordDTO request) {
