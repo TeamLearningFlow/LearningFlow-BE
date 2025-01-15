@@ -5,10 +5,7 @@ import learningFlow.learningFlow_BE.domain.enums.Category;
 import learningFlow.learningFlow_BE.domain.enums.Gender;
 import learningFlow.learningFlow_BE.domain.enums.Job;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,9 +13,6 @@ import java.util.List;
 public class UserRequestDTO {
 
     @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class UserRegisterDTO {
         @NotBlank(message = "이름은 필수 입력값입니다")
         private String name;
@@ -28,8 +22,8 @@ public class UserRequestDTO {
         private String email;
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
-        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
-                message = "비밀번호는 8자 이상, 영문자, 숫자, 특수문자를 포함해야 합니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s])\\S{8,}$",
+                message = "비밀번호는 8자 이상, 영문자, 숫자, 특수문자를 포함해야 하며, 공백은 허용되지 않습니다.")
         private String password;
 
         @NotNull(message = "직업은 필수 선택값입니다")
@@ -51,9 +45,6 @@ public class UserRequestDTO {
     }
 
     @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class UserLoginDTO {
         @Email(message = "올바른 이메일 형식이어야 합니다")
         private String email;
@@ -65,9 +56,6 @@ public class UserRequestDTO {
     }
 
     @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class AdditionalInfoDTO {
         @NotNull(message = "직업은 필수 선택값입니다")
         private Job job;
@@ -83,5 +71,23 @@ public class UserRequestDTO {
 
         @NotNull(message = "선호하는 미디어 타입은 필수 선택값입니다")
         private MediaType preferType;
+    }
+
+    @Getter
+    public static class FindPasswordDTO {
+        @Email(message = "올바른 이메일 형식이어야 합니다")
+        @NotBlank(message = "이메일은 필수 입력값입니다")
+        private String email;
+    }
+
+    @Getter
+    public static class ResetPasswordDTO {
+        @NotBlank(message = "토큰은 필수 입력값입니다")
+        private String token;
+
+        @NotBlank(message = "비밀번호는 필수 입력값입니다")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s])\\S{8,}$",
+                message = "비밀번호는 8자 이상, 영문자, 숫자, 특수문자를 포함해야 하며, 공백은 허용되지 않습니다.")
+        private String newPassword;
     }
 }
