@@ -17,6 +17,27 @@ public class EmailService {
     @Value("${app.url}")
     private String baseUrl;
 
+    public void sendVerificationEmail(String email, String token) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(email);
+            message.setSubject("[OnBoarding] 이메일 인증");
+            message.setText(
+                    "안녕하세요, OnBoarding입니다.\n\n" +
+                            "회원가입을 완료하기 위해 아래 링크를 클릭하여 추가 정보를 입력해주세요:\n\n" +
+                            baseUrl + "/register/complete?token=" + token + "\n\n" +
+                            "이 링크는 24시간 동안 유효합니다.\n" +
+                            "본인이 요청하지 않은 경우 이 이메일을 무시해주세요."
+            );
+
+            emailSender.send(message);
+            log.info("이메일 인증 메일 발송 완료: {}", email);
+        } catch (Exception e) {
+            log.error("이메일 발송 실패: {}", e.getMessage());
+            throw new RuntimeException("이메일 발송에 실패했습니다.");
+        }
+    }
+
     public void sendPasswordResetEmail(String email, String token) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
