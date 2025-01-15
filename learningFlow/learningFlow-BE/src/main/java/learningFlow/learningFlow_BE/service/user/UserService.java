@@ -20,6 +20,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginResponseDTO;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -83,6 +85,6 @@ public class UserService {
                 principalDetails, null, principalDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(newAuthentication);
 
-        return UserResponseDTO.UserLoginResponseDTO.from(savedUser);
+        return toUserLoginResponseDTO(savedUser);
     }
 }
