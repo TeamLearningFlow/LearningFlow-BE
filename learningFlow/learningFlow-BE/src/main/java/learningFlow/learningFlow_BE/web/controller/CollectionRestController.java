@@ -34,7 +34,9 @@ public class CollectionRestController {
     @Parameters({
             @Parameter(name = "collection-id", description = "컬렉션 ID"),
     })
-    public ApiResponse<CollectionResponseDTO.CollectionDto> getCollection(@PathVariable("collection-id") Long collectionId) {
+    public ApiResponse<CollectionResponseDTO.CollectionDto> getCollection(
+            @PathVariable("collection-id") Long collectionId
+    ) {
         // TODO: 컬렉션 조회 로직 구현
         return ApiResponse.onSuccess(null);
     }
