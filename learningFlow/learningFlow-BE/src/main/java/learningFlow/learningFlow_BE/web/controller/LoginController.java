@@ -28,17 +28,6 @@ public class LoginController {
     private final AuthService authService;
     private final UserService userService;
 
-/*
-    @PostMapping("/register")
-    @Operation(summary = "일반 회원가입 API", description = "이메일과 비밀번호를 통한 일반 회원가입을 처리하는 API")
-    public ApiResponse<UserResponseDTO.UserLoginResponseDTO> register(
-            @Valid @RequestBody UserRequestDTO.UserRegisterDTO request
-    ) {
-        return ApiResponse.onSuccess(authService.register(request));
-        //TODO: 회원가입 후 로그인 창으로 리다이렉트 하는게 나을것 같은데 이 부분은 아직 설정 안함(스웨거 테스트 시 불편)
-    }
-*/
-
     @PostMapping("/register")
     @Operation(summary = "회원가입 초기 단계 API", description = "이메일과 비밀번호를 입력받아 인증 이메일을 발송하는 API")
     public ApiResponse<String> register(
@@ -67,7 +56,6 @@ public class LoginController {
         return ApiResponse.onSuccess(authService.login(request, httpRequest, httpResponse));
         //TODO: 로그인 후에도 /home으로 리다이렉트 되는게 나을 것 같은데 이 부분 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
-
 
     /**
      * localhost:8080/oauth2/authorization/google로 리다이렉트해서 로그인 수행
