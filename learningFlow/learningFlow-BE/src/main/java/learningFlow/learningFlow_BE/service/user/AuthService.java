@@ -1,9 +1,9 @@
 package learningFlow.learningFlow_BE.service.user;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.config.security.jwt.JwtLogoutHandler;
+import learningFlow.learningFlow_BE.config.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.EmailVerificationToken;
 import learningFlow.learningFlow_BE.domain.PasswordResetToken;
 import learningFlow.learningFlow_BE.domain.User;
@@ -20,16 +20,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.RememberMeServices;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,10 +41,11 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final RememberMeServices rememberMeServices;
     private final PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtLogoutHandler jwtLogoutHandler;
 
     @Transactional
     public void initialRegister(UserRequestDTO.InitialRegisterDTO requestDTO) {
@@ -79,7 +78,8 @@ public class AuthService {
     }
 
     @Transactional
-    public UserResponseDTO.UserLoginResponseDTO completeRegister(UserRequestDTO.CompleteRegisterDTO requestDTO) {
+    public UserResponseDTO.UserLoginResponseDTO completeRegister(UserRequestDTO.CompleteRegisterDTO requestDTO,
+                                                                 HttpServletResponse response) {
         // 토큰 유효성 검증
         EmailVerificationToken token = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(requestDTO.getToken())
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
@@ -114,12 +114,24 @@ public class AuthService {
         // 토큰 verified 처리
         emailVerificationTokenRepository.delete(token);
 
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                new PrincipalDetails(savedUser),
+                null,
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + savedUser))
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String accessToken = jwtTokenProvider.createAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        response.addHeader("Refresh-Token", refreshToken);
+
         return toUserLoginResponseDTO(savedUser);
     }
 
     public UserResponseDTO.UserLoginResponseDTO login(UserRequestDTO.UserLoginDTO request,
-                                                      HttpServletRequest httpRequest,
-                                                      HttpServletResponse httpResponse) {
+                                                      HttpServletResponse response) {
         try {
             UsernamePasswordAuthenticationToken authRequest =
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
@@ -127,29 +139,23 @@ public class AuthService {
             // 인증 시도
             Authentication authentication = authenticationManager.authenticate(authRequest);
 
+            // SecurityContext에 인증 정보 저장
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // 응답 생성
+            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+
+            String accessToken = jwtTokenProvider.createAccessToken(authentication);
+            String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+
             log.info("로그인 성공: email={}, authorities={}",
                     authentication.getName(),
                     authentication.getAuthorities());
 
-            // SecurityContext에 인증 정보 저장
-            SecurityContext securityContext = SecurityContextHolder.getContext();
-            securityContext.setAuthentication(authentication);
+            response.addHeader("Authorization", "Bearer " + accessToken);
+            response.addHeader("Refresh-Token", refreshToken);
 
-            // 세션 생성 및 SecurityContext 저장
-            HttpSession session = httpRequest.getSession(true);
-            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
-
-            log.info("SecurityContext 저장 완료: sessionId={}", session.getId());
-
-            // Remember Me 처리
-            if (request.isRememberMe()) {
-                rememberMeServices.loginSuccess(httpRequest, httpResponse, authentication);
-            }
-
-            // 응답 생성
-            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
             return toUserLoginResponseDTO(principalDetails.getUser());
-
         } catch (AuthenticationException e) {
             log.error("로그인 실패: {}", e.getMessage());
             throw new RuntimeException("이메일 또는 비밀번호가 잘못되었습니다.");
@@ -201,5 +207,12 @@ public class AuthService {
         // 사용된 토큰 삭제
         tokenRepository.delete(resetToken);
         log.info("비밀번호 재설정 완료: {}", user.getEmail());
+    }
+
+    public void logout(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        jwtLogoutHandler.addToBlacklist(token);
     }
 }
