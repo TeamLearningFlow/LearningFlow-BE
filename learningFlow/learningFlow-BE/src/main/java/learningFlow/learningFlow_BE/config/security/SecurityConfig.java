@@ -47,9 +47,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout",
                                 "/home/**").permitAll()
-
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/user/**").authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
@@ -60,9 +59,7 @@ public class SecurityConfig {
                 .exceptionHandling(handler -> handler
                         .defaultAuthenticationEntryPointFor(
                                 (request, response, authException) -> {
-                                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                                    response.setContentType("application/json;charset=UTF-8");
-                                    response.getWriter().write("{\"error\": \"존재하지 않는 경로입니다.\"}");
+                                    response.sendRedirect("/home");
                                 },
                                 new AntPathRequestMatcher("/**")
                         ))
