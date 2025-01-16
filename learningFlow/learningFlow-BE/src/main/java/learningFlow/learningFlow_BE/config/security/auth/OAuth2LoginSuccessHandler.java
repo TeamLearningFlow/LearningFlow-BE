@@ -3,15 +3,15 @@ package learningFlow.learningFlow_BE.config.security.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
+import learningFlow.learningFlow_BE.config.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.service.user.OAuth2UserTemp;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginRe
 @Slf4j
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final RememberMeServices rememberMeServices;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -31,26 +31,33 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("OAuth2 로그인 성공!");
 
         // Principal 타입 확인
-        if (authentication.getPrincipal() instanceof OAuth2UserTemp) {
-            // 세션에 OAuth2UserTemp 저장
-            HttpSession session = request.getSession();
-            session.setAttribute("OAUTH2_USER_TEMP", authentication.getPrincipal());
+        if (authentication.getPrincipal() instanceof OAuth2UserTemp oAuth2UserTemp) {
 
-            response.sendRedirect("/oauth2/additional-info");
+            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
+
+            String redirectUrl = "/oauth2/additional-info?token=" + temporaryToken;
+            response.sendRedirect(redirectUrl);
             return;
         }
 
-        HttpSession session = request.getSession(false);
-        Boolean rememberMe = (Boolean) session.getAttribute("OAUTH2_REMEMBER_ME");
-
-        if (rememberMe != null && rememberMe) {
-            rememberMeServices.loginSuccess(request, response, authentication);
-        }
-
-        session.removeAttribute("OAUTH2_REMEMBER_ME");
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // 기존 사용자인 경우
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+        String accessToken = jwtTokenProvider.createAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+
+        log.info("Access Token: {}", accessToken);
+        log.info("Refresh Token: {}", refreshToken);
+
+        // 토큰을 헤더에 추가
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        response.addHeader("Refresh-Token", refreshToken);
+
+        // 헤더 설정 확인 로깅
+        log.info("Authorization Header: {}", response.getHeader("Authorization"));
+        log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
+
         UserResponseDTO.UserLoginResponseDTO loginResponse =
                 toUserLoginResponseDTO(principalDetails.getUser());
 
