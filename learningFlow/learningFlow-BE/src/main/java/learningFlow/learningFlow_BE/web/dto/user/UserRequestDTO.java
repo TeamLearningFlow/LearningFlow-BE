@@ -6,7 +6,6 @@ import learningFlow.learningFlow_BE.domain.enums.Gender;
 import learningFlow.learningFlow_BE.domain.enums.Job;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.Getter;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -58,8 +57,6 @@ public class UserRequestDTO {
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
         String password;
-
-        boolean rememberMe = false;
     }
 
     @Getter
