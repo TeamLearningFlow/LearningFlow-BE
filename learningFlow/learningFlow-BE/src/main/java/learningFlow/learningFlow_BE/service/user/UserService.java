@@ -1,24 +1,30 @@
 package learningFlow.learningFlow_BE.service.user;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.config.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.enums.Role;
+import learningFlow.learningFlow_BE.domain.enums.SocialType;
 import learningFlow.learningFlow_BE.repository.UserRepository;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginResponseDTO;
 
@@ -29,6 +35,8 @@ import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginRe
 public class UserService {
 
     private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, String> redisTemplate;
 
     // 추가 정보 입력 필요 여부와 필드 정보를 반환하는 메소드
     public Map<String, Object> getAdditionalInfoRequirements() {
@@ -43,29 +51,28 @@ public class UserService {
 
     @Transactional
     public UserResponseDTO.UserLoginResponseDTO updateAdditionalInfo(
-            HttpServletRequest request,
-            UserRequestDTO.AdditionalInfoDTO additionalInfo) {
+            String temporaryToken,
+            UserRequestDTO.AdditionalInfoDTO additionalInfo,
+            HttpServletResponse response) {
 
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new RuntimeException("세션이 없습니다. 먼저 OAuth2 로그인을 진행해주세요.");
+        if (!jwtTokenProvider.validateToken(temporaryToken) || !jwtTokenProvider.isTemporaryToken(temporaryToken)) {
+            throw new RuntimeException("유효하지 않은 토큰입니다.");
         }
 
-        OAuth2UserTemp oauth2UserTemp = (OAuth2UserTemp) session.getAttribute("OAUTH2_USER_TEMP");
-        if (oauth2UserTemp == null) {
-            throw new RuntimeException("OAuth2 로그인 정보가 없습니다. 먼저 OAuth2 로그인을 진행해주세요.");
-        }
+        Claims claims = jwtTokenProvider.getClaims(temporaryToken);
+        String email = claims.getSubject();
+        String name = claims.get("name", String.class);
+        String providerId = claims.get("providerId", String.class);
+        SocialType socialType = SocialType.valueOf(claims.get("socialType", String.class));
 
-        // 새로운 유저 생성
-        String loginId = oauth2UserTemp.getSocialType().name() + "_" + oauth2UserTemp.getProviderId();
 
         User newUser = User.builder()
-                .loginId(loginId)
-                .email(oauth2UserTemp.getEmail())
-                .name(oauth2UserTemp.getName())
-                .providerId(oauth2UserTemp.getProviderId())
+                .loginId(socialType.name() + "_" + providerId)
+                .email(email)
+                .name(name)
+                .providerId(providerId)
                 .pw("OAUTH2_USER")
-                .socialType(oauth2UserTemp.getSocialType())
+                .socialType(socialType)
                 .job(additionalInfo.getJob())
                 .interestFields(additionalInfo.getInterestFields())
                 .birthDay(additionalInfo.getBirthDay())
@@ -77,13 +84,24 @@ public class UserService {
 
         User savedUser = userRepository.save(newUser);
 
-        session.removeAttribute("OAUTH2_USER_TEMP");
+        //정식으로 JWT 토큰 발급
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                new PrincipalDetails(savedUser),
+                null,
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + savedUser.getRole().name()))
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 새로운 Authentication 생성 및 설정
-        PrincipalDetails principalDetails = new PrincipalDetails(savedUser, oauth2UserTemp.getAttributes());
-        Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
-                principalDetails, null, principalDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(newAuthentication);
+        String accessToken = jwtTokenProvider.createAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+
+        response.addHeader("Authorization", "Bearer" + accessToken);
+        response.addHeader("Refersh-Token", refreshToken);
+
+        redisTemplate.opsForValue()
+                .set("BLACKLIST:" + temporaryToken, "true",
+                        jwtTokenProvider.getRemainingTime(temporaryToken),
+                        TimeUnit.MILLISECONDS);
 
         return toUserLoginResponseDTO(savedUser);
     }
