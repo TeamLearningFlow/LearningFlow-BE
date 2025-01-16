@@ -2,6 +2,8 @@ package learningFlow.learningFlow_BE.config.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import learningFlow.learningFlow_BE.config.security.auth.OAuth2LoginSuccessHandler;
+import learningFlow.learningFlow_BE.config.security.jwt.JwtAuthenticationFilter;
+import learningFlow.learningFlow_BE.config.security.jwt.JwtLogoutHandler;
 import learningFlow.learningFlow_BE.service.user.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +18,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
@@ -27,13 +29,14 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-    private final RememberMeServices rememberMeServices;
+    private final JwtLogoutHandler jwtLogoutHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Swagger UI 관련 경로 허용
                         .requestMatchers(
@@ -45,7 +48,7 @@ public class SecurityConfig {
                                 "/reset-password"
                         ).permitAll()
                         .requestMatchers(
-                                "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout",
+                                "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
                                 "/home/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").authenticated()
@@ -56,18 +59,14 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService))
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(handler -> handler
                         .defaultAuthenticationEntryPointFor(
                                 (request, response, authException) -> {
                                     response.sendRedirect("/home");
                                 },
                                 new AntPathRequestMatcher("/**")
-                        ))
-                .rememberMe(remember -> remember
-                        .rememberMeServices(rememberMeServices))
-                .logout(logout -> logout
-                        .deleteCookies("JSESSIONID", "remember-me")
-                );
+                        ));
 
         return http.build();
     }
