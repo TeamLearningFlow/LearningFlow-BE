@@ -2,7 +2,6 @@ package learningFlow.learningFlow_BE.web.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,17 +11,16 @@ import learningFlow.learningFlow_BE.service.user.UserService;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/")
+@RequestMapping
 @Tag(name = "Login", description = "회원가입, 로그인 관련 API")
+@Slf4j
 public class LoginController {
 
     private final AuthService authService;
@@ -40,9 +38,10 @@ public class LoginController {
     @PostMapping("/register/complete")
     @Operation(summary = "회원가입 완료 API", description = "이메일 인증 후 추가 정보를 입력받아 회원가입을 완료하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
-            @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request
+            @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request,
+            HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(authService.completeRegister(request));
+        return ApiResponse.onSuccess(authService.completeRegister(request, response));
         //TODO: 회원가입 후 로그인 창으로 리다이렉트 하는게 나을것 같은데 이 부분은 아직 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
 
@@ -50,10 +49,9 @@ public class LoginController {
     @Operation(summary = "일반 로그인 API", description = "이메일과 비밀번호를 통한 일반 로그인을 처리하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> login(
             @Valid @RequestBody UserRequestDTO.UserLoginDTO request,
-            HttpServletRequest httpRequest,
-            HttpServletResponse httpResponse
+            HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(authService.login(request, httpRequest, httpResponse));
+        return ApiResponse.onSuccess(authService.login(request, response));
         //TODO: 로그인 후에도 /home으로 리다이렉트 되는게 나을 것 같은데 이 부분 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
 
@@ -63,14 +61,7 @@ public class LoginController {
      */
     @GetMapping("/login/google")
     @Operation(summary = "구글 로그인 리다이렉트", description = "구글 로그인 페이지로 리다이렉트하는 API")
-    public void googleLogin(
-            @RequestParam(defaultValue = "false") boolean rememberMe,
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        HttpSession session = request.getSession();
-        session.setAttribute("OAUTH2_REMEMBER_ME", rememberMe);
-
+    public void googleLogin(HttpServletResponse response) throws IOException {
         response.sendRedirect("/oauth2/authorization/google");
     }
 
@@ -97,10 +88,11 @@ public class LoginController {
     @PutMapping("/oauth2/additional-info")
     @Operation(summary = "추가 정보 입력 API", description = "OAuth2 회원가입 후 추가 정보를 입력하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
+            @RequestParam String token,
             @Valid @RequestBody UserRequestDTO.AdditionalInfoDTO request,
-            HttpServletRequest httpRequest) {  // HttpServletRequest 추가
+            HttpServletResponse response) {
 
-        return ApiResponse.onSuccess(userService.updateAdditionalInfo(httpRequest, request));
+        return ApiResponse.onSuccess(userService.updateAdditionalInfo(token, request, response));
     }
 
     @PostMapping("/find/password")
@@ -124,22 +116,27 @@ public class LoginController {
     @PostMapping("/logout")
     @Operation(summary = "로그아웃 API", description = "로그아웃 실행하는 API, 실행 후 홈 화면으로 리다이렉트")
     public String logout(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Authentication authentication
+            HttpServletRequest request
     ) {
-        if (authentication != null) {
-            new SecurityContextLogoutHandler().logout(request, response, authentication);
-        }
+        String token = request.getHeader("Authorization");
+        authService.logout(token);
         return "redirect:/home";
     }
 
     @PostMapping("/logout/test") // 테스트 전용 API
     @Operation(summary = "로그아웃 테스트 용 API", description = "로그 아웃 테스트 후 리다이렉트 수행 안하고 스웨거에서 확인 가능하게 문자열 출력해주는 API")
-    public ResponseEntity<String> testLogout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        if (authentication != null) {
-            new SecurityContextLogoutHandler().logout(request, response, authentication);
+    public ApiResponse<String> testLogout(
+            HttpServletRequest request
+    ) {
+        log.info("로그아웃 요청 받음");
+        try {
+            String token = request.getHeader("Authorization");
+            log.info("받은 토큰: {}", token);
+            authService.logout(token);
+            return ApiResponse.onSuccess("로그아웃 성공");
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 오류 발생: {}", e.getMessage());
+            throw new RuntimeException("로그아웃 처리 중 오류가 발생했습니다.");
         }
-        return ResponseEntity.ok("로그아웃 성공");
     }
 }
