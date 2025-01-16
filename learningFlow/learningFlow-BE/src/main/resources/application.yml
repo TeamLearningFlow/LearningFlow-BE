@@ -21,6 +21,11 @@ spring:
             scope:
               - email
               - profile
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -35,9 +40,15 @@ spring:
         transport:
           protocol: smtp
 
+# JWT 설정 추가
+custom:
+  jwt:
+    secretKey: ${JWT_SECRET_KEY}
+    access-token-validity-in-seconds: 3600    # Access Token 1시간
+    refresh-token-validity-in-seconds: 604800 # Refresh Token 1주일
+
 app:
   url: http://localhost:8080
-
 
 server:
   port: 8080                                         # Spring Boot ?????? ?? ??
