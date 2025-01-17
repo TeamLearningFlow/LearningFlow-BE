@@ -1,10 +1,10 @@
-package learningFlow.learningFlow_BE.service.user;
+package learningFlow.learningFlow_BE.service.auth.oauth;
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
-import learningFlow.learningFlow_BE.config.security.jwt.JwtTokenProvider;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.enums.Role;
 import learningFlow.learningFlow_BE.domain.enums.SocialType;
@@ -32,7 +32,7 @@ import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginRe
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class UserService {
+public class OAuth2UserRegistrationService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -93,11 +93,14 @@ public class UserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        log.info("Access 토큰 발급 : {}", accessToken);
+
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
-
-        response.addHeader("Authorization", "Bearer" + accessToken);
         response.addHeader("Refersh-Token", refreshToken);
+        log.info("자동 로그인 활성화, Refresh Token 발급 : {}", refreshToken);
 
+        //임시 토큰 블랙리스트에 저장
         redisTemplate.opsForValue()
                 .set("BLACKLIST:" + temporaryToken, "true",
                         jwtTokenProvider.getRemainingTime(temporaryToken),
