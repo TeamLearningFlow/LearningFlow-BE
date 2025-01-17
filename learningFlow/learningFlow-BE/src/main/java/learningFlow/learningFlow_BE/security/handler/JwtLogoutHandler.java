@@ -1,7 +1,8 @@
-package learningFlow.learningFlow_BE.config.security.jwt;
+package learningFlow.learningFlow_BE.security.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

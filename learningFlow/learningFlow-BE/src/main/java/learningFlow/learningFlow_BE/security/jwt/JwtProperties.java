@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.config.security.jwt;
+package learningFlow.learningFlow_BE.security.jwt;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

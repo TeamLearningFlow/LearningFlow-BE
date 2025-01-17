@@ -1,11 +1,11 @@
-package learningFlow.learningFlow_BE.config.security.jwt;
+package learningFlow.learningFlow_BE.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.domain.User;
-import learningFlow.learningFlow_BE.service.user.OAuth2UserTemp;
+import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserTemp;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
