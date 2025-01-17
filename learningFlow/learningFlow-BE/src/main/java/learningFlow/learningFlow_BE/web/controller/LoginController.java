@@ -6,8 +6,8 @@ import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import learningFlow.learningFlow_BE.service.user.AuthService;
-import learningFlow.learningFlow_BE.service.user.UserService;
+import learningFlow.learningFlow_BE.service.auth.local.LocalUserAuthService;
+import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserRegistrationService;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -23,15 +23,15 @@ import java.io.IOException;
 @Slf4j
 public class LoginController {
 
-    private final AuthService authService;
-    private final UserService userService;
+    private final LocalUserAuthService localUserAuthService;
+    private final OAuth2UserRegistrationService OAuth2UserRegistrationService;
 
     @PostMapping("/register")
     @Operation(summary = "회원가입 초기 단계 API", description = "이메일과 비밀번호를 입력받아 인증 이메일을 발송하는 API")
     public ApiResponse<String> register(
             @Valid @RequestBody UserRequestDTO.InitialRegisterDTO request
     ) {
-        authService.initialRegister(request);
+        localUserAuthService.initialRegister(request);
         return ApiResponse.onSuccess("인증 이메일이 발송되었습니다. 이메일을 확인해주세요.");
     }
 
@@ -41,7 +41,7 @@ public class LoginController {
             @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request,
             HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(authService.completeRegister(request, response));
+        return ApiResponse.onSuccess(localUserAuthService.completeRegister(request, response));
         //TODO: 회원가입 후 로그인 창으로 리다이렉트 하는게 나을것 같은데 이 부분은 아직 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
 
@@ -52,7 +52,7 @@ public class LoginController {
             HttpServletResponse response
     ) {
         log.info("/login 시작");
-        return ApiResponse.onSuccess(authService.login(request, response));
+        return ApiResponse.onSuccess(localUserAuthService.login(request, response));
         //TODO: 로그인 후에도 /home으로 리다이렉트 되는게 나을 것 같은데 이 부분 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
 
@@ -62,7 +62,9 @@ public class LoginController {
      */
     @GetMapping("/login/google")
     @Operation(summary = "구글 로그인 리다이렉트", description = "구글 로그인 페이지로 리다이렉트하는 API")
-    public void googleLogin(HttpServletResponse response) throws IOException {
+    public void googleLogin(
+            HttpServletResponse response
+    ) throws IOException {
         response.sendRedirect("/oauth2/authorization/google");
     }
 
@@ -76,8 +78,7 @@ public class LoginController {
     @GetMapping("/oauth2/additional-info")
     @Operation(summary = "추가 정보 입력 페이지", description = "OAuth2 회원가입 후 추가 정보 입력이 필요한 경우 리다이렉트되는 엔드포인트")
     public ApiResponse<?> getAdditionalInfoPage() {
-
-        return ApiResponse.onSuccess(userService.getAdditionalInfoRequirements());
+        return ApiResponse.onSuccess(OAuth2UserRegistrationService.getAdditionalInfoRequirements());
     }
 
     /**
@@ -93,7 +94,7 @@ public class LoginController {
             @Valid @RequestBody UserRequestDTO.AdditionalInfoDTO request,
             HttpServletResponse response) {
 
-        return ApiResponse.onSuccess(userService.updateAdditionalInfo(token, request, response));
+        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, response));
     }
 
     @PostMapping("/find/password")
@@ -101,7 +102,7 @@ public class LoginController {
     public ApiResponse<String> requestPasswordReset(
             @Valid @RequestBody UserRequestDTO.FindPasswordDTO request
     ) {
-        authService.sendPasswordResetEmail(request);
+        localUserAuthService.sendPasswordResetEmail(request);
         return ApiResponse.onSuccess("이메일이 성공적으로 발송되었습니다.");
     }
 
@@ -110,7 +111,7 @@ public class LoginController {
     public ApiResponse<String> resetPassword(
             @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request
     ) {
-        authService.resetPassword(request);
+        localUserAuthService.resetPassword(request);
         return ApiResponse.onSuccess("비밀번호 재설정이 완료되었습니다.");
     }
 
@@ -120,7 +121,7 @@ public class LoginController {
             HttpServletRequest request
     ) {
         String token = request.getHeader("Authorization");
-        authService.logout(token);
+        localUserAuthService.logout(token);
         return "redirect:/home";
     }
 
@@ -133,7 +134,7 @@ public class LoginController {
         try {
             String token = request.getHeader("Authorization");
             log.info("받은 토큰: {}", token);
-            authService.logout(token);
+            localUserAuthService.logout(token);
             return ApiResponse.onSuccess("로그아웃 성공");
         } catch (Exception e) {
             log.error("로그아웃 처리 중 오류: {}", e.getMessage());
