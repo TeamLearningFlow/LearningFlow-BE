@@ -1,6 +1,6 @@
 package learningFlow.learningFlow_BE.service.user;
 
-import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
