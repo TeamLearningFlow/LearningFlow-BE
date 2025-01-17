@@ -51,6 +51,7 @@ public class LoginController {
             @Valid @RequestBody UserRequestDTO.UserLoginDTO request,
             HttpServletResponse response
     ) {
+        log.info("/login 시작");
         return ApiResponse.onSuccess(authService.login(request, response));
         //TODO: 로그인 후에도 /home으로 리다이렉트 되는게 나을 것 같은데 이 부분 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
@@ -128,14 +129,14 @@ public class LoginController {
     public ApiResponse<String> testLogout(
             HttpServletRequest request
     ) {
-        log.info("로그아웃 요청 받음");
+        log.info("로그아웃 요청 받음, /logout/test 시작");
         try {
             String token = request.getHeader("Authorization");
             log.info("받은 토큰: {}", token);
             authService.logout(token);
             return ApiResponse.onSuccess("로그아웃 성공");
         } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류 발생: {}", e.getMessage());
+            log.error("로그아웃 처리 중 오류: {}", e.getMessage());
             throw new RuntimeException("로그아웃 처리 중 오류가 발생했습니다.");
         }
     }
