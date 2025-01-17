@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.service.user;
+package learningFlow.learningFlow_BE.service.auth.common;
 
 import learningFlow.learningFlow_BE.repository.EmailVerificationTokenRepository;
 import learningFlow.learningFlow_BE.repository.PasswordResetTokenRepository;
@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
-public class TokenCleanupScheduler {
+public class AuthTokenCleanupScheduler {
 
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository tokenRepository;
