@@ -1,9 +1,9 @@
-package learningFlow.learningFlow_BE.service.user;
+package learningFlow.learningFlow_BE.service.auth.local;
 
 import jakarta.servlet.http.HttpServletResponse;
-import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
-import learningFlow.learningFlow_BE.config.security.jwt.JwtLogoutHandler;
-import learningFlow.learningFlow_BE.config.security.jwt.JwtTokenProvider;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.handler.JwtLogoutHandler;
+import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.EmailVerificationToken;
 import learningFlow.learningFlow_BE.domain.PasswordResetToken;
 import learningFlow.learningFlow_BE.domain.User;
@@ -12,6 +12,7 @@ import learningFlow.learningFlow_BE.domain.enums.SocialType;
 import learningFlow.learningFlow_BE.repository.EmailVerificationTokenRepository;
 import learningFlow.learningFlow_BE.repository.PasswordResetTokenRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
+import learningFlow.learningFlow_BE.service.auth.common.UserVerificationEmailService;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,13 +35,13 @@ import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginRe
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthService {
+public class LocalUserAuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final PasswordResetTokenRepository tokenRepository;
-    private final EmailService emailService;
+    private final UserVerificationEmailService userVerificationEmailService;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtLogoutHandler jwtLogoutHandler;
@@ -74,7 +73,7 @@ public class AuthService {
         emailVerificationTokenRepository.save(verificationToken);
 
         // 인증 이메일 발송
-        emailService.sendVerificationEmail(requestDTO.getEmail(), token);
+        userVerificationEmailService.sendVerificationEmail(requestDTO.getEmail(), token);
     }
 
     @Transactional
@@ -114,19 +113,6 @@ public class AuthService {
         // 토큰 verified 처리
         emailVerificationTokenRepository.delete(token);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                new PrincipalDetails(savedUser),
-                null,
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + savedUser))
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String accessToken = jwtTokenProvider.createAccessToken(authentication);
-        String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
-
-        response.addHeader("Authorization", "Bearer " + accessToken);
-        response.addHeader("Refresh-Token", refreshToken);
-
         return toUserLoginResponseDTO(savedUser);
     }
 
@@ -146,16 +132,19 @@ public class AuthService {
             PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
 
             String accessToken = jwtTokenProvider.createAccessToken(authentication);
-            String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+            log.info("사용된 JWT access 토큰: Authorization={}", "Bearer " + accessToken);
+            response.addHeader("Authorization", "Bearer " + accessToken);
+
+            if (request.isRemember()) {
+                String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
+                log.info("자동 로그인 활성화: Refresh Token 발급");
+                log.info("사용된 JWT refresh 토큰: Refresh Token={}", refreshToken);
+                response.addHeader("Refresh-Token", refreshToken);
+            }
 
             log.info("로그인 성공: email={}, authorities={}",
                     authentication.getName(),
                     authentication.getAuthorities());
-            log.info("사용된 JWT access 토큰: Authorization={}", "Bearer " + accessToken);
-            log.info("사용된 JWT refresh 토큰: Refresh-Token={}", refreshToken);
-
-            response.addHeader("Authorization", "Bearer " + accessToken);
-            response.addHeader("Refresh-Token", refreshToken);
 
             return toUserLoginResponseDTO(principalDetails.getUser());
         } catch (AuthenticationException e) {
@@ -190,7 +179,7 @@ public class AuthService {
                 .build();
 
         tokenRepository.save(resetToken);
-        emailService.sendPasswordResetEmail(user.getEmail(), token);
+        userVerificationEmailService.sendPasswordResetEmail(user.getEmail(), token);
     }
 
     @Transactional
@@ -204,7 +193,7 @@ public class AuthService {
         }
 
         User user = resetToken.getUser();
-        user.setPw(passwordEncoder.encode(request.getNewPassword()));
+        user.changePassword(passwordEncoder.encode(request.getNewPassword()));
 
         // 사용된 토큰 삭제
         tokenRepository.delete(resetToken);
