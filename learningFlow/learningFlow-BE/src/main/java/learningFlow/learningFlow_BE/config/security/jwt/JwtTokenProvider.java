@@ -40,10 +40,14 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(Authentication authentication) {
+        PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+        User user = principalDetails.getUser();
+
         Date now = new Date();
         Date validity = new Date(now.getTime() + jwtProperties.getRefreshTokenValidityInSeconds() * 1000);
 
         return Jwts.builder()
+                .subject(user.getEmail())
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(jwtSecretKey)
