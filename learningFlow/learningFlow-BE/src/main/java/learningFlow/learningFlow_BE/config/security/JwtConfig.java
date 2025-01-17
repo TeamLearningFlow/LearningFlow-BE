@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.config.security.jwt;
+package learningFlow.learningFlow_BE.config.security;
 
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
