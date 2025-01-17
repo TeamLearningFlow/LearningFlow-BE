@@ -7,13 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
-import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO.HomeInfoDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,15 +58,17 @@ public class HomeRestController {
 
     @GetMapping("/test")
     @Operation(summary = "홈 화면 테스트용 API", description = "로그인, 로그아웃 상태 유지되는지 확인할 수 있는 API")
-    public ApiResponse<UserResponseDTO.UserLoginResponseDTO> getHomeTest() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ApiResponse<UserResponseDTO.UserLoginResponseDTO> getHomeTest(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        log.info("/home/test 시작");
 
-        if (authentication != null && authentication.getPrincipal() instanceof PrincipalDetails) {
-            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
-            User user = principalDetails.getUser();
-            return ApiResponse.onSuccess(toUserLoginResponseDTO(user));
-        } else {
-            return ApiResponse.onSuccess(null); // 로그인되지 않은 경우 null 반환
+        if (principalDetails != null) {
+            log.info("인증된 사용자: {}", principalDetails.getUsername());
+            return ApiResponse.onSuccess(toUserLoginResponseDTO(principalDetails.getUser()));
         }
+
+        log.info("인증되지 않은 사용자");
+        return ApiResponse.onSuccess(null);
     }
 }
