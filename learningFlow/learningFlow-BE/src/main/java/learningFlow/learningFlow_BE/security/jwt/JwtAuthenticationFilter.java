@@ -1,9 +1,11 @@
-package learningFlow.learningFlow_BE.config.security.jwt;
+package learningFlow.learningFlow_BE.security.jwt;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.service.user.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +82,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String refreshToken = request.getHeader("Refresh-Token");
                     log.info("전달받은 Refresh Token: {}", refreshToken);
 
-                    if (StringUtils.hasText(refreshToken) && jwtTokenProvider.validateToken(refreshToken)) {
+                    if (!StringUtils.hasText(refreshToken)) {
+                        log.info("Refresh Token이 없음 - 재로그인 필요");
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        String error = new ObjectMapper().writeValueAsString(
+                                ApiResponse.onFailure("401", "토큰이 만료되었습니다. 다시 로그인해주세요.", null)
+                        );
+                        response.getWriter().write(error);
+                        return;
+                    }
+
+                    if (jwtTokenProvider.validateToken(refreshToken)) {
                         log.info("유효한 Refresh Token. 새로운 Access Token을 발급 시작");
 
                         // Refresh Token이 유효하면 새로운 Access Token 발급
