@@ -1,10 +1,8 @@
 package learningFlow.learningFlow_BE.config.security;
 
-import jakarta.servlet.http.HttpServletResponse;
-import learningFlow.learningFlow_BE.config.security.auth.OAuth2LoginSuccessHandler;
-import learningFlow.learningFlow_BE.config.security.jwt.JwtAuthenticationFilter;
-import learningFlow.learningFlow_BE.config.security.jwt.JwtLogoutHandler;
-import learningFlow.learningFlow_BE.service.user.CustomOAuth2UserService;
+import learningFlow.learningFlow_BE.security.handler.OAuth2LoginSuccessHandler;
+import learningFlow.learningFlow_BE.security.jwt.JwtAuthenticationFilter;
+import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserAuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +25,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2UserAuthenticationService OAuth2UserAuthenticationService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-    private final JwtLogoutHandler jwtLogoutHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
@@ -56,7 +53,7 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService))
+                                .userService(OAuth2UserAuthenticationService))
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
