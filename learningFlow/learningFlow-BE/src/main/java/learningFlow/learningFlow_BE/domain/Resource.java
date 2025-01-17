@@ -7,7 +7,6 @@ import lombok.*;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -37,4 +36,18 @@ public class Resource extends BaseEntity {
 
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
+
+    public void addEpisode(CollectionEpisode episode) {
+        this.episodes.add(episode);
+        if (episode.getResource() != this) {
+            episode.setResource(this);
+        }
+    }
+
+    public void removeEpisode(CollectionEpisode episode) {
+        this.episodes.remove(episode);
+        if (episode.getResource() == this) {
+            episode.setResource(null);
+        }
+    }
 }

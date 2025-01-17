@@ -7,7 +7,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

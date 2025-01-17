@@ -6,13 +6,12 @@ import lombok.*;
 @Entity
 @Table(name = "memo")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Memo extends BaseEntity {
     @EmbeddedId
     private MemoId id;
 
-    @Column(nullable = true)
+    @Column
     private String contents;
 }

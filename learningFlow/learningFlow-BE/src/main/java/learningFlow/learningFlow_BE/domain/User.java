@@ -7,11 +7,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @DynamicInsert
@@ -31,7 +29,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "provider_id", nullable = true)
+    @Column(name = "provider_id")
     private String providerId;
 
     @Column(nullable = false)
@@ -45,11 +43,11 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Job job;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_interests")
     @Enumerated(EnumType.STRING)
-    @Column(name = "interest_field", nullable = true)
-    private List<Category> interestFields;
+    @Column(name = "interest_field", nullable = false)
+    private List<InterestField> interestFields;
 
     @Column(name = "birth_day", nullable = false)
     private LocalDate birthDay;
@@ -76,4 +74,33 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserCollection> userCollections;
 
+    public void setImage(Image image) {
+        //기존 이미지와의 연관관계 제거
+        if (this.image != null) {
+            this.image.getUsers().remove(this);
+        }
+        this.image = image;
+        //새로운 이미지와 연관관계 설정
+        if (image != null) {
+            image.getUsers().add(this);
+        }
+    }
+
+    public void addUserCollection(UserCollection userCollection) {
+        this.userCollections.add(userCollection);
+        if (userCollection.getUser() != this) {
+            userCollection.setUser(this);
+        }
+    }
+
+    public void removeUserCollection(UserCollection userCollection) {
+        this.userCollections.remove(userCollection);
+        if (userCollection.getUser() == this) {
+            userCollection.setUser(null);
+        }
+    }
+
+    public void changePassword(String newEncodedPassword) {
+        this.pw = newEncodedPassword;
+    }
 }
