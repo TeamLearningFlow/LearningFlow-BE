@@ -151,6 +151,8 @@ public class AuthService {
             log.info("로그인 성공: email={}, authorities={}",
                     authentication.getName(),
                     authentication.getAuthorities());
+            log.info("사용된 JWT access 토큰: Authorization={}", "Bearer " + accessToken);
+            log.info("사용된 JWT refresh 토큰: Refresh-Token={}", refreshToken);
 
             response.addHeader("Authorization", "Bearer " + accessToken);
             response.addHeader("Refresh-Token", refreshToken);
