@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
-import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
