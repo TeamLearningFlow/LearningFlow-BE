@@ -1,6 +1,6 @@
-package learningFlow.learningFlow_BE.service.user;
+package learningFlow.learningFlow_BE.service.auth.oauth;
 
-import learningFlow.learningFlow_BE.config.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.enums.*;
 import learningFlow.learningFlow_BE.repository.UserRepository;
@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class OAuth2UserAuthenticationService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
 

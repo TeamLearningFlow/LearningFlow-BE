@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.config.security.auth;
+package learningFlow.learningFlow_BE.security.auth;
 
 import learningFlow.learningFlow_BE.domain.User;
 import lombok.Getter;

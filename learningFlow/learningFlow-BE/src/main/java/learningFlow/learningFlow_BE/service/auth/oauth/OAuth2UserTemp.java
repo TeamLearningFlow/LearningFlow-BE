@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.service.user;
+package learningFlow.learningFlow_BE.service.auth.oauth;
 
 import learningFlow.learningFlow_BE.domain.enums.SocialType;
 import lombok.Getter;

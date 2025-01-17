@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.config.security.redis;
+package learningFlow.learningFlow_BE.config.redis;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
