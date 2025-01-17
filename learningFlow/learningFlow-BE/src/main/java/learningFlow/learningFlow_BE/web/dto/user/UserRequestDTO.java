@@ -1,7 +1,7 @@
 package learningFlow.learningFlow_BE.web.dto.user;
 
 import jakarta.validation.constraints.*;
-import learningFlow.learningFlow_BE.domain.enums.Category;
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.Gender;
 import learningFlow.learningFlow_BE.domain.enums.Job;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
@@ -38,7 +38,8 @@ public class UserRequestDTO {
         Job job;
 
         @NotEmpty(message = "관심 분야는 최소 1개 이상 선택해야 합니다")
-        List<Category> interestFields;
+        @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
+        List<InterestField> interestFields;
 
         @NotNull(message = "생년월일은 필수 입력값입니다")
         LocalDate birthDay;
@@ -57,6 +58,8 @@ public class UserRequestDTO {
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
         String password;
+
+        boolean remember = false;
     }
 
     @Getter
@@ -65,7 +68,8 @@ public class UserRequestDTO {
         Job job;
 
         @NotEmpty(message = "관심 분야는 최소 1개 이상 선택해야 합니다")
-        List<Category> interestFields;
+        @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
+        List<InterestField> interestFields;
 
         @NotNull(message = "생년월일은 필수 입력값입니다")
         LocalDate birthDay;
