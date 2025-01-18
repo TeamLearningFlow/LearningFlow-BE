@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
-import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDto;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -34,7 +34,9 @@ public class CollectionRestController {
     @Parameters({
             @Parameter(name = "collection-id", description = "컬렉션 ID"),
     })
-    public ApiResponse<CollectionResponseDto.CollectionDto> getCollection(@PathVariable("collection-id") Long collectionId) {
+    public ApiResponse<CollectionResponseDTO.CollectionDto> getCollection(
+            @PathVariable("collection-id") Long collectionId
+    ) {
         // TODO: 컬렉션 조회 로직 구현
         return ApiResponse.onSuccess(null);
     }

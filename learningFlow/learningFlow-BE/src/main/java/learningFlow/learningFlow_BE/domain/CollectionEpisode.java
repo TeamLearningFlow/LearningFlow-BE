@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,4 +25,28 @@ public class CollectionEpisode {
 
     @Column(name = "episode_number", nullable = false)
     private Integer episodeNumber;
+
+    public void setCollection(Collection collection) {
+        // 기존 컬렉션과의 관계 제거
+        if (this.collection != null) {
+            this.collection.getEpisodes().remove(this);
+        }
+        this.collection = collection;
+        // 새로운 컬렉션과 관계 설정
+        if (collection != null && !collection.getEpisodes().contains(this)) {
+            collection.getEpisodes().add(this);
+        }
+    }
+
+    public void setResource(Resource resource) {
+        // 기존 리소스와의 관계 제거
+        if (this.resource != null) {
+            this.resource.getEpisodes().remove(this);
+        }
+        this.resource = resource;
+        // 새로운 리소스와 관계 설정
+        if (resource != null && !resource.getEpisodes().contains(this)) {
+            resource.getEpisodes().add(this);
+        }
+    }
 }

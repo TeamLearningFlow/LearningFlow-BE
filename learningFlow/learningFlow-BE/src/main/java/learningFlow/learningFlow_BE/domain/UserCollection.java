@@ -6,7 +6,6 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,5 +30,29 @@ public class UserCollection {
 
     @Column(name = "last_accessed_at", nullable = false)
     private LocalDate lastAccessedAt;
+
+    public void setUser(User user) {
+        // 기존 유저와의 관계 제거
+        if (this.user != null) {
+            this.user.getUserCollections().remove(this);
+        }
+        this.user = user;
+        // 새로운 유저와 관계 설정
+        if (user != null && !user.getUserCollections().contains(this)) {
+            user.getUserCollections().add(this);
+        }
+    }
+
+    public void setCollection(Collection collection) {
+        // 기존 컬렉션과의 관계 제거
+        if (this.collection != null) {
+            this.collection.getUserCollections().remove(this);
+        }
+        this.collection = collection;
+        // 새로운 컬렉션과 관계 설정
+        if (collection != null && !collection.getUserCollections().contains(this)) {
+            collection.getUserCollections().add(this);
+        }
+    }
 }
 
