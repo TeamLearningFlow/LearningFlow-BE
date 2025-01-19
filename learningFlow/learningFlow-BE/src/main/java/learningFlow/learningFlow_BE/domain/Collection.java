@@ -5,6 +5,7 @@ import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -25,8 +26,10 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private String creator;
 
-    @Column(nullable = false)
-    private String keyword;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "collection_keywords", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "keyword")
+    private List<String> keywords = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
