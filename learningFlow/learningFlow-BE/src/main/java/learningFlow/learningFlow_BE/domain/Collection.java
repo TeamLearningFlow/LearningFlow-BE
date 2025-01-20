@@ -38,8 +38,10 @@ public class Collection extends BaseEntity {
     @Column(name = "detail_information", nullable = false)
     private String detailInformation;
 
-    @Column(nullable = false)
-    private Integer difficulty;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "collection_difficulties", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "difficulty")
+    private List<Integer> difficulty; // 1: 입문, 2: 초급, 3: 중급, 4: 실무
 
     @Column(nullable = false)
     private Integer amount;
