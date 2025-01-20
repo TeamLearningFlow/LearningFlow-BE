@@ -4,6 +4,8 @@ import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 public class SearchRequestDTO {
 
     @Getter
@@ -11,7 +13,7 @@ public class SearchRequestDTO {
     public static class SearchConditionDTO {
         private String keyword;
         private MediaType mediaType;
-        private Integer difficulty;
-        private Integer amount;
+        private List<Integer> difficulties;
+        private List<String> amounts;
     }
 }

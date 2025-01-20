@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.web.dto.search;
 
+import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,9 +15,9 @@ public class SearchResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SearchResultDTO {
-        private List<CollectionPreviewDTO> searchResults;
-        private Long lastId;     // 마지막 컬렉션의 ID
-        private Boolean hasNext; // 다음 페이지 존재 여부
+        List<CollectionPreviewDTO> searchResults;
+        Long lastId;     // 마지막 컬렉션의 ID
+        Boolean hasNext; // 다음 페이지 존재 여부
     }
 
     @Getter
@@ -28,7 +29,9 @@ public class SearchResponseDTO {
         String title;
         String creator;
         List<String> keywords;
-        Integer difficulty;
+        List<Integer> difficulties;
+        MediaType mediaType;
         Integer amount;
+        Integer runtime;
     }
 }
