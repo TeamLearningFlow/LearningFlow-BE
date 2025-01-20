@@ -19,6 +19,7 @@ public enum ErrorStatus implements BaseErrorCode {
     _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
     _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
 
+
     // 멤버 관려 에러
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "사용자를 찾을 수 없습니다."),
     NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "닉네임은 필수 입니다."),
@@ -31,9 +32,15 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //컬렉션 관련 에러
     COLLECTION_NOT_FOUND(HttpStatus.NOT_FOUND,"COLLECTION4001","해당 컬렉션을 찾을 수 없습니다."),
+
     NO_MORE_COLLECTION(HttpStatus.NOT_FOUND,"COLLECTION4002","더 이상 컬렉션이 존재하지 않습니다."),
 
     //계정 로그인 관련 에러
+
+    // 예시,,,
+    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다."),
+
+
     EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),;
 

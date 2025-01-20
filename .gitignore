@@ -1,5 +1,8 @@
 HELP.md
+
 .gradle
+learningFlow/learningFlow-BE/.gradle
+
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -19,6 +22,8 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
+#../.idea
+
 *.iws
 *.iml
 *.ipr
