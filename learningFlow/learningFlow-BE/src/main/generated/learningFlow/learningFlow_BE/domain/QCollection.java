@@ -33,7 +33,7 @@ public class QCollection extends EntityPathBase<Collection> {
 
     public final StringPath detailInformation = createString("detailInformation");
 
-    public final NumberPath<Integer> difficulty = createNumber("difficulty", Integer.class);
+    public final ListPath<Integer, NumberPath<Integer>> difficulty = this.<Integer, NumberPath<Integer>>createList("difficulty", Integer.class, NumberPath.class, PathInits.DIRECT2);
 
     public final ListPath<CollectionEpisode, QCollectionEpisode> episodes = this.<CollectionEpisode, QCollectionEpisode>createList("episodes", CollectionEpisode.class, QCollectionEpisode.class, PathInits.DIRECT2);
 

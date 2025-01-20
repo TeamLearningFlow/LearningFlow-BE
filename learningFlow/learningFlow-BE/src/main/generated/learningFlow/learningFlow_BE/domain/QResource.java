@@ -33,6 +33,8 @@ public class QResource extends EntityPathBase<Resource> {
 
     public final StringPath resourceDetails = createString("resourceDetails");
 
+    public final NumberPath<Integer> runtime = createNumber("runtime", Integer.class);
+
     public final StringPath title = createString("title");
 
     public final EnumPath<learningFlow.learningFlow_BE.domain.enums.ResourceType> type = createEnum("type", learningFlow.learningFlow_BE.domain.enums.ResourceType.class);
