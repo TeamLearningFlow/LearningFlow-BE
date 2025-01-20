@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.repository.search;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
@@ -32,8 +33,8 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
         BooleanExpression cursorExp = createCursorExp(lastId);
         BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
         BooleanExpression mediaTypeExp = createDynamicMediaType(condition.getMediaType());
-        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulty());
-        BooleanExpression amountExp = createDynamicAmount(condition.getAmount());
+        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
+        BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
 
         return jpaQueryFactory
                 .select(episode.collection)
@@ -62,32 +63,41 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
     }
 
     private BooleanExpression createDynamicMediaType(MediaType mediaType) {
-        if (mediaType == null) {
+        if (mediaType == null || mediaType == MediaType.NO_PREFERENCE) {
             return null;
         }
 
         return episode.collection.mediaType.eq(mediaType);
     }
 
-    private BooleanExpression createDynamicDifficulty(Integer difficulty) {
-        if (difficulty == null) {
+    private BooleanExpression createDynamicDifficulty(List<Integer> difficulties) {
+        if (difficulties == null) {
             return null;
         }
 
-        return episode.collection.difficulty.eq(difficulty);
+        return episode.collection.difficulty.any().in(difficulties);
     }
 
-    private BooleanExpression createDynamicAmount(Integer amount) {
-        if (amount == null) {
+    private BooleanExpression createDynamicAmount(List<String> amounts) {
+        if (amounts == null || amounts.isEmpty()) {
             return null;
         }
 
-        if (amount <= 5) {
-            return episode.collection.amount.between(1, 5);
-        } else if (amount <= 10) {
-            return episode.collection.amount.between(6, 10);
-        } else {
-            return episode.collection.amount.goe(11);
+        BooleanExpression resultExpression = null;
+
+        for (String amount : amounts) {
+            BooleanExpression expression = switch (amount) {
+                case "SHORT" -> episode.collection.amount.between(1, 5);
+                case "MEDIUM" -> episode.collection.amount.between(6, 10);
+                case "LONG" -> episode.collection.amount.goe(11);
+                default -> null;
+            };
+
+            if (expression != null) {
+                resultExpression = (resultExpression == null) ? expression : resultExpression.or(expression);
+            }
         }
+
+        return resultExpression;
     }
 }
