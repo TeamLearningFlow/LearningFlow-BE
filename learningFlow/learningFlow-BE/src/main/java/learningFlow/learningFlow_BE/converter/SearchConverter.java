@@ -1,6 +1,8 @@
 package learningFlow.learningFlow_BE.converter;
 
 import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.CollectionEpisode;
+import learningFlow.learningFlow_BE.domain.Resource;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import learningFlow.learningFlow_BE.web.dto.search.SearchRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
@@ -12,14 +14,14 @@ public class SearchConverter {
     public static SearchRequestDTO.SearchConditionDTO toSearchConditionDTO(
             String keyword,
             MediaType mediaType,
-            Integer difficulty,
-            Integer amount
+            List<Integer> difficulties,
+            List<String> amounts
     ) {
         return SearchRequestDTO.SearchConditionDTO.builder()
                 .keyword(keyword)
                 .mediaType(mediaType)
-                .difficulty(difficulty)
-                .amount(amount)
+                .difficulties(difficulties)
+                .amounts(amounts)
                 .build();
     }
 
@@ -35,13 +37,22 @@ public class SearchConverter {
     }
 
     public static SearchResponseDTO.CollectionPreviewDTO toCollectionPreviewDTO(Collection collection) {
+
+        int totalSeconds = collection.getEpisodes().stream()
+                .map(CollectionEpisode::getResource)
+                .mapToInt(Resource::getRuntime).sum();
+
+        int totalHours = (int) Math.ceil(totalSeconds / 3600);
+
         return SearchResponseDTO.CollectionPreviewDTO.builder()
                 .id(collection.getId())
                 .title(collection.getTitle())
                 .creator(collection.getCreator())
                 .keywords(collection.getKeywords())
-                .difficulty(collection.getDifficulty())
+                .difficulties(collection.getDifficulty())
+                .mediaType(collection.getMediaType())
                 .amount(collection.getAmount())
+                .runtime(totalHours)
                 .build();
     }
 }
