@@ -8,11 +8,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
+import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
+import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
+import learningFlow.learningFlow_BE.converter.MemoConverter;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Tag(name = "Resource", description = "Collection 내에 특정 resource 관련해서 기능하는 API")
 public class ResourceRestController {
-
+    private final MemoCommandService memoCommandService;
     @GetMapping("/{episode-id}")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
@@ -50,11 +56,19 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "메모를 추가할 강의 에피소드 ID")
     })
-    public ApiResponse<MemoResponseDTO.MemoInfoDTO> createMemo(@PathVariable("episode-id") Long episodeId, @RequestBody MemoRequestDTO.MemoJoinDTO request) {
+    public ApiResponse<MemoResponseDTO.MemoInfoDTO> createMemo(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episode-id") Long episodeId,
+            @RequestBody MemoRequestDTO.MemoJoinDTO request) {
         /**
          * 메모를 생성하고 저장하게 되면 자신이 쓴 메모를 보여주는게 맞을 것 같아서 일단 메모 contents를 반환하게 해놓았어요.
          */
         // TODO: 강의 메모 생성 로직 구현
-        return ApiResponse.onSuccess(null);
+        String loginId = principalDetails.getUser().getLoginId();
+        // User 핸들러가 에러 코드 기준? Controller 기준?
+        if (loginId == null) throw new UserHandler(ErrorStatus.USER_NOT_FOUND);
+        memoCommandService.saveMemo(loginId, episodeId, request);
+
+        return ApiResponse.onSuccess(MemoConverter.createMemo(request));
     }
 }
