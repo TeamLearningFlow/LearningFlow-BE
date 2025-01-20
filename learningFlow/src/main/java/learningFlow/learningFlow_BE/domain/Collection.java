@@ -5,6 +5,8 @@ import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.*;
 
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -25,8 +27,15 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private String creator;
 
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "collection_keywords", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "keyword")
+    private List<String> keywords = new ArrayList<>();
+
     @Column(nullable = false)
     private String keyword;
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -35,8 +44,15 @@ public class Collection extends BaseEntity {
     @Column(name = "detail_information", nullable = false)
     private String detailInformation;
 
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "collection_difficulties", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "difficulty")
+    private List<Integer> difficulty; // 1: 입문, 2: 초급, 3: 중급, 4: 실무
+
     @Column(nullable = false)
     private Integer difficulty;
+
 
     @Column(nullable = false)
     private Integer amount;

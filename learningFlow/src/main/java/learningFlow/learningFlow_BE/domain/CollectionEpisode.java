@@ -23,6 +23,9 @@ public class CollectionEpisode {
     @JoinColumn(name = "resource_id", nullable = false)
     private Resource resource;
 
+    @Column(name = "episode_name", nullable = false)
+    private String episodeName;
+
     @Column(name = "episode_number", nullable = false)
     private Integer episodeNumber;
 
