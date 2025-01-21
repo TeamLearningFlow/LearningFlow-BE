@@ -9,12 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.converter.SearchConverter;
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.service.search.SearchService;
 import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
-import learningFlow.learningFlow_BE.validation.annotation.CheckPage;
-import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -43,18 +40,20 @@ public class SearchRestController {
     })
     @Parameters({
             @Parameter(name = "keyword", description = "검색어 (컬렉션 제목, 크리에이터, 키워드, 에피소드 제목)"),
-            @Parameter(name = "mediaType", description = "미디어 타입 필터 (VIDEO, TEXT)"),
+            @Parameter(name = "InterestField", description = "검색할 관심 분야"),
+            @Parameter(name = "preferMediaType", description = "미디어 타입 필터 (1: 텍스트만, 2 : 텍스트 선호, 3: 상관 없음, 4: 영상 선호, 5: 영상만)"),
             @Parameter(name = "difficulties", description = "난이도 필터 (1: 입문, 2: 초급, 3: 중급, 4: 실무)"),
             @Parameter(name = "amounts", description = "강의량 필터 (SHORT(1-5), MEDIUM(5-10), LONG(11이상)"),
             @Parameter(name = "lastId", description = "마지막으로 조회된 컬렉션의 ID (첫 페이지는 0)")
     })
     public ApiResponse<SearchResponseDTO.SearchResultDTO> searchEpisodes(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) MediaType mediaType,
+            @RequestParam(required = false) InterestField interestFields,
+            @RequestParam(required = false) Integer preferMediaType,
             @RequestParam(required = false) List<Integer> difficulties,
             @RequestParam(required = false) List<String> amounts,
             @RequestParam(required = false, defaultValue = "0") Long lastId
     ) {
-        return ApiResponse.onSuccess(searchService.search(SearchConverter.toSearchConditionDTO(keyword, mediaType, difficulties, amounts), lastId));
+        return ApiResponse.onSuccess(searchService.search(SearchConverter.toSearchConditionDTO(keyword, interestFields, preferMediaType, difficulties, amounts), lastId));
     }
 }

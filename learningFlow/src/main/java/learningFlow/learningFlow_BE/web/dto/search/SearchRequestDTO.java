@@ -1,6 +1,6 @@
 package learningFlow.learningFlow_BE.web.dto.search;
 
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,7 +12,8 @@ public class SearchRequestDTO {
     @Builder
     public static class SearchConditionDTO {
         private String keyword;
-        private MediaType mediaType;
+        private InterestField interestFields;
+        private Integer preferMediaType;
         private List<Integer> difficulties;
         private List<String> amounts;
     }

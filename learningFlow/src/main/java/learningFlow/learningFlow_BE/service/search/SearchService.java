@@ -25,13 +25,30 @@ public class SearchService {
 
 
         if (collections.isEmpty()) {
-            return SearchConverter.toSearchResultDTO(collections, null, false);
+            return SearchConverter.toSearchResultDTO(collections, null, false, 0, 0);
         }
 
         Long lastCollectionId = collections.getLast().getId();
         boolean hasNext = hasNextPage(condition,lastCollectionId);
 
-        return SearchConverter.toSearchResultDTO(collections, lastCollectionId, hasNext);
+        Integer totalCount = searchRepository.getTotalCount(condition);
+        int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+
+        int currentPage = calculateCurrentPage(lastId, condition);
+
+        return SearchConverter.toSearchResultDTO(collections, lastCollectionId, hasNext, totalPages, currentPage);
+    }
+
+    private int calculateCurrentPage(Long lastId, SearchRequestDTO.SearchConditionDTO condition) {
+        if (lastId == 0L) {
+            return 1; // 첫 페이지
+        }
+
+        // lastId보다 큰 ID를 가진 컬렉션의 수를 조회
+        Integer greaterCount = searchRepository.getCountGreaterThanId(lastId, condition);
+
+        // 페이지 번호 계산 (1부터 시작)
+        return greaterCount / PAGE_SIZE + 2;
     }
 
     private boolean hasNextPage(SearchRequestDTO.SearchConditionDTO condition, long lastCollectionId) {
