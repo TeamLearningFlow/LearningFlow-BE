@@ -1,13 +1,12 @@
 package learningFlow.learningFlow_BE.repository.search;
 
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.PageHandler;
 import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.QCollectionEpisode;
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.web.dto.search.SearchRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -32,18 +31,27 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
 
         BooleanExpression cursorExp = createCursorExp(lastId);
         BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
-        BooleanExpression mediaTypeExp = createDynamicMediaType(condition.getMediaType());
+        BooleanExpression interestFieldExp = createDynamicInterestFields(condition.getInterestFields());
+        BooleanExpression preferMediaTypeExp = createDynamicPreferMediaType(condition.getPreferMediaType());
         BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
         BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
 
         return jpaQueryFactory
                 .select(episode.collection)
                 .from(episode)
-                .where(cursorExp, keywordExp, mediaTypeExp, difficultyExp, amountExp)
+                .where(cursorExp, keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
                 .groupBy(episode.collection.id)
-                .orderBy(episode.collection.id.desc())
+                .orderBy(episode.collection.resourceTypeRatio.desc())
                 .limit(pageable.getPageSize())
                 .fetch();
+    }
+
+    private BooleanExpression createDynamicInterestFields(List<InterestField> interestFields) {
+        if (interestFields == null) {
+            return null;
+        }
+
+        return episode.collection.interestField.in(interestFields);
     }
 
     private BooleanExpression createCursorExp(Long lastId) {
@@ -62,12 +70,19 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
                 .or(episode.episodeName.containsIgnoreCase(keyword));
     }
 
-    private BooleanExpression createDynamicMediaType(MediaType mediaType) {
-        if (mediaType == null || mediaType == MediaType.NO_PREFERENCE) {
+    private BooleanExpression createDynamicPreferMediaType(Integer preferMediaType) {
+
+        if (preferMediaType == null) {
             return null;
         }
 
-        return episode.collection.mediaType.eq(mediaType);
+        return switch (preferMediaType) {
+            case 1 -> episode.collection.resourceTypeRatio.eq(0);
+            case 2 -> episode.collection.resourceTypeRatio.loe(50);
+            case 4 -> episode.collection.resourceTypeRatio.goe(50);
+            case 5 -> episode.collection.resourceTypeRatio.eq(100);
+            default -> null;
+        };
     }
 
     private BooleanExpression createDynamicDifficulty(List<Integer> difficulties) {
