@@ -2,7 +2,6 @@ package learningFlow.learningFlow_BE.domain;
 
 import jakarta.persistence.*;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.*;
 
 
@@ -27,15 +26,10 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private String creator;
 
-
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "collection_keywords", joinColumns = @JoinColumn(name = "collection_id"))
     @Column(name = "keyword")
     private List<String> keywords = new ArrayList<>();
-
-    @Column(nullable = false)
-    private String keyword;
-
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,7 +37,6 @@ public class Collection extends BaseEntity {
 
     @Column(name = "detail_information", nullable = false)
     private String detailInformation;
-
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "collection_difficulties", joinColumns = @JoinColumn(name = "collection_id"))
@@ -53,9 +46,8 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private Integer amount;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MediaType mediaType;
+    private Integer resourceTypeRatio; //영상 기준 -> 100개 중 영상이 70개면 70으로 저장 -> 따라서 최댓값이 100이어야함.
 
     @ManyToOne
     @JoinColumn(name = "image_id")
