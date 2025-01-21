@@ -51,10 +51,6 @@ public class Collection extends BaseEntity {
     private List<Integer> difficulty; // 1: 입문, 2: 초급, 3: 중급, 4: 실무
 
     @Column(nullable = false)
-    private Integer difficulty;
-
-
-    @Column(nullable = false)
     private Integer amount;
 
     @Enumerated(EnumType.STRING)
