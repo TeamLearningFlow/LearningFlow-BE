@@ -46,11 +46,11 @@ public class User extends BaseEntity {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_interests")
     @Enumerated(EnumType.STRING)
-    @Column(name = "interest_field", nullable = false, length = 50)
+    @Column(name = "interest_field", nullable = false)
     private List<InterestField> interestFields;
 
-    @Column(name = "birth_day", nullable = false) // 년도 포함 ???년 ??월 ??일 삭제 예정
-    private LocalDate birthDay;
+    @Column(name = "birth_day", nullable = false) // 년도 포함 ???년 ??월 ??일
+    private LocalDate birthDay; // TODO: 생년월일 자체를 삭제할 것
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
