@@ -24,6 +24,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
+    public final ListPath<Long, NumberPath<Long>> bookmarkedCollectionIds = this.<Long, NumberPath<Long>>createList("bookmarkedCollectionIds", Long.class, NumberPath.class, PathInits.DIRECT2);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
