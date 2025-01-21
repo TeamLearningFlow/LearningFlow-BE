@@ -2,6 +2,7 @@ package learningFlow.learningFlow_BE.service.user;
 
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
+import learningFlow.learningFlow_BE.converter.UserConverter;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.repository.UserRepository;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
@@ -19,20 +20,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserConverter userConverter;
 
     public UserInfoDTO getUserInfo(String loginId) {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        return UserInfoDTO.builder()
-                .name(user.getName())
-                .email(user.getEmail())
-                .job(user.getJob())
-                .interestFields(user.getInterestFields())
-                .gender(user.getGender())
-                .preferType(user.getPreferType())
-                .profileImageUrl(user.getImage() != null ? user.getImage().getImageURL() : null)
-                .build();
+        return userConverter.convertToUserInfoDTO(user);
     }
 
     @Transactional
