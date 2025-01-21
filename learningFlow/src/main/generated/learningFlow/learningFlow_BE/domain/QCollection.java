@@ -43,8 +43,6 @@ public class QCollection extends EntityPathBase<Collection> {
 
     public final EnumPath<learningFlow.learningFlow_BE.domain.enums.InterestField> interestField = createEnum("interestField", learningFlow.learningFlow_BE.domain.enums.InterestField.class);
 
-    public final StringPath keyword = createString("keyword");
-
     public final ListPath<String, StringPath> keywords = this.<String, StringPath>createList("keywords", String.class, StringPath.class, PathInits.DIRECT2);
 
     public final EnumPath<learningFlow.learningFlow_BE.domain.enums.MediaType> mediaType = createEnum("mediaType", learningFlow.learningFlow_BE.domain.enums.MediaType.class);

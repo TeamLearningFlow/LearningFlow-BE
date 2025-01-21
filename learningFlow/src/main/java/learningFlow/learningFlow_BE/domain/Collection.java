@@ -33,10 +33,6 @@ public class Collection extends BaseEntity {
     @Column(name = "keyword")
     private List<String> keywords = new ArrayList<>();
 
-    @Column(nullable = false)
-    private String keyword;
-
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterestField interestField;

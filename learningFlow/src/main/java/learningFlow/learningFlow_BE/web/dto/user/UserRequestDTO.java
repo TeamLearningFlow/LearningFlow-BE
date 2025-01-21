@@ -98,4 +98,11 @@ public class UserRequestDTO {
                 message = "비밀번호는 8자 이상, 영문자, 숫자, 특수문자를 포함해야 하며, 공백은 허용되지 않습니다.")
         String newPassword;
     }
+
+    @Getter
+    public static class UpdateUserDTO {
+        String name;
+        Job job;
+        List<InterestField> interestFields;
+    }
 }

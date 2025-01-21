@@ -46,10 +46,10 @@ public class User extends BaseEntity {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_interests")
     @Enumerated(EnumType.STRING)
-    @Column(name = "interest_field", nullable = false)
+    @Column(name = "interest_field", nullable = false, length = 50)
     private List<InterestField> interestFields;
 
-    @Column(name = "birth_day", nullable = false)
+    @Column(name = "birth_day", nullable = false) // 년도 포함 ???년 ??월 ??일 삭제 예정
     private LocalDate birthDay;
 
     @Enumerated(EnumType.STRING)
@@ -102,5 +102,29 @@ public class User extends BaseEntity {
 
     public void changePassword(String newEncodedPassword) {
         this.pw = newEncodedPassword;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateJob(Job job) {
+        this.job = job;
+    }
+
+    public void updateInterestFields(List<InterestField> interestFields) {
+        this.interestFields = interestFields;
+    }
+
+//    public void updateBirthDay(LocalDate birthDay) {
+//        this.birthDay = birthDay;
+//    }
+
+    public void updateGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updatePreferType(MediaType preferType) {
+        this.preferType = preferType;
     }
 }
