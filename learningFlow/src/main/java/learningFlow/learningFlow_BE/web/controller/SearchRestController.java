@@ -10,10 +10,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.converter.SearchConverter;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.search.SearchService;
 import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,8 +56,10 @@ public class SearchRestController {
             @RequestParam(required = false) Integer preferMediaType,
             @RequestParam(required = false) List<Integer> difficulties,
             @RequestParam(required = false) List<String> amounts,
-            @RequestParam(required = false, defaultValue = "0") Long lastId
+            @RequestParam(required = false, defaultValue = "0") Long lastId,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
-        return ApiResponse.onSuccess(searchService.search(SearchConverter.toSearchConditionDTO(keyword, interestFields, preferMediaType, difficulties, amounts), lastId));
+        Authentication authentication = (principalDetails != null) ? SecurityContextHolder.getContext().getAuthentication() : null;
+        return ApiResponse.onSuccess(searchService.search(SearchConverter.toSearchConditionDTO(keyword, interestFields, preferMediaType, difficulties, amounts), lastId, authentication));
     }
 }
