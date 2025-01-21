@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface SearchRepositoryCustom {
     List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Long lastId, Pageable pageable);
+    Integer getTotalCount(SearchRequestDTO.SearchConditionDTO condition);
+    Integer getCountGreaterThanId(Long lastId, SearchRequestDTO.SearchConditionDTO condition);
 }

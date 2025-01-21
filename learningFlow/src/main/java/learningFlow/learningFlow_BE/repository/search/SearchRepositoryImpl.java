@@ -41,9 +41,46 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
                 .from(episode)
                 .where(cursorExp, keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
                 .groupBy(episode.collection.id)
-                .orderBy(episode.collection.resourceTypeRatio.desc())
+                .orderBy(episode.collection.id.desc())
                 .limit(pageable.getPageSize())
                 .fetch();
+    }
+
+    @Override
+    public Integer getTotalCount(SearchRequestDTO.SearchConditionDTO condition) {
+        BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
+        BooleanExpression interestFieldExp = createDynamicInterestFields(condition.getInterestFields());
+        BooleanExpression preferMediaTypeExp = createDynamicPreferMediaType(condition.getPreferMediaType());
+        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
+        BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
+
+        Long count = jpaQueryFactory
+                .select(episode.collection.countDistinct())
+                .from(episode)
+                .where(keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
+                .fetchOne();
+
+        return count != null ? count.intValue() : 0;
+    }
+
+    @Override
+    public Integer getCountGreaterThanId(Long lastId, SearchRequestDTO.SearchConditionDTO condition) {
+        BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
+        BooleanExpression interestFieldExp = createDynamicInterestFields(condition.getInterestFields());
+        BooleanExpression preferMediaTypeExp = createDynamicPreferMediaType(condition.getPreferMediaType());
+        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
+        BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
+
+        // lastId보다 큰 ID를 가진 컬렉션만 카운트
+        BooleanExpression greaterThanExp = lastId == 0L ? null : episode.collection.id.gt(lastId);
+
+        Long count = jpaQueryFactory
+                .select(episode.collection.countDistinct())
+                .from(episode)
+                .where(greaterThanExp, keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
+                .fetchOne();
+
+        return count != null ? count.intValue() : 0;
     }
 
     private BooleanExpression createDynamicInterestFields(InterestField interestFields) {

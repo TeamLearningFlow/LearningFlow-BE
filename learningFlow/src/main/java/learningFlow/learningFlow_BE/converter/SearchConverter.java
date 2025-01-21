@@ -29,7 +29,13 @@ public class SearchConverter {
                 .build();
     }
 
-    public static SearchResponseDTO.SearchResultDTO toSearchResultDTO(List<Collection> collections, Long lastId, boolean hasNext) {
+    public static SearchResponseDTO.SearchResultDTO toSearchResultDTO(
+            List<Collection> collections,
+            Long lastId,
+            boolean hasNext,
+            int totalPages,
+            int currentPage
+    ) {
         List<SearchResponseDTO.CollectionPreviewDTO> list
                 = collections.stream().map(SearchConverter::toCollectionPreviewDTO).toList();
 
@@ -37,6 +43,8 @@ public class SearchConverter {
                 .searchResults(list)
                 .lastId(lastId)
                 .hasNext(hasNext)
+                .currentPage(currentPage)
+                .totalPages(totalPages)
                 .build();
     }
 
