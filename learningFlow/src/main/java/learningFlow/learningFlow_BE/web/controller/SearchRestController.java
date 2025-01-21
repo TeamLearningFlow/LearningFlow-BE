@@ -48,7 +48,7 @@ public class SearchRestController {
     })
     public ApiResponse<SearchResponseDTO.SearchResultDTO> searchEpisodes(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) List<InterestField> interestFields,
+            @RequestParam(required = false) InterestField interestFields,
             @RequestParam(required = false) Integer preferMediaType,
             @RequestParam(required = false) List<Integer> difficulties,
             @RequestParam(required = false) List<String> amounts,

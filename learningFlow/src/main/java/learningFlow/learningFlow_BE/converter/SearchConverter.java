@@ -15,7 +15,7 @@ public class SearchConverter {
 
     public static SearchRequestDTO.SearchConditionDTO toSearchConditionDTO(
             String keyword,
-            List<InterestField> interestFields,
+            InterestField interestFields,
             Integer preferMediaType,
             List<Integer> difficulties,
             List<String> amounts

@@ -46,12 +46,12 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
                 .fetch();
     }
 
-    private BooleanExpression createDynamicInterestFields(List<InterestField> interestFields) {
+    private BooleanExpression createDynamicInterestFields(InterestField interestFields) {
         if (interestFields == null) {
             return null;
         }
 
-        return episode.collection.interestField.in(interestFields);
+        return episode.collection.interestField.eq(interestFields);
     }
 
     private BooleanExpression createCursorExp(Long lastId) {

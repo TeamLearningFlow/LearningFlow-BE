@@ -12,7 +12,7 @@ public class SearchRequestDTO {
     @Builder
     public static class SearchConditionDTO {
         private String keyword;
-        private List<InterestField> interestFields;
+        private InterestField interestFields;
         private Integer preferMediaType;
         private List<Integer> difficulties;
         private List<String> amounts;
