@@ -43,8 +43,9 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/find/**",
-                                "/reset-password"
-                        ).permitAll()
+                                "/reset-password",
+                                "/search/**"
+                                ).permitAll()
                         .requestMatchers(
                                 "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
                                 "/home/**").permitAll()
