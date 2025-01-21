@@ -1,6 +1,7 @@
 package learningFlow.learningFlow_BE.web.dto.search;
 
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,12 +27,15 @@ public class SearchResponseDTO {
     @AllArgsConstructor
     public static class CollectionPreviewDTO {
         Long id;
+        InterestField interestField;
         String title;
         String creator;
         List<String> keywords;
         List<Integer> difficulties;
-        MediaType mediaType;
         Integer amount;
         Integer runtime;
+        Integer textCount;
+        Integer videoCount;
+        List<ResourceResponseDTO.SearchResultResourceDTO> resource;
     }
 }
