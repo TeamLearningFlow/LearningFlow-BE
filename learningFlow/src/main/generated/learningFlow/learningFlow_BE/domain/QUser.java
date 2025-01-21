@@ -24,8 +24,6 @@ public class QUser extends EntityPathBase<User> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
-    public final DatePath<java.time.LocalDate> birthDay = createDate("birthDay", java.time.LocalDate.class);
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
