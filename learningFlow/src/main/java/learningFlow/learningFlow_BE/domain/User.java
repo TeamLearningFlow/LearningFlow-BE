@@ -49,9 +49,6 @@ public class User extends BaseEntity {
     @Column(name = "interest_field", nullable = false)
     private List<InterestField> interestFields;
 
-    @Column(name = "birth_day", nullable = false) // 년도 포함 ???년 ??월 ??일
-    private LocalDate birthDay; // TODO: 생년월일 자체를 삭제할 것
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
