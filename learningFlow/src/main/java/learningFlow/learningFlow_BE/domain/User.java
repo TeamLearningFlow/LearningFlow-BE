@@ -6,7 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -68,8 +68,30 @@ public class User extends BaseEntity {
     @JoinColumn(name = "image_id")
     private Image image;
 
+    @ElementCollection
+    @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "collection_id")
+    private List<Long> bookmarkedCollectionIds = new ArrayList<>();
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserCollection> userCollections;
+
+    // added
+    public void addBookmark(Long collectionId) {
+        if (!bookmarkedCollectionIds.contains(collectionId)) {
+            bookmarkedCollectionIds.add(collectionId);
+        }
+    }
+
+    // added
+    public void removeBookmark(Long collectionId) {
+        bookmarkedCollectionIds.remove(collectionId);
+    }
+
+    // added
+    public boolean hasBookmarked(Long collectionId) {
+        return bookmarkedCollectionIds.contains(collectionId);
+    }
 
     public void setImage(Image image) {
         //기존 이미지와의 연관관계 제거
