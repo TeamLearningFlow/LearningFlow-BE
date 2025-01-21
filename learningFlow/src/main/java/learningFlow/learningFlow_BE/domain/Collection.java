@@ -3,6 +3,8 @@ package learningFlow.learningFlow_BE.domain;
 import jakarta.persistence.*;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Builder
 @Entity
 @Table(name = "collection")
@@ -49,6 +53,9 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private Integer resourceTypeRatio; //영상 기준 -> 100개 중 영상이 70개면 70으로 저장 -> 따라서 최댓값이 100이어야함.
 
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer bookmarkCount = 0;
+
     @ManyToOne
     @JoinColumn(name = "image_id")
     private Image image;
@@ -58,6 +65,14 @@ public class Collection extends BaseEntity {
 
     @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
+
+    public void incrementBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    public void decrementBookmarkCount() {
+        this.bookmarkCount--;
+    }
 
     public void setImage(Image image) {
         // 기존 이미지와의 관계 제거
