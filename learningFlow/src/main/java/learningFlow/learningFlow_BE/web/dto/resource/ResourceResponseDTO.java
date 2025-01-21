@@ -14,4 +14,15 @@ public class ResourceResponseDTO {
     public static class ResourceUrlDTO {
         String embeddedUrl;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class SearchResultResourceDTO {
+        String episodeName;
+        String url;
+        String resourceSource;
+        Integer episodeNumber;
+    }
 }
