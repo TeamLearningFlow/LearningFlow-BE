@@ -48,7 +48,7 @@ public class SecurityConfig {
                                 "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
                                 "/home/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").authenticated()
+                        .requestMatchers("/user/**", "/resources/**").authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
