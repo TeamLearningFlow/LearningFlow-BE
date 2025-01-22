@@ -3,6 +3,7 @@ package learningFlow.learningFlow_BE.service.resource;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.domain.*;
+import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.CollectionEpisodeRepository;
 import learningFlow.learningFlow_BE.repository.UserEpisodeProgressRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,14 +43,5 @@ public class ResourceService {
         CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
         return episode.getCollection();
-    }
-
-    // 분량 체크
-    public Integer getResourceQuantity(Long episodeId){
-        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId).get();
-        Integer resourceQuantity = episode.getResource().getResourceQuantity();
-        if (resourceQuantity == null){
-
-        }
     }
 }
