@@ -4,9 +4,7 @@ import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
-import learningFlow.learningFlow_BE.repository.CollectionEpisodeRepository;
-import learningFlow.learningFlow_BE.repository.MemoRepository;
-import learningFlow.learningFlow_BE.repository.UserEpisodeProgressRepository;
+import learningFlow.learningFlow_BE.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,23 +18,30 @@ public class ResourceService {
     private final UserEpisodeProgressRepository userEpisodeProgressRepository;
     private final CollectionEpisodeRepository collectionEpisodeRepository;
     private final MemoRepository memoRepository;
+    private final UserCollectionRepository userCollectionRepository;
+    private final UserRepository userRepository;
     // 유저 + 에피소드 조회
-    // 존재하지 않을 경우 -> 처음 -> 객체 생성 -> 저장
+    // 존재하지 않을 경우 -> 처음 -> 객체 생성 -> 저장 && 유저-컬렉션에 등록
     // 있을 경우 -> 에피소드 정보 불러오기
         // 처음인 경우 -> currentProgress = 0, embeddedUrl 생성
-        // 처음이 아닐 경우 -> embeddedUrl, currentProgress 조회
+        // 처음이 아닐 경우 -> embeddedUrl, currentProgress 조회 -> 진도 저장
     @Transactional
     public UserEpisodeProgress getUserEpisodeProgress(Long episodeId, String loginId){
         UserEpisodeProgressId userEpisodeProgressId = new UserEpisodeProgressId(episodeId, loginId);
 
         Optional<UserEpisodeProgress> episodeProgress = userEpisodeProgressRepository.findById(userEpisodeProgressId);
 
+        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+
+        updateUserCollection(episode, loginId);
+
         return episodeProgress.orElseGet(() -> {
-            CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
-                    .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+
             Integer resourceQuantity = episode.getResource().getResourceQuantity();
             if (resourceQuantity == null) throw new ResourceHandler(ErrorStatus.QUANTITY_IS_NULL);
             UserEpisodeProgress userEpisodeProgress = new UserEpisodeProgress(userEpisodeProgressId, episode.getEpisodeNumber(), 0, episode.getResource().getResourceQuantity(), episode.getResource().getType());
+
             return userEpisodeProgressRepository.save(userEpisodeProgress);
         });
     }
@@ -53,7 +58,35 @@ public class ResourceService {
         return episode.getResource().getType();
     }
     @Transactional
-    public String getMemoContents(Long episodeId){
+    public Memo getMemoContents(Long episodeId){
         return memoRepository.findByEpisodeId(episodeId);
+    }
+
+    @Transactional
+    public UserCollection updateUserCollection(CollectionEpisode episode, String loginId) {
+        // UserCollection 조회
+        Collection collection = episode.getCollection();
+        User user = userRepository.findById(loginId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_NOT_FOUND));
+
+        // UserCollection 조회
+        Optional<UserCollection> optionalUserCollection = userCollectionRepository.findByUserAndCollection(user, collection);
+
+        Integer episodeNumber = episode.getEpisodeNumber();
+        UserCollection userCollection;
+
+        if (optionalUserCollection.isPresent()) {
+            // UserCollection 이 존재하는 경우 episodeNumber 만 업데이트
+            userCollection = optionalUserCollection.get();
+            userCollection.setUserCollectionStatus(episodeNumber);
+        } else {
+            // UserCollection 이 존재하지 않는 경우 새로 생성
+            userCollection = new UserCollection();
+            userCollection.setUser(user);
+            userCollection.setCollection(collection);
+            userCollection.setUserCollectionStatus(episodeNumber);
+        }
+        // 저장
+        return userCollectionRepository.save(userCollection);
     }
 }

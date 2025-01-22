@@ -10,7 +10,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "user_collection")
+@Table(name = "user_collection",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "collection_id"}))
 public class UserCollection {
 
     @Id
@@ -53,6 +54,17 @@ public class UserCollection {
         if (collection != null && !collection.getUserCollections().contains(this)) {
             collection.getUserCollections().add(this);
         }
+    }
+
+    public void setUserCollection(User user, Collection collection, Integer userCollectionStatus) {
+        this.user = user;
+        this.collection = collection;
+        this.userCollectionStatus = userCollectionStatus;
+    }
+
+    public void setUserCollectionStatus(Integer userCollectionStatus) {
+        if(this.userCollectionStatus != null)
+            this.userCollectionStatus = userCollectionStatus;
     }
 }
 

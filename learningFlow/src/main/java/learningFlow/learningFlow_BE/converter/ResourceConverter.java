@@ -1,9 +1,6 @@
 package learningFlow.learningFlow_BE.converter;
 
-import learningFlow.learningFlow_BE.domain.Collection;
-import learningFlow.learningFlow_BE.domain.CollectionEpisode;
-import learningFlow.learningFlow_BE.domain.Resource;
-import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
+import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 
 import java.util.ArrayList;
@@ -12,8 +9,9 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ResourceConverter {
-    public static ResourceResponseDTO.ResourceUrlDTO watchEpisode(Collection collection, UserEpisodeProgress userProgress, Resource resource, String memoContents){
-
+    public static ResourceResponseDTO.ResourceUrlDTO watchEpisode(Collection collection, UserEpisodeProgress userProgress, Resource resource, Memo memo){
+        String memoContents = memo.getContents();
+        if (memoContents == null) memoContents = "작성하신 글의 첫 줄은 노트의 제목이 됩니다, 최대 2,000자까지 입력하실 수 있어요";
 
         return ResourceResponseDTO.ResourceUrlDTO.builder()
                 .collectionTitle(collection.getTitle())

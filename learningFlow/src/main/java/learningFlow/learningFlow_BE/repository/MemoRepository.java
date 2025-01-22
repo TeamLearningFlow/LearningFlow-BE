@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface MemoRepository extends JpaRepository<Memo, MemoId> {
-    @Query("SELECT m.contents FROM Memo m WHERE m.id.collectionEpisodeId = :episodeId")
-    String findByEpisodeId(@Param("episodeId") Long episodeId);
+    @Query("SELECT m FROM Memo m WHERE m.id.collectionEpisodeId = :episodeId")
+    Memo findByEpisodeId(@Param("episodeId") Long episodeId);
 }

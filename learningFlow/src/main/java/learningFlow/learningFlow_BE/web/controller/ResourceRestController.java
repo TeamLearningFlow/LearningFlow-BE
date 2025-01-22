@@ -12,6 +12,7 @@ import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.converter.MemoConverter;
 import learningFlow.learningFlow_BE.converter.ResourceConverter;
 import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.Memo;
 import learningFlow.learningFlow_BE.domain.Resource;
 import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
@@ -56,14 +57,14 @@ public class ResourceRestController {
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
         ResourceType resourceType = resourceService.getResourceType(episodeId);
-        String memoContents = resourceService.getMemoContents(episodeId);
+        Memo memo = resourceService.getMemoContents(episodeId);
         Resource resource = null;
 
         if (resourceType == ResourceType.VIDEO) {
             resource = youtubeUrlEmbedService.getResource(episodeId);
         } // TEXT 일 경우도 처리
 
-        return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memoContents));
+        return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));
     }
 
     @PostMapping("/{episode-id}/memo")
