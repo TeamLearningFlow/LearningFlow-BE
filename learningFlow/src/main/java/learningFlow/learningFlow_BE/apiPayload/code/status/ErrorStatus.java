@@ -26,7 +26,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //Resources 관련 에어
     RESOURCES_NOT_FOUND(HttpStatus.NOT_FOUND,"RESOURCE4001","강의 에피소드를 찾을 수 없습니다."),
-
+    QUANTITY_IS_NULL(HttpStatus.BAD_REQUEST, "RESOURCE4002", "분량이 존재하지 않습니다"),
     //페이징 시 페이지 범위를 벗어났을 때
     PAGE_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "PAGE4001","페이지 범위에 맞지 않는 페이지 값 입니다."),
 
@@ -43,7 +43,10 @@ public enum ErrorStatus implements BaseErrorCode {
 
 
     EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
-    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다.");
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),
+
+    // 컬렉션 에피소드 에러
+    EPISODE_NOT_FOUND(HttpStatus.NOT_FOUND, "EPISODE4001", "존재하지 않는 에피소드 입니다.");
 
 
     private final HttpStatus httpStatus;

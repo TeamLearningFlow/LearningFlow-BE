@@ -13,23 +13,19 @@ import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
 import learningFlow.learningFlow_BE.converter.MemoConverter;
+import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
+import learningFlow.learningFlow_BE.service.resource.ResourceService;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-
-import static org.springframework.data.redis.connection.ReactiveStreamCommands.AddStreamRecord.body;
-
 @RestController
 @RequiredArgsConstructor
 @Validated
@@ -38,6 +34,7 @@ import static org.springframework.data.redis.connection.ReactiveStreamCommands.A
 @Tag(name = "Resource", description = "Collection 내에 특정 resource 관련해서 기능하는 API")
 public class ResourceRestController {
     private final MemoCommandService memoCommandService;
+    private final ResourceService resourceService;
     @GetMapping("/{episode-id}")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
@@ -47,10 +44,15 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
     })
-    public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchEpisode(@PathVariable("episode-id") Long episodeId) {
+    public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchEpisode(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episode-id") Long episodeId) {
         /**
          * 강의 시청 하는 API로 강좌로 이동하는 API 이기 때문에 일단 Resource의 Url을 반환하게 해놓았어요.
          */
+        String loginId = principalDetails.getUser().getLoginId();
+        UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
+        Collection collection = resourceService.getCollection(episodeId);
         // TODO: 강의 시청 로직 구현, 반환 DTO로 converting
         return ApiResponse.onSuccess(null);
     }

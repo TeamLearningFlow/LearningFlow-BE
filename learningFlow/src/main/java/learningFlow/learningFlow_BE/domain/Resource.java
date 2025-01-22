@@ -31,14 +31,14 @@ public class Resource extends BaseEntity {
     @Column(nullable = false)
     private String url; // 자료 링크
 
-    @Column(name = "embedded_url",nullable = false)
-    private String embeddedUrl; // 임베드 url
+    @Column(name = "client_url")
+    private String clientUrl; // 클라이언트에게 보내줄 url
 
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
 
     @Column(nullable = false)
-    private Integer runtime; //초단위로 저장(유튜브 동영상이 초단위이기 때문)
+    private Integer resourceQuantity; //초단위로 저장(유튜브 동영상이 초단위이기 때문)
 
     public void addEpisode(CollectionEpisode episode) {
         this.episodes.add(episode);

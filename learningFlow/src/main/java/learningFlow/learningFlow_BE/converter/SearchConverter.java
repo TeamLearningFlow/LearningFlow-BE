@@ -55,7 +55,7 @@ public class SearchConverter {
 
         int totalSeconds = collection.getEpisodes().stream()
                 .map(CollectionEpisode::getResource)
-                .mapToInt(Resource::getRuntime).sum();
+                .mapToInt(Resource::getResourceQuantity).sum();
 
         int totalHours = (int) Math.ceil(totalSeconds / 3600);
 
