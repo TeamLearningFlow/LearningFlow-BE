@@ -6,6 +6,7 @@ import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional(readOnly = true)
 public class ResourceService {
     private final UserEpisodeProgressRepository userEpisodeProgressRepository;
@@ -58,35 +60,46 @@ public class ResourceService {
         return episode.getResource().getType();
     }
     @Transactional
-    public Memo getMemoContents(Long episodeId){
+    public Optional<Memo> getMemoContents(Long episodeId){
         return memoRepository.findByEpisodeId(episodeId);
     }
 
     @Transactional
     public UserCollection updateUserCollection(CollectionEpisode episode, String loginId) {
+        log.info("Received loginId: {}", loginId);
+        log.info("Received episode: {}", episode);
         // UserCollection 조회
         Collection collection = episode.getCollection();
+        log.info("Extracted collection: {}", collection);
+
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_NOT_FOUND));
+        log.info("Found user: {}", user);
 
         // UserCollection 조회
         Optional<UserCollection> optionalUserCollection = userCollectionRepository.findByUserAndCollection(user, collection);
+        log.info("UserCollection found: {}", optionalUserCollection.isPresent());
 
         Integer episodeNumber = episode.getEpisodeNumber();
+        log.info("Episode number: {}", episodeNumber);
+
         UserCollection userCollection;
 
         if (optionalUserCollection.isPresent()) {
             // UserCollection 이 존재하는 경우 episodeNumber 만 업데이트
             userCollection = optionalUserCollection.get();
-            userCollection.setUserCollectionStatus(episodeNumber);
+            log.info("Updating existing UserCollection with id: {}", userCollection.getId());
+
+            userCollection.updateUserCollection(episodeNumber);
         } else {
             // UserCollection 이 존재하지 않는 경우 새로 생성
             userCollection = new UserCollection();
-            userCollection.setUser(user);
-            userCollection.setCollection(collection);
-            userCollection.setUserCollectionStatus(episodeNumber);
+            userCollection.setUserCollection(user, collection, episodeNumber);
+            log.info("Created new UserCollection");
         }
         // 저장
-        return userCollectionRepository.save(userCollection);
+        UserCollection savedCollection = userCollectionRepository.save(userCollection);
+        log.info("Saved UserCollection: {}", savedCollection);
+        return savedCollection;
     }
 }

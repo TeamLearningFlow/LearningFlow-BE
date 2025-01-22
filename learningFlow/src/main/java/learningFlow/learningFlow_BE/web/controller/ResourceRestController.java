@@ -28,6 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
+
 @RestController
 @RequiredArgsConstructor
 @Validated
@@ -57,7 +60,8 @@ public class ResourceRestController {
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
         ResourceType resourceType = resourceService.getResourceType(episodeId);
-        Memo memo = resourceService.getMemoContents(episodeId);
+        Optional<Memo> memo = resourceService.getMemoContents(episodeId);
+        // log.info("Memo= ", memo.get().getContents());
         Resource resource = null;
 
         if (resourceType == ResourceType.VIDEO) {
