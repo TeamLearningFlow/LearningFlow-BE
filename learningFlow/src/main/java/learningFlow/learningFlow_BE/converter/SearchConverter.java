@@ -3,6 +3,7 @@ package learningFlow.learningFlow_BE.converter;
 import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.CollectionEpisode;
 import learningFlow.learningFlow_BE.domain.Resource;
+import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
@@ -34,10 +35,12 @@ public class SearchConverter {
             Long lastId,
             boolean hasNext,
             int totalPages,
-            int currentPage
+            int currentPage,
+            User currentUser
     ) {
-        List<SearchResponseDTO.CollectionPreviewDTO> list
-                = collections.stream().map(SearchConverter::toCollectionPreviewDTO).toList();
+        List<SearchResponseDTO.CollectionPreviewDTO> list = collections.stream()
+                .map(collection -> toCollectionPreviewDTO(collection, currentUser))
+                .toList();
 
         return SearchResponseDTO.SearchResultDTO.builder()
                 .searchResults(list)
@@ -48,7 +51,7 @@ public class SearchConverter {
                 .build();
     }
 
-    public static SearchResponseDTO.CollectionPreviewDTO toCollectionPreviewDTO(Collection collection) {
+    public static SearchResponseDTO.CollectionPreviewDTO toCollectionPreviewDTO(Collection collection, User currentUser) {
 
         int totalSeconds = collection.getEpisodes().stream()
                 .map(CollectionEpisode::getResource)
@@ -74,6 +77,8 @@ public class SearchConverter {
                 .textCount(textCount)
                 .videoCount(videoCount)
                 .resource(resourceDTOList)
+                .bookmarkCount(collection.getBookmarkCount())
+                .isBookmarked(currentUser != null && currentUser.hasBookmarked(collection.getId()))
                 .build();
     }
 

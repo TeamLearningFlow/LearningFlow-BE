@@ -36,6 +36,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_MORE_COLLECTION(HttpStatus.NOT_FOUND,"COLLECTION4002","더 이상 컬렉션이 존재하지 않습니다."),
 
     //계정 로그인 관련 에러
+    LOGIN_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH4001", "로그인이 필요한 서비스입니다."),
 
     // 예시,,,
     ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다."),

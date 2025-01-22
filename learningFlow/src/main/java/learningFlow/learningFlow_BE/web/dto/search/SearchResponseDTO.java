@@ -39,5 +39,7 @@ public class SearchResponseDTO {
         Integer textCount;
         Integer videoCount;
         List<ResourceResponseDTO.SearchResultResourceDTO> resource;
+        Integer bookmarkCount;
+        boolean isBookmarked;
     }
 }

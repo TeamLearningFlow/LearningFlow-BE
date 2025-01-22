@@ -111,7 +111,6 @@ public class LocalUserAuthService {
                 .name(requestDTO.getName())
                 .job(requestDTO.getJob())
                 .interestFields(requestDTO.getInterestFields())
-                .birthDay(requestDTO.getBirthDay())
                 .gender(requestDTO.getGender())
                 .preferType(requestDTO.getPreferType())
                 .socialType(SocialType.LOCAL)

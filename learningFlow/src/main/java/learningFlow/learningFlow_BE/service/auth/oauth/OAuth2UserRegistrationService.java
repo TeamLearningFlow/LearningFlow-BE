@@ -43,7 +43,7 @@ public class OAuth2UserRegistrationService {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "추가 정보 입력이 필요합니다");
         response.put("requiredFields", Arrays.asList(
-                "job", "interestFields", "birthDay", "gender", "preferType"
+                "job", "interestFields", "gender", "preferType"
         ));
 
         return response;
@@ -75,7 +75,6 @@ public class OAuth2UserRegistrationService {
                 .socialType(socialType)
                 .job(additionalInfo.getJob())
                 .interestFields(additionalInfo.getInterestFields())
-                .birthDay(additionalInfo.getBirthDay())
                 .gender(additionalInfo.getGender())
                 .preferType(additionalInfo.getPreferType())
                 .role(Role.USER)

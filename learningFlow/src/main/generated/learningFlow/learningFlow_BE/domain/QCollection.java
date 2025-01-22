@@ -26,6 +26,8 @@ public class QCollection extends EntityPathBase<Collection> {
 
     public final NumberPath<Integer> amount = createNumber("amount", Integer.class);
 
+    public final NumberPath<Integer> bookmarkCount = createNumber("bookmarkCount", Integer.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 

@@ -38,9 +38,6 @@ public class UserRequestDTO {
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
 
-        @NotNull(message = "생년월일은 필수 입력값입니다")
-        LocalDate birthDay;
-
         @NotNull(message = "성별은 필수 선택값입니다")
         Gender gender;
 
@@ -67,9 +64,6 @@ public class UserRequestDTO {
         @NotEmpty(message = "관심 분야는 최소 1개 이상 선택해야 합니다")
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
-
-        @NotNull(message = "생년월일은 필수 입력값입니다")
-        LocalDate birthDay;
 
         @NotNull(message = "성별은 필수 선택값입니다")
         Gender gender;
