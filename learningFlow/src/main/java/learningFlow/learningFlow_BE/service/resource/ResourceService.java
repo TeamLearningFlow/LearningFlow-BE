@@ -5,6 +5,7 @@ import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler
 import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.CollectionEpisodeRepository;
+import learningFlow.learningFlow_BE.repository.MemoRepository;
 import learningFlow.learningFlow_BE.repository.UserEpisodeProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.Optional;
 public class ResourceService {
     private final UserEpisodeProgressRepository userEpisodeProgressRepository;
     private final CollectionEpisodeRepository collectionEpisodeRepository;
+    private final MemoRepository memoRepository;
     // 유저 + 에피소드 조회
     // 존재하지 않을 경우 -> 처음 -> 객체 생성 -> 저장
     // 있을 경우 -> 에피소드 정보 불러오기
@@ -38,10 +40,20 @@ public class ResourceService {
             return userEpisodeProgressRepository.save(userEpisodeProgress);
         });
     }
-
+    @Transactional
     public Collection getCollection(Long episodeId) {
         CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
         return episode.getCollection();
+    }
+    @Transactional
+    public ResourceType getResourceType(Long episodeId) {
+        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        return episode.getResource().getType();
+    }
+    @Transactional
+    public String getMemoContents(Long episodeId){
+        return memoRepository.findByEpisodeId(episodeId);
     }
 }

@@ -6,6 +6,7 @@ import learningFlow.learningFlow_BE.domain.CollectionEpisode;
 import learningFlow.learningFlow_BE.domain.Resource;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.CollectionEpisodeRepository;
+import learningFlow.learningFlow_BE.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import java.net.URISyntaxException;
 @Transactional
 public class YoutubeUrlEmbedService {
     private final CollectionEpisodeRepository collectionEpisodeRepository;
+    private final ResourceRepository resourceRepository;
     public Resource getResource(Long episodeId){
         CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
@@ -26,8 +28,11 @@ public class YoutubeUrlEmbedService {
         if (resource.getType() == ResourceType.VIDEO
                 && resource.getClientUrl() == null) {
             String url = EmbedUrl(resource.getUrl());
-
+            resource.setClientUrl(url);
+            return resourceRepository.save(resource);
         }
+        // 이미 생성된 경우
+        return resource;
     }
 
     public String EmbedUrl(String youtubeUrl){
@@ -35,6 +40,7 @@ public class YoutubeUrlEmbedService {
             URI uri = new URI(youtubeUrl);
             String host = uri.getHost();
             String query = uri.getQuery();
+            String path = uri.getPath();
             // 기본 형식: https://www.youtube.com/watch?v=<videoId>
             if (host.contains("youtube.com") && query != null && query.contains("v=")){
                 String[] params = query.split("&");
@@ -45,8 +51,15 @@ public class YoutubeUrlEmbedService {
                     }
                 }
             }
+            // 축약형: https://youtu.be/<videoId>
+            if (host.contains("youtube.be") && path != null && path.length() > 1) {
+                String videoId = path.substring(1); // 맨 앞 "/" 제거
+                return "https://youtu.be/embed/" + videoId;
+            }
+
+            throw new ResourceHandler(ErrorStatus.YOUTUBE_URI_SYNTAX_ERROR);
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
+            throw new ResourceHandler(ErrorStatus.URI_SYNTAX_ERROR);
         }
     }
 

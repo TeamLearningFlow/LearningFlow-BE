@@ -53,4 +53,9 @@ public class Resource extends BaseEntity {
             episode.setResource(null);
         }
     }
+
+    public void setClientUrl(String clientUrl) {
+        if (this.clientUrl != null) return;
+        this.clientUrl = clientUrl;
+    }
 }

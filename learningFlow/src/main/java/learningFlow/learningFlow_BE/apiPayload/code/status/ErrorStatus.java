@@ -46,7 +46,12 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),
 
     // 컬렉션 에피소드 에러
-    EPISODE_NOT_FOUND(HttpStatus.NOT_FOUND, "EPISODE4001", "존재하지 않는 에피소드 입니다.");
+    EPISODE_NOT_FOUND(HttpStatus.NOT_FOUND, "EPISODE4001", "존재하지 않는 에피소드 입니다."),
+
+    //URI 에러
+    URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "URI4001", "잘못된 형태의 URI 입니다"),
+    // 임베드 에러
+    YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다.");
 
 
     private final HttpStatus httpStatus;
