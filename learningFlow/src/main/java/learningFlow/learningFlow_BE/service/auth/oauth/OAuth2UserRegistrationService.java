@@ -97,7 +97,7 @@ public class OAuth2UserRegistrationService {
         log.info("Access 토큰 발급 : {}", accessToken);
 
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
-        response.addHeader("Refersh-Token", refreshToken);
+        response.addHeader("Refresh-Token", refreshToken);
         log.info("자동 로그인 활성화, Refresh Token 발급 : {}", refreshToken);
 
         //임시 토큰 블랙리스트에 저장

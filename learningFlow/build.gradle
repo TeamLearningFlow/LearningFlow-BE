@@ -62,8 +62,38 @@ dependencies {
 
 	// 테스트
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+
+	//QueryDsl
+	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+
+// QueryDsl 추가 설정
+def generated = 'src/main/generated'
+sourceSets {
+	main {
+		java {
+			srcDirs += generated
+		}
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.generatedSourceOutputDirectory = file(generated)
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+

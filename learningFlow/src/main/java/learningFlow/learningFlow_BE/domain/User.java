@@ -49,8 +49,8 @@ public class User extends BaseEntity {
     @Column(name = "interest_field", nullable = false)
     private List<InterestField> interestFields;
 
-    @Column(name = "birth_day", nullable = false)
-    private LocalDate birthDay;
+    @Column(name = "birth_day", nullable = false) // 년도 포함 ???년 ??월 ??일
+    private LocalDate birthDay; // TODO: 생년월일 자체를 삭제할 것
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -102,5 +102,29 @@ public class User extends BaseEntity {
 
     public void changePassword(String newEncodedPassword) {
         this.pw = newEncodedPassword;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateJob(Job job) {
+        this.job = job;
+    }
+
+    public void updateInterestFields(List<InterestField> interestFields) {
+        this.interestFields = interestFields;
+    }
+
+//    public void updateBirthDay(LocalDate birthDay) {
+//        this.birthDay = birthDay;
+//    }
+
+    public void updateGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updatePreferType(MediaType preferType) {
+        this.preferType = preferType;
     }
 }

@@ -37,6 +37,9 @@ public class Resource extends BaseEntity {
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
 
+    @Column(nullable = false)
+    private Integer runtime; //초단위로 저장(유튜브 동영상이 초단위이기 때문)
+
     public void addEpisode(CollectionEpisode episode) {
         this.episodes.add(episode);
         if (episode.getResource() != this) {
