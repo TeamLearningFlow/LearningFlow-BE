@@ -101,8 +101,8 @@ public class CollectionConverter {
 
         if (lowerCaseUrl.contains("youtube")) {
             return "youtube";
-        } else if (lowerCaseUrl.contains("brunch")) {
-            return "brunch";
+        } else if (lowerCaseUrl.contains("velog")) {
+            return "velog";
         } else if (lowerCaseUrl.contains("naver")) {
             return "naverBlog";
         } else if (lowerCaseUrl.contains("tistory")) {
