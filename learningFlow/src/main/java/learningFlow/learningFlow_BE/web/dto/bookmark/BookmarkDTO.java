@@ -9,13 +9,6 @@ public class BookmarkDTO {
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class BookmarkRequestDTO{
-        Long collectionId;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
     public static class BookmarkResponseDTO {
         boolean isBookmarked;  // true: 북마크 됨, false: 북마크 해제됨
     }
