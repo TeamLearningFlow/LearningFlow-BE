@@ -13,8 +13,7 @@ import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.LoginHandler;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.user.UserService;
-import learningFlow.learningFlow_BE.web.dto.bookmark.BookmarkDTO;
-import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -64,24 +63,6 @@ public class UserRestController {
         );
     }
 
-    @PostMapping("/bookmark")
-    @Operation(summary = "북마크 토글 API", description = "컬렉션의 북마크를 설정/해제하는 API")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COLLECTION4001", description = "컬렉션을 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
-    })
-    public ApiResponse<BookmarkDTO.BookmarkResponseDTO> toggleBookmark(
-            @RequestBody @Valid BookmarkDTO.BookmarkRequestDTO request,
-            @AuthenticationPrincipal PrincipalDetails principalDetails
-    ) {
-        if (principalDetails == null) {
-            throw new LoginHandler(ErrorStatus.LOGIN_REQUIRED);
-        }
-        return ApiResponse.onSuccess(userService.toggleBookmark(principalDetails.getUser().getLoginId(), request.getCollectionId()
-        ));
-    }
-
     @GetMapping("/bookmarks")
     @Operation(summary = "북마크한 컬렉션 조회 API", description = "사용자가 북마크한 컬렉션 목록을 조회하는 API")
     @ApiResponses({
@@ -91,13 +72,15 @@ public class UserRestController {
     @Parameters({
             @Parameter(name = "lastId", description = "마지막으로 조회된 컬렉션의 ID (첫 페이지는 0)"),
     })
-    public ApiResponse<SearchResponseDTO.SearchResultDTO> getBookmarkedCollections(
+    public ApiResponse<CollectionResponseDTO.SearchResultDTO> getBookmarkedCollections(
             @RequestParam(required = false, defaultValue = "0") Long lastId,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         if (principalDetails == null) {
             throw new LoginHandler(ErrorStatus.LOGIN_REQUIRED);
         }
-        return ApiResponse.onSuccess(userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), lastId));
+        return ApiResponse.onSuccess(
+                userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), lastId)
+        );
     }
 }

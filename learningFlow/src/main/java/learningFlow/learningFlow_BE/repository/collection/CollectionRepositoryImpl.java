@@ -1,10 +1,12 @@
-package learningFlow.learningFlow_BE.repository.search;
+package learningFlow.learningFlow_BE.repository.collection;
 
+import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
-import learningFlow.learningFlow_BE.apiPayload.exception.handler.PageHandler;
+import learningFlow.learningFlow_BE.apiPayload.exception.handler.CollectionHandler;
 import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.QCollection;
 import learningFlow.learningFlow_BE.domain.QCollectionEpisode;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.web.dto.search.SearchRequestDTO;
@@ -17,69 +19,96 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class SearchRepositoryImpl implements SearchRepositoryCustom {
+public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final QCollectionEpisode episode = QCollectionEpisode.collectionEpisode;
+    private final QCollection collection = QCollection.collection;
 
     @Override
     public List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Long lastId, Pageable pageable) {
 
-        if (lastId == null) {
-            throw new PageHandler(ErrorStatus.NO_MORE_COLLECTION);
+        BooleanExpression searchConditions = createSearchConditions(condition);
+
+        if (lastId == 0L) {
+            return jpaQueryFactory
+                    .select(episode.collection)
+                    .from(episode)
+                    .where(searchConditions)
+                    .groupBy(episode.collection.id)
+                    .orderBy(
+                            episode.collection.bookmarkCount.desc(),
+                            episode.collection.id.desc()
+                    )
+                    .limit(pageable.getPageSize())
+                    .fetch();
         }
 
-        BooleanExpression cursorExp = createCursorExp(lastId);
-        BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
-        BooleanExpression interestFieldExp = createDynamicInterestFields(condition.getInterestFields());
-        BooleanExpression preferMediaTypeExp = createDynamicPreferMediaType(condition.getPreferMediaType());
-        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
-        BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
+        Collection lastCollection = jpaQueryFactory
+                .selectFrom(collection)
+                .where(collection.id.eq(lastId))
+                .fetchOne();
+
+        if (lastCollection == null) {
+            throw new CollectionHandler(ErrorStatus.COLLECTION_NOT_FOUND);
+        }
+
+        return searchNextPage(condition, lastCollection, pageable);
+    }
+
+    private BooleanExpression createSearchConditions(SearchRequestDTO.SearchConditionDTO condition) {
+        return (BooleanExpression) ExpressionUtils.allOf(
+                createDynamicKeyword(condition.getKeyword()),
+                createDynamicInterestFields(condition.getInterestFields()),
+                createDynamicPreferMediaType(condition.getPreferMediaType()),
+                createDynamicDifficulty(condition.getDifficulties()),
+                createDynamicAmount(condition.getAmounts())
+        );
+    }
+
+    @Override
+    public Integer getTotalCount(SearchRequestDTO.SearchConditionDTO condition) {
+
+        Long count = jpaQueryFactory
+                .select(episode.collection.countDistinct())
+                .from(episode)
+                .where(createSearchConditions(condition))
+                .fetchOne();
+        return count != null ? count.intValue() : 0;
+    }
+
+    @Override
+    public List<Collection> searchNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection, Pageable pageable) {
+        BooleanExpression searchConditions = createSearchConditions(condition);
+        BooleanExpression cursorCondition = episode.collection.bookmarkCount.lt(lastCollection.getBookmarkCount())
+                .or(episode.collection.bookmarkCount.eq(lastCollection.getBookmarkCount())
+                        .and(episode.collection.id.lt(lastCollection.getId())));
 
         return jpaQueryFactory
                 .select(episode.collection)
                 .from(episode)
-                .where(cursorExp, keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
+                .where(searchConditions, cursorCondition)
                 .groupBy(episode.collection.id)
-                .orderBy(episode.collection.id.desc())
+                .orderBy(
+                        episode.collection.bookmarkCount.desc(),
+                        episode.collection.id.desc()
+                )
                 .limit(pageable.getPageSize())
                 .fetch();
     }
 
     @Override
-    public Integer getTotalCount(SearchRequestDTO.SearchConditionDTO condition) {
-        BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
-        BooleanExpression interestFieldExp = createDynamicInterestFields(condition.getInterestFields());
-        BooleanExpression preferMediaTypeExp = createDynamicPreferMediaType(condition.getPreferMediaType());
-        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
-        BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
-
+    public Integer getCountGreaterThanBookmark(Integer bookmarkCount, Long lastId, SearchRequestDTO.SearchConditionDTO condition) {
         Long count = jpaQueryFactory
                 .select(episode.collection.countDistinct())
                 .from(episode)
-                .where(keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
+                .where(
+                        createSearchConditions(condition),
+                        episode.collection.bookmarkCount.gt(bookmarkCount)
+                                .or(episode.collection.bookmarkCount.eq(bookmarkCount)
+                                        .and(episode.collection.id.gt(lastId)))
+                )
                 .fetchOne();
-
-        return count != null ? count.intValue() : 0;
-    }
-
-    @Override
-    public Integer getCountGreaterThanId(Long lastId, SearchRequestDTO.SearchConditionDTO condition) {
-        BooleanExpression keywordExp = createDynamicKeyword(condition.getKeyword());
-        BooleanExpression interestFieldExp = createDynamicInterestFields(condition.getInterestFields());
-        BooleanExpression preferMediaTypeExp = createDynamicPreferMediaType(condition.getPreferMediaType());
-        BooleanExpression difficultyExp = createDynamicDifficulty(condition.getDifficulties());
-        BooleanExpression amountExp = createDynamicAmount(condition.getAmounts());
-
-        // lastId보다 큰 ID를 가진 컬렉션만 카운트
-        BooleanExpression greaterThanExp = lastId == 0L ? null : episode.collection.id.gt(lastId);
-
-        Long count = jpaQueryFactory
-                .select(episode.collection.countDistinct())
-                .from(episode)
-                .where(greaterThanExp, keywordExp, interestFieldExp, preferMediaTypeExp, difficultyExp, amountExp)
-                .fetchOne();
-
         return count != null ? count.intValue() : 0;
     }
 
@@ -89,11 +118,6 @@ public class SearchRepositoryImpl implements SearchRepositoryCustom {
         }
 
         return episode.collection.interestField.eq(interestFields);
-    }
-
-    private BooleanExpression createCursorExp(Long lastId) {
-        if (lastId == 0L) return null;
-        return episode.collection.id.lt(lastId);
     }
 
     private BooleanExpression createDynamicKeyword(String keyword) {

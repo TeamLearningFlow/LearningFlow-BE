@@ -161,6 +161,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/webjars") ||
                 requestURI.startsWith("/find") ||
                 requestURI.startsWith("/search") ||
+                requestURI.matches("/collections/\\d+$") ||
                 requestURI.equals("/reset-password");
     }
 }
