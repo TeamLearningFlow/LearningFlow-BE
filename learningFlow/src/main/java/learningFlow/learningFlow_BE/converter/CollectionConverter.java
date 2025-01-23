@@ -12,7 +12,7 @@ import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
 
 import java.util.List;
 
-public class SearchConverter {
+public class CollectionConverter {
 
     public static SearchRequestDTO.SearchConditionDTO toSearchConditionDTO(
             String keyword,
