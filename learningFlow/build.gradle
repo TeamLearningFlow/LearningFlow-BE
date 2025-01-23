@@ -65,7 +65,8 @@ dependencies {
 
 
 	//QueryDsl
-	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	implementation 'com.querydsl:querydsl-core'
 	annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
@@ -89,6 +90,11 @@ sourceSets {
 
 tasks.withType(JavaCompile).configureEach {
 	options.generatedSourceOutputDirectory = file(generated)
+}
+
+// gradle clean 시에 QClass 디렉토리 삭제
+clean {
+	delete file(generated)
 }
 
 configurations {
