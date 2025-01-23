@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.config.security;
 
+import learningFlow.learningFlow_BE.security.handler.CustomAuthenticationEntryPoint;
 import learningFlow.learningFlow_BE.security.handler.OAuth2LoginSuccessHandler;
 import learningFlow.learningFlow_BE.security.jwt.JwtAuthenticationFilter;
 import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserAuthenticationService;
@@ -17,19 +18,19 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Slf4j
-@EnableWebSecurity
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final OAuth2UserAuthenticationService OAuth2UserAuthenticationService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
@@ -42,13 +43,15 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/find/**",
-                                "/reset-password"
-                        ).permitAll()
+                                "/reset-password",
+                                "/search/**"
+                                ).permitAll()
                         .requestMatchers(
                                 "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
                                 "/home/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").authenticated()
+                        .requestMatchers("/user/**", "/resources/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .oauth2Login(oauth2 -> oauth2
@@ -57,13 +60,8 @@ public class SecurityConfig {
                         .successHandler(oAuth2LoginSuccessHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(handler -> handler
-                        .defaultAuthenticationEntryPointFor(
-                                (request, response, authException) -> {
-                                    response.sendRedirect("/home");
-                                },
-                                new AntPathRequestMatcher("/**")
-                        ));
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(authenticationEntryPoint));
 
         return http.build();
     }

@@ -2,14 +2,19 @@ package learningFlow.learningFlow_BE.domain;
 
 import jakarta.persistence.*;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
-import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Builder
 @Entity
 @Table(name = "collection")
@@ -25,8 +30,10 @@ public class Collection extends BaseEntity {
     @Column(nullable = false)
     private String creator;
 
-    @Column(nullable = false)
-    private String keyword;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "collection_keywords", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "keyword")
+    private List<String> keywords = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -35,15 +42,19 @@ public class Collection extends BaseEntity {
     @Column(name = "detail_information", nullable = false)
     private String detailInformation;
 
-    @Column(nullable = false)
-    private Integer difficulty;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "collection_difficulties", joinColumns = @JoinColumn(name = "collection_id"))
+    @Column(name = "difficulty")
+    private List<Integer> difficulty; // 1: 입문, 2: 초급, 3: 중급, 4: 실무
 
     @Column(nullable = false)
     private Integer amount;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MediaType mediaType;
+    private Integer resourceTypeRatio; //영상 기준 -> 100개 중 영상이 70개면 70으로 저장 -> 따라서 최댓값이 100이어야함.
+
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer bookmarkCount = 0;
 
     @ManyToOne
     @JoinColumn(name = "image_id")
@@ -54,6 +65,14 @@ public class Collection extends BaseEntity {
 
     @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
+
+    public void incrementBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    public void decrementBookmarkCount() {
+        this.bookmarkCount--;
+    }
 
     public void setImage(Image image) {
         // 기존 이미지와의 관계 제거

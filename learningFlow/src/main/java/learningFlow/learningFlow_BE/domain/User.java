@@ -6,7 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -49,9 +49,6 @@ public class User extends BaseEntity {
     @Column(name = "interest_field", nullable = false)
     private List<InterestField> interestFields;
 
-    @Column(name = "birth_day", nullable = false)
-    private LocalDate birthDay;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
@@ -71,8 +68,30 @@ public class User extends BaseEntity {
     @JoinColumn(name = "image_id")
     private Image image;
 
+    @ElementCollection
+    @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "collection_id")
+    private List<Long> bookmarkedCollectionIds = new ArrayList<>();
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<UserCollection> userCollections;
+
+    // added
+    public void addBookmark(Long collectionId) {
+        if (!bookmarkedCollectionIds.contains(collectionId)) {
+            bookmarkedCollectionIds.add(collectionId);
+        }
+    }
+
+    // added
+    public void removeBookmark(Long collectionId) {
+        bookmarkedCollectionIds.remove(collectionId);
+    }
+
+    // added
+    public boolean hasBookmarked(Long collectionId) {
+        return bookmarkedCollectionIds.contains(collectionId);
+    }
 
     public void setImage(Image image) {
         //기존 이미지와의 연관관계 제거
@@ -102,5 +121,29 @@ public class User extends BaseEntity {
 
     public void changePassword(String newEncodedPassword) {
         this.pw = newEncodedPassword;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateJob(Job job) {
+        this.job = job;
+    }
+
+    public void updateInterestFields(List<InterestField> interestFields) {
+        this.interestFields = interestFields;
+    }
+
+//    public void updateBirthDay(LocalDate birthDay) {
+//        this.birthDay = birthDay;
+//    }
+
+    public void updateGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updatePreferType(MediaType preferType) {
+        this.preferType = preferType;
     }
 }

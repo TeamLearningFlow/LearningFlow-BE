@@ -32,4 +32,5 @@ public class Image {
 
     @OneToMany(mappedBy = "image", cascade = CascadeType.ALL)
     private List<Collection> collections;
+
 }
