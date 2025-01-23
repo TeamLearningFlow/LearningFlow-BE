@@ -17,7 +17,8 @@ public class HomeResponseDTO {
     @AllArgsConstructor
     public static class HomeInfoDTO {
         List<RecommendedCollectionDTO> recommendedCollections;
-        List<RecentCollectionDTO> recentCollections;
+//        List<RecentCollectionDTO> recentCollections;
+        RecentLearningDTO recentLearning;
     }
 
     @Getter
@@ -48,5 +49,26 @@ public class HomeResponseDTO {
         Integer progress;             // 진행률
         String collectionUrl;         // 컬렉션 상세 페이지 URL
         Integer currentEpisode;       // 현재 학습 중인 에피소드 번호
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecentLearningDTO {
+        private Long collectionId;
+        private String title;
+        private Integer currentEpisode;
+        private boolean isCompleted;
+        private List<EpisodeDTO> episodes;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EpisodeDTO {
+        private Integer episodeNumber;
+        private String episodeName;
     }
 }
