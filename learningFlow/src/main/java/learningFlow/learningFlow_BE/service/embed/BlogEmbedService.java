@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -19,31 +22,12 @@ public class BlogEmbedService {
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.RESOURCE_NOT_FOUND));
 
         // 이미 변환된 URL이 존재하면 바로 반환
-        if (resource.getClientUrl() != null) {
-            return resource;
+        if (resource.getClientUrl() == null) {
+            String proxyUrl = "/proxy/blog?url=" + URLEncoder.encode(resource.getUrl(), StandardCharsets.UTF_8);
+            resource.setClientUrl(proxyUrl);
+            return resourceRepository.save(resource);
         }
 
-        // 변환된 URL 생성 및 저장
-        String embedUrl = getEmbedUrl(resource.getUrl());
-        resource.setClientUrl(embedUrl);
-        return resourceRepository.save(resource);
-    }
-
-    private String getEmbedUrl(String blogUrl) {
-        if (blogUrl.contains("brunch.co.kr")) {
-            return generateProxyUrl(blogUrl);
-        } else if (blogUrl.contains("tistory.com")) {
-            return generateProxyUrl(blogUrl);
-        } else if (blogUrl.contains("naver.com")) {
-            return generateProxyUrl(blogUrl);
-        } else if (blogUrl.contains("velog.io")) {
-            return generateProxyUrl(blogUrl);
-        } else {
-            throw new ResourceHandler(ErrorStatus.UNSUPPORTED_BLOG_PLATFORM);
-        }
-    }
-
-    private String generateProxyUrl(String blogUrl) {
-        return "/proxy/blog?url=" + blogUrl; // 저장될 변환된 URL
+        return resource;
     }
 }

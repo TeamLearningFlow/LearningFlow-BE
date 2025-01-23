@@ -17,6 +17,7 @@ import learningFlow.learningFlow_BE.domain.Resource;
 import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.service.embed.BlogEmbedService;
 import learningFlow.learningFlow_BE.service.embed.YoutubeUrlEmbedService;
 import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
 import learningFlow.learningFlow_BE.service.resource.ResourceService;
@@ -41,6 +42,7 @@ public class ResourceRestController {
     private final MemoCommandService memoCommandService;
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
+    private final BlogEmbedService blogEmbedService;
     @GetMapping("/{episode-id}")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
@@ -59,13 +61,13 @@ public class ResourceRestController {
         Collection collection = resourceService.getCollection(episodeId);
         ResourceType resourceType = resourceService.getResourceType(episodeId);
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
-        // log.info("Memo= ", memo.get().getContents());
+
         Resource resource = null;
 
         if (resourceType == ResourceType.VIDEO) {
             resource = youtubeUrlEmbedService.getResource(episodeId);
         } else if (resourceType == ResourceType.TEXT) {
-            
+            resource = blogEmbedService.getResource(episodeId);
         }
 
         return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));

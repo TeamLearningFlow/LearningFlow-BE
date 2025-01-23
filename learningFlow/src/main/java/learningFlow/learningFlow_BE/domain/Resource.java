@@ -34,6 +34,9 @@ public class Resource extends BaseEntity {
     @Column(name = "client_url")
     private String clientUrl; // 클라이언트에게 보내줄 url
 
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer studyDuration; // 학습 시간 (초 단위 저장)
+
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
 
