@@ -9,5 +9,6 @@ import java.util.List;
 public interface CollectionRepositoryCustom {
     List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Long lastId, Pageable pageable);
     Integer getTotalCount(SearchRequestDTO.SearchConditionDTO condition);
-    Integer getCountGreaterThanId(Long lastId, SearchRequestDTO.SearchConditionDTO condition);
+    List<Collection> searchNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection, Pageable pageable);
+    Integer getCountGreaterThanBookmark(Integer bookmarkCount, Long lastId, SearchRequestDTO.SearchConditionDTO condition);
 }

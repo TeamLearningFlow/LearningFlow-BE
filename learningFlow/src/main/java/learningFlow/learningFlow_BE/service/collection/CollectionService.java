@@ -50,40 +50,27 @@ public class CollectionService {
             return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, null);
         }
 
-        Long lastCollectionId = collections.getLast().getId();
-        boolean hasNext = hasNextPage(condition, lastCollectionId);
+        Collection lastCollection = collections.getLast();
+        boolean hasNext = hasNextPage(condition, lastCollection);
 
         Integer totalCount = collectionRepository.getTotalCount(condition);
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
 
-        int currentPage = calculateCurrentPage(lastId, condition);
+        int currentPage = calculateCurrentPage(condition, lastCollection);
 
         User currentUser = null;
         if (authentication != null && authentication.getPrincipal() instanceof PrincipalDetails) {
             currentUser = ((PrincipalDetails) authentication.getPrincipal()).getUser();
         }
 
-        return CollectionConverter.toSearchResultDTO(collections, lastCollectionId, hasNext, totalPages, currentPage, currentUser);
+        return CollectionConverter.toSearchResultDTO(collections, lastCollection.getId(), hasNext, totalPages, currentPage, currentUser);
     }
 
-    private int calculateCurrentPage(Long lastId, SearchRequestDTO.SearchConditionDTO condition) {
-        if (lastId == 0L) {
-            return 1; // 첫 페이지
-        }
-
-        // lastId보다 큰 ID를 가진 컬렉션의 수를 조회
-        Integer greaterCount = collectionRepository.getCountGreaterThanId(lastId, condition);
-
-        // 페이지 번호 계산 (1부터 시작)
-        return greaterCount / PAGE_SIZE + 2;
+    private int calculateCurrentPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection) {
+        return collectionRepository.getCountGreaterThanBookmark(lastCollection.getBookmarkCount(),lastCollection.getId(), condition) / PAGE_SIZE + 1;
     }
 
-    private boolean hasNextPage(SearchRequestDTO.SearchConditionDTO condition, long lastCollectionId) {
-        List<Collection> nextCollections = collectionRepository.searchCollections(
-                condition,
-                lastCollectionId,
-                PageRequest.of(0, 1)
-        );
-        return !nextCollections.isEmpty();
+    private boolean hasNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection) {
+        return !collectionRepository.searchNextPage(condition, lastCollection, PageRequest.of(0, 1)).isEmpty();
     }
 }
