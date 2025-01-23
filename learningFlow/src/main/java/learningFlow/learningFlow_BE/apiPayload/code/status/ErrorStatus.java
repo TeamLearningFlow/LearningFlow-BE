@@ -51,8 +51,10 @@ public enum ErrorStatus implements BaseErrorCode {
     //URI 에러
     URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "URI4001", "잘못된 형태의 URI 입니다"),
     // 임베드 에러
-    YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다.");
-
+    YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다."),
+    UNSUPPORTED_BLOG_PLATFORM(HttpStatus.BAD_REQUEST, "EMBED4002", "지원하지 않는 블로그 플랫폼입니다."),
+    // Resource 에러
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

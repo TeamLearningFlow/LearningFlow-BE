@@ -53,9 +53,7 @@ public class ResourceRestController {
     public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchEpisode(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable("episode-id") Long episodeId) {
-        /**
-         * 강의 시청 하는 API로 강좌로 이동하는 API 이기 때문에 일단 Resource의 Url을 반환하게 해놓았어요.
-         */
+
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
@@ -66,7 +64,9 @@ public class ResourceRestController {
 
         if (resourceType == ResourceType.VIDEO) {
             resource = youtubeUrlEmbedService.getResource(episodeId);
-        } // TEXT 일 경우도 처리
+        } else if (resourceType == ResourceType.TEXT) {
+            
+        }
 
         return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));
     }
