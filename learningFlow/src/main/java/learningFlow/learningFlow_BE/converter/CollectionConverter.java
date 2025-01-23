@@ -8,7 +8,7 @@ import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.search.SearchRequestDTO;
-import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class CollectionConverter {
                 .build();
     }
 
-    public static SearchResponseDTO.SearchResultDTO toSearchResultDTO(
+    public static CollectionResponseDTO.SearchResultDTO toSearchResultDTO(
             List<Collection> collections,
             Long lastId,
             boolean hasNext,
@@ -38,11 +38,11 @@ public class CollectionConverter {
             int currentPage,
             User currentUser
     ) {
-        List<SearchResponseDTO.CollectionPreviewDTO> list = collections.stream()
+        List<CollectionResponseDTO.CollectionPreviewDTO> list = collections.stream()
                 .map(collection -> toCollectionPreviewDTO(collection, currentUser))
                 .toList();
 
-        return SearchResponseDTO.SearchResultDTO.builder()
+        return CollectionResponseDTO.SearchResultDTO.builder()
                 .searchResults(list)
                 .lastId(lastId)
                 .hasNext(hasNext)
@@ -51,7 +51,7 @@ public class CollectionConverter {
                 .build();
     }
 
-    public static SearchResponseDTO.CollectionPreviewDTO toCollectionPreviewDTO(Collection collection, User currentUser) {
+    public static CollectionResponseDTO.CollectionPreviewDTO toCollectionPreviewDTO(Collection collection, User currentUser) {
 
         int totalSeconds = collection.getEpisodes().stream()
                 .map(CollectionEpisode::getResource)
@@ -65,7 +65,7 @@ public class CollectionConverter {
 
         List<ResourceResponseDTO.SearchResultResourceDTO> resourceDTOList = getResourceDTOList(collection);
 
-        return SearchResponseDTO.CollectionPreviewDTO.builder()
+        return CollectionResponseDTO.CollectionPreviewDTO.builder()
                 .id(collection.getId())
                 .interestField(collection.getInterestField())
                 .title(collection.getTitle())
