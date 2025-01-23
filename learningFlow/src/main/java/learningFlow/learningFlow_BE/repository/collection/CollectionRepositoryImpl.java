@@ -1,4 +1,4 @@
-package learningFlow.learningFlow_BE.repository.search;
+package learningFlow.learningFlow_BE.repository.collection;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class SearchRepositoryImpl implements SearchRepositoryCustom {
+public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final QCollectionEpisode episode = QCollectionEpisode.collectionEpisode;
