@@ -1,9 +1,14 @@
 package learningFlow.learningFlow_BE.converter;
 
 import learningFlow.learningFlow_BE.domain.User;
+import learningFlow.learningFlow_BE.domain.UserCollection;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class UserConverter {
@@ -19,7 +24,7 @@ public class UserConverter {
                 .build();
     }
 
-    public UserInfoDTO convertToUserInfoDTO(User user) {
+    public static UserInfoDTO convertToUserInfoDTO(User user) {
         return UserInfoDTO.builder()
                 .name(user.getName())
                 .email(user.getEmail())
@@ -28,6 +33,22 @@ public class UserConverter {
                 .gender(user.getGender())
                 .preferType(user.getPreferType())
                 .profileImageUrl(user.getImage() != null ? user.getImage().getImageURL() : null)
+                .build();
+    }
+
+    public static UserResponseDTO.UserMyPageResponseDTO convertToUserMyPageResponseDTO(
+            List<UserCollection> inProgressUserCollectionList,
+            List<UserCollection> completedUserCollectionList
+    ) {
+        List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeList = inProgressUserCollectionList.stream()
+                .map(ResourceConverter::convertToRecentlyWatchedEpisodeDTO).toList();
+
+        List<CollectionResponseDTO.CompletedCollectionDTO> completedCollectionList = completedUserCollectionList.stream()
+                .map(CollectionConverter::convertToCompletedCollectionDTO).toList();
+
+        return UserResponseDTO.UserMyPageResponseDTO.builder()
+                .recentlyWatchedEpisodeList(recentlyWatchedEpisodeList)
+                .completedCollectionList(completedCollectionList)
                 .build();
     }
 }
