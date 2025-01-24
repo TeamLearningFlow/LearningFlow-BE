@@ -1,9 +1,6 @@
 package learningFlow.learningFlow_BE.converter;
 
-import learningFlow.learningFlow_BE.domain.Collection;
-import learningFlow.learningFlow_BE.domain.CollectionEpisode;
-import learningFlow.learningFlow_BE.domain.Resource;
-import learningFlow.learningFlow_BE.domain.User;
+import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
@@ -53,27 +50,21 @@ public class CollectionConverter {
 
     public static CollectionResponseDTO.CollectionPreviewDTO toCollectionPreviewDTO(Collection collection, User currentUser) {
 
-        int totalSeconds = collection.getEpisodes().stream()
-                .map(CollectionEpisode::getResource)
-                .mapToInt(Resource::getRuntime).sum();
-
-        int totalHours = (int) Math.ceil(totalSeconds / 3600);
-
         Integer textCount = countResourcesByType(collection,ResourceType.TEXT);
 
         Integer videoCount = countResourcesByType(collection, ResourceType.VIDEO);
 
-        List<ResourceResponseDTO.SearchResultResourceDTO> resourceDTOList = getResourceDTOList(collection);
+        List<ResourceResponseDTO.SearchResultResourceDTO> resourceDTOList = ResourceConverter.getResourceDTOList(collection);
 
         return CollectionResponseDTO.CollectionPreviewDTO.builder()
-                .id(collection.getId())
+                .collectionId(collection.getId())
                 .interestField(collection.getInterestField())
                 .title(collection.getTitle())
                 .creator(collection.getCreator())
                 .keywords(collection.getKeywords())
                 .difficulties(collection.getDifficulty())
                 .amount(collection.getAmount())
-                .runtime(totalHours)
+                .runtime(getTotalHours(collection))
                 .textCount(textCount)
                 .videoCount(videoCount)
                 .resource(resourceDTOList)
@@ -82,34 +73,27 @@ public class CollectionConverter {
                 .build();
     }
 
-    private static List<ResourceResponseDTO.SearchResultResourceDTO> getResourceDTOList(Collection collection) {
-
-        return collection.getEpisodes().stream()
-                .map(episode -> ResourceResponseDTO.SearchResultResourceDTO.builder()
-                        .episodeName(episode.getEpisodeName())
-                        .url(episode.getResource().getUrl())
-                        .resourceSource(extractResourceSource(episode.getResource().getUrl()))
-                        .episodeNumber(episode.getEpisodeNumber())
-                        .build())
-                .toList();
-
+    public static CollectionResponseDTO.CompletedCollectionDTO convertToCompletedCollectionDTO(
+            UserCollection userCollection
+    ) {
+        return CollectionResponseDTO.CompletedCollectionDTO.builder()
+                .collectionId(userCollection.getCollection().getId())
+                .interestField(userCollection.getCollection().getInterestField())
+                .collectionTitle(userCollection.getCollection().getTitle())
+                .creator(userCollection.getCollection().getCreator())
+                .keywords(userCollection.getCollection().getKeywords())
+                .difficulties(userCollection.getCollection().getDifficulty())
+                .runtime(getTotalHours(userCollection.getCollection()))
+                .lastAccessedTime(userCollection.getLastAccessedAt())
+                .build();
     }
 
-    private static String extractResourceSource(String url) {
+    private static int getTotalHours(Collection collection) {
+        int totalSeconds = collection.getEpisodes().stream()
+                .map(CollectionEpisode::getResource)
+                .mapToInt(Resource::getRuntime).sum();
 
-        String lowerCaseUrl = url.toLowerCase();
-
-        if (lowerCaseUrl.contains("youtube")) {
-            return "youtube";
-        } else if (lowerCaseUrl.contains("velog")) {
-            return "velog";
-        } else if (lowerCaseUrl.contains("naver")) {
-            return "naverBlog";
-        } else if (lowerCaseUrl.contains("tistory")) {
-            return "tistory";
-        } else {
-            return "unknown";
-        }
+        return (int) Math.ceil((double) totalSeconds / 3600);
     }
 
     private static int countResourcesByType(Collection collection, ResourceType type) {
@@ -118,6 +102,4 @@ public class CollectionConverter {
                 .filter(resource -> resource.getType() == type)
                 .count();
     }
-
-
 }
