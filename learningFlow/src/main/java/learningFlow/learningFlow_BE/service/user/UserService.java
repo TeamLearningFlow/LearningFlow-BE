@@ -7,11 +7,15 @@ import learningFlow.learningFlow_BE.converter.CollectionConverter;
 import learningFlow.learningFlow_BE.converter.UserConverter;
 import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.User;
+import learningFlow.learningFlow_BE.domain.UserCollection;
+import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
+import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
 import learningFlow.learningFlow_BE.repository.collection.CollectionRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
 import learningFlow.learningFlow_BE.web.dto.bookmark.BookmarkDTO;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
+import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +35,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserConverter userConverter;
     private final CollectionRepository collectionRepository;
+    private final UserCollectionRepository userCollectionRepository;
 
     private static final int BOOKMARK_PAGE_SIZE = 8;
 
@@ -86,7 +91,6 @@ public class UserService {
         return new BookmarkDTO.BookmarkResponseDTO(!isCurrentlyBookmarked);
     }
 
-    @Transactional(readOnly = true)
     public CollectionResponseDTO.SearchResultDTO getBookmarkedCollections(String loginId, Long lastId) {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
@@ -137,5 +141,18 @@ public class UserService {
                 currentPage,
                 user
         );
+    }
+
+    public UserResponseDTO.UserMyPageResponseDTO getUserMyPageResponseDTO(String loginId) {
+        User user = userRepository.findById(loginId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        List<UserCollection> inProgressUserCollectionList
+                = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.IN_PROGRESS);
+
+        List<UserCollection> completedUserCollectionList
+                = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.COMPLETED);
+
+        return UserConverter.convertToUserMyPageResponseDTO(inProgressUserCollectionList, completedUserCollectionList);
     }
 }

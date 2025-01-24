@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class CollectionResponseDTO {
@@ -28,18 +29,33 @@ public class CollectionResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class CollectionPreviewDTO {
-        Long id;
+        Long collectionId;
         InterestField interestField;
         String title;
         String creator;
         List<String> keywords;
         List<Integer> difficulties;
         Integer amount;
-        Integer runtime;
+        Integer runtime; //TODO : 필드 이름 수정 필요, 해당 컬렉션 수강 전체에 드느 시간이기 때문에 좀 더 좋은 필드 이름으로..
         Integer textCount;
         Integer videoCount;
         List<ResourceResponseDTO.SearchResultResourceDTO> resource;
         Integer bookmarkCount;
         boolean isBookmarked;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompletedCollectionDTO {
+        Long collectionId;
+        InterestField interestField;
+        String collectionTitle;
+        String creator;
+        List<String> keywords;
+        List<Integer> difficulties;
+        Integer runtime; //TODO : 필드 이름 수정 필요, 해당 컬렉션 수강 전체에 드느 시간이기 때문에 좀 더 좋은 필드 이름으로..
+        LocalDate lastAccessedTime;
     }
 }
