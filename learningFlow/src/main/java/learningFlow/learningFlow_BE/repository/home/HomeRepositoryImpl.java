@@ -2,11 +2,13 @@ package learningFlow.learningFlow_BE.repository.home;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import learningFlow.learningFlow_BE.domain.*;
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // TODO: 성능 최적화 검토 필요
@@ -35,8 +37,12 @@ public class HomeRepositoryImpl implements HomeRepository {
     /**
      * 사용자 선호 매체/관심사 기반 추천
      * - 사용자가 로그인하지 않은 경우 또는 선호 매체가 없는 경우 북마크 수 기준으로 추천
-     * - 선호하는 매체가 있는 경우 해당 매체의 컬렉션들을 먼저 조회(북마크 수 기준)
-     * - 선호하는 매체의 컬렉션이 부족한 경우 나머지 컬렉션들로 채움(북마크 수 기준)
+     * - 선호 매체/관심사 기반 추천
+     *  1. 관심분야 + 선호타입 50% 이상
+     *  2. 관심분야 + 선호타입 50% 미만
+     *  3. 비관심분야 + 선호타입 50% 이상
+     *  4. 비관심분야 + 선호타입 50% 미만
+     * TODO: 추천 알고리즘 개선 예정(최적화 필요)
      * @param limit
      * @param user
      * @return
@@ -48,38 +54,68 @@ public class HomeRepositoryImpl implements HomeRepository {
         }
 
         boolean preferVideo = user.getPreferType() == MediaType.VIDEO;
+        List<Collection> result = new ArrayList<>();
+        List<InterestField> userInterests = user.getInterestFields();
 
-        // 선호하는 타입의 컬렉션들 먼저 조회
-        List<Collection> preferredCollections = queryFactory
+        // 1. 관심분야 + 선호타입 50% 이상
+        result.addAll(queryFactory
                 .select(collection)
                 .from(collection)
-                .leftJoin(collection.episodes, episode)
-                .leftJoin(episode.resource, resource)
-                .groupBy(collection)
-                .having(
-                        preferVideo ?
-                                resource.type.eq(ResourceType.VIDEO).count().multiply(100)
-                                        .divide(resource.count()).goe(50L) :
-                                resource.type.eq(ResourceType.TEXT).count().multiply(100)
-                                        .divide(resource.count()).goe(50L)
-                )
+                .where(collection.interestField.in(userInterests)
+                        .and(preferVideo ?
+                                collection.resourceTypeRatio.goe(50) :
+                                collection.resourceTypeRatio.lt(50)))
                 .orderBy(collection.bookmarkCount.desc())
-                .fetch();
+                .fetch());
 
-        // 부족하면 나머지 컬렉션들로 채움
-        if (preferredCollections.size() < limit) {
-            List<Collection> remainingCollections = queryFactory
-                    .selectFrom(collection)
-                    .where(collection.notIn(preferredCollections))
+        // 2. 관심분야 + 선호타입 50% 미만
+        if (result.size() < limit) {
+            result.addAll(queryFactory
+                    .select(collection)
+                    .from(collection)
+                    .where(collection.interestField.in(userInterests)
+                            .and(collection.notIn(result))
+                            .and(preferVideo ?
+                                    collection.resourceTypeRatio.lt(50) :
+                                    collection.resourceTypeRatio.goe(50)))
                     .orderBy(collection.bookmarkCount.desc())
-                    .limit(limit - preferredCollections.size())
-                    .fetch();
-
-            preferredCollections.addAll(remainingCollections);
+                    .limit(limit - result.size())
+                    .fetch());
         }
 
-        return preferredCollections.subList(0, Math.min(preferredCollections.size(), limit));
+        // 3. 비관심분야 + 선호타입 50% 이상
+        if (result.size() < limit) {
+            result.addAll(queryFactory
+                    .select(collection)
+                    .from(collection)
+                    .where(collection.interestField.notIn(userInterests)
+                            .and(collection.notIn(result))
+                            .and(preferVideo ?
+                                    collection.resourceTypeRatio.goe(50) :
+                                    collection.resourceTypeRatio.lt(50)))
+                    .orderBy(collection.bookmarkCount.desc())
+                    .limit(limit - result.size())
+                    .fetch());
+        }
+
+        // 4. 비관심분야 + 선호타입 50% 미만
+        if (result.size() < limit) {
+            result.addAll(queryFactory
+                    .select(collection)
+                    .from(collection)
+                    .where(collection.interestField.notIn(userInterests)
+                            .and(collection.notIn(result))
+                            .and(preferVideo ?
+                                    collection.resourceTypeRatio.lt(50) :
+                                    collection.resourceTypeRatio.goe(50)))
+                    .orderBy(collection.bookmarkCount.desc())
+                    .limit(limit - result.size())
+                    .fetch());
+        }
+
+        return result.subList(0, Math.min(result.size(), limit));
     }
+
 
     private List<Collection> findCollectionsByBookmarkCount(int limit) {
         return queryFactory
