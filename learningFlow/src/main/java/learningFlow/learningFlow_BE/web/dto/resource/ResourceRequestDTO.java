@@ -9,8 +9,6 @@ public class ResourceRequestDTO {
     @Getter
     public static class ProgressRequestDTO {
         @NotNull
-        private Long episodeId;  // 강의 ID
-        @NotNull
         private ResourceType resourceType; // 강의 타입 (VIDEO or TEXT)
         private Integer progress;  // 유튜브 강의 && 블로그 픽셀
     }

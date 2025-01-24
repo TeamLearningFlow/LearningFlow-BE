@@ -105,10 +105,11 @@ public class ResourceService {
         log.info("Saved UserCollection: {}", savedCollection);
     }
     @Transactional
-    public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId) {
-        UserEpisodeProgressId progressId = new UserEpisodeProgressId(request.getEpisodeId(), userId);
+    public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
+        UserEpisodeProgressId progressId = new UserEpisodeProgressId(episodeId, userId);
         UserEpisodeProgress progress = userEpisodeProgressRepository.findById(progressId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
+
         if (request.getResourceType() == ResourceType.VIDEO && request.getProgress() != null) {
             progress.setCurrentProgress(request.getProgress());
         } else if (request.getResourceType() == ResourceType.TEXT && request.getProgress() != null) {

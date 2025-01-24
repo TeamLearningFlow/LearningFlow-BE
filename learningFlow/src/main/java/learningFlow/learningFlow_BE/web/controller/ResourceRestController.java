@@ -75,11 +75,20 @@ public class ResourceRestController {
     }
 
     @PostMapping("/{episode-id}/save-progress")
+    @Operation(summary = "강의 진도 저장 API", description = "강의 진도 저장 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+    })
+    @Parameters({
+            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+    })
     public ApiResponse<ResourceResponseDTO.ProgressResponseDTO> saveProgress(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episode-id") Long episodeId,
             @Valid @RequestBody ResourceRequestDTO.ProgressRequestDTO request) {
         String loginId = principalDetails.getUser().getLoginId();
-        resourceService.saveProgress(request, loginId);
+        resourceService.saveProgress(request, loginId, episodeId);
 
         return ApiResponse.onSuccess(ResourceConverter.toSaveProgressResponse(request));
     }
