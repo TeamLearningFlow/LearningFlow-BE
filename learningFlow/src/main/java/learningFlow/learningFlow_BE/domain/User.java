@@ -68,7 +68,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "image_id")
     private Image image;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "collection_id")
     private List<Long> bookmarkedCollectionIds = new ArrayList<>();
