@@ -1,13 +1,18 @@
 package learningFlow.learningFlow_BE.domain;
 
 import jakarta.persistence.*;
+import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
 import lombok.*;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Builder
 @Entity
 @Table(name = "user_collection")
@@ -30,6 +35,10 @@ public class UserCollection {
 
     @Column(name = "last_accessed_at", nullable = false)
     private LocalDate lastAccessedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "VARCHAR(20) DEFAULT 'IN_PROGRESS'", nullable = false)
+    private UserCollectionStatus status;
 
     public void setUser(User user) {
         // 기존 유저와의 관계 제거

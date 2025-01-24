@@ -28,6 +28,8 @@ public class QUserCollection extends EntityPathBase<UserCollection> {
 
     public final DatePath<java.time.LocalDate> lastAccessedAt = createDate("lastAccessedAt", java.time.LocalDate.class);
 
+    public final EnumPath<learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus> status = createEnum("status", learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus.class);
+
     public final QUser user;
 
     public final NumberPath<Integer> userCollectionStatus = createNumber("userCollectionStatus", Integer.class);
