@@ -20,9 +20,23 @@ public class ResourceResponseDTO {
     @NoArgsConstructor
     @Builder
     public static class SearchResultResourceDTO {
+        Long resourceId;
         String episodeName;
         String url;
         String resourceSource;
         Integer episodeNumber;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecentlyWatchedEpisodeDTO {
+        Long resourceId;
+        String CollectionTitle;
+        String resourceSource;
+        Integer episodeNumber;
+        String episodeName;
+        String progressRatio;
     }
 }

@@ -9,12 +9,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
-import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
-import learningFlow.learningFlow_BE.apiPayload.exception.handler.LoginHandler;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.user.UserService;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
+import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +62,18 @@ public class UserRestController {
         );
     }
 
+    @GetMapping("/mypage")
+    @Operation(summary = "마이 페이지 조회 API", description = "마이 페이지에서 최근 학습 목록, 완료 컬렉션 조회 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class)))
+    })
+    public ApiResponse<UserResponseDTO.UserMyPageResponseDTO> getMyPage(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        return ApiResponse.onSuccess(userService.getUserMyPageResponseDTO(principalDetails.getUser().getLoginId()));
+    }
+
     @GetMapping("/bookmarks")
     @Operation(summary = "북마크한 컬렉션 조회 API", description = "사용자가 북마크한 컬렉션 목록을 조회하는 API")
     @ApiResponses({
@@ -76,9 +87,6 @@ public class UserRestController {
             @RequestParam(required = false, defaultValue = "0") Long lastId,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
-        if (principalDetails == null) {
-            throw new LoginHandler(ErrorStatus.LOGIN_REQUIRED);
-        }
         return ApiResponse.onSuccess(
                 userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), lastId)
         );
