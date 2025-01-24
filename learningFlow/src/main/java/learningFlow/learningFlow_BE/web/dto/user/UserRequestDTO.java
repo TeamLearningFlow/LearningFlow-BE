@@ -21,16 +21,13 @@ public class UserRequestDTO {
         String email;
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
-        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s])\\S{8,}$",
-                message = "비밀번호는 8자 이상, 영문자, 숫자, 특수문자를 포함해야 하며, 공백은 허용되지 않습니다.")
+        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])(?!.*\\s)[A-Za-z\\d@$!%*?&]{8,16}$",
+                message = "비밀번호는 8-16자 사이, 영문 대/소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 하며 공백은 포함할 수 없습니다.")
         String password;
     }
 
     @Getter
     public static class CompleteRegisterDTO {
-        @NotBlank(message = "이메일 인증 토큰은 필수입니다")
-        String token;
-
         @NotBlank(message = "이름은 필수 입력값입니다")
         String name;
 
@@ -40,9 +37,6 @@ public class UserRequestDTO {
         @NotEmpty(message = "관심 분야는 최소 1개 이상 선택해야 합니다")
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
-
-        @NotNull(message = "생년월일은 필수 입력값입니다")
-        LocalDate birthDay;
 
         @NotNull(message = "성별은 필수 선택값입니다")
         Gender gender;
@@ -71,9 +65,6 @@ public class UserRequestDTO {
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
 
-        @NotNull(message = "생년월일은 필수 입력값입니다")
-        LocalDate birthDay;
-
         @NotNull(message = "성별은 필수 선택값입니다")
         Gender gender;
 
@@ -94,8 +85,16 @@ public class UserRequestDTO {
         String token;
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
-        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[^A-Za-z\\d\\s])\\S{8,}$",
-                message = "비밀번호는 8자 이상, 영문자, 숫자, 특수문자를 포함해야 하며, 공백은 허용되지 않습니다.")
+        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])(?!.*\\s)[A-Za-z\\d@$!%*?&]{8,16}$",
+                message = "비밀번호는 8-16자 사이, 영문 대/소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 하며 공백은 포함할 수 없습니다.")
         String newPassword;
     }
+
+    @Getter
+    public static class UpdateUserDTO {
+        String name;
+        Job job;
+        List<InterestField> interestFields;
+    }
 }
+

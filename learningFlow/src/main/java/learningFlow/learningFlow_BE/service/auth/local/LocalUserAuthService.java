@@ -77,16 +77,27 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public UserResponseDTO.UserLoginResponseDTO completeRegister(UserRequestDTO.CompleteRegisterDTO requestDTO,
-                                                                 HttpServletResponse response) {
+    public EmailVerificationToken validateRegistrationToken(String token) {
         // 토큰 유효성 검증
-        EmailVerificationToken token = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(requestDTO.getToken())
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(token)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
 
-        if (token.isExpired()) {
-            emailVerificationTokenRepository.delete(token);
+        if (verificationToken.isExpired()) {
+            emailVerificationTokenRepository.delete(verificationToken);
             throw new RuntimeException("만료된 토큰입니다. 회원가입을 다시 진행해주세요.");
         }
+
+        return verificationToken;
+    }
+
+    @Transactional
+    public UserResponseDTO.UserLoginResponseDTO completeRegister(
+            String token,
+            UserRequestDTO.CompleteRegisterDTO requestDTO,
+            HttpServletResponse response
+    ) {
+        //이메일 토큰 검증
+        EmailVerificationToken verificationToken = validateRegistrationToken(token);
 
         // 로그인 ID 생성
         String uuid = UUID.randomUUID().toString().substring(0, 8);
@@ -95,12 +106,11 @@ public class LocalUserAuthService {
         // 새로운 유저 생성
         User user = User.builder()
                 .loginId(loginId)
-                .email(token.getEmail())
-                .pw(token.getPassword())
+                .email(verificationToken.getEmail())
+                .pw(verificationToken.getPassword())
                 .name(requestDTO.getName())
                 .job(requestDTO.getJob())
                 .interestFields(requestDTO.getInterestFields())
-                .birthDay(requestDTO.getBirthDay())
                 .gender(requestDTO.getGender())
                 .preferType(requestDTO.getPreferType())
                 .socialType(SocialType.LOCAL)
@@ -111,7 +121,7 @@ public class LocalUserAuthService {
         User savedUser = userRepository.save(user);
 
         // 토큰 verified 처리
-        emailVerificationTokenRepository.delete(token);
+        emailVerificationTokenRepository.delete(verificationToken);
 
         return toUserLoginResponseDTO(savedUser);
     }
