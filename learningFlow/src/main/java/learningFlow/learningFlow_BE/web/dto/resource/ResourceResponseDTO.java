@@ -44,4 +44,23 @@ public class ResourceResponseDTO {
         String resourceSource;
         Integer episodeNumber;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class BlogResponseDTO {
+        private String url;        // 요청된 블로그 URL
+        private String htmlContent; // 블로그 HTML 데이터
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ProgressResponseDTO {
+        private ResourceType resourceType;
+        private Integer progress;
+    }
+
 }

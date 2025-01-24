@@ -23,6 +23,7 @@ import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
 import learningFlow.learningFlow_BE.service.resource.ResourceService;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +73,17 @@ public class ResourceRestController {
 
         return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));
     }
+
+    @PostMapping("/{episode-id}/save-progress")
+    public ApiResponse<ResourceResponseDTO.ProgressResponseDTO> saveProgress(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @Valid @RequestBody ResourceRequestDTO.ProgressRequestDTO request) {
+        String loginId = principalDetails.getUser().getLoginId();
+        resourceService.saveProgress(request, loginId);
+
+        return ApiResponse.onSuccess(ResourceConverter.toSaveProgressResponse(request));
+    }
+
 
     @PostMapping("/{episode-id}/memo")
     @Operation(summary = "강의 메모 생성 API", description = "강의 에피소드에 메모를 추가하는 API")

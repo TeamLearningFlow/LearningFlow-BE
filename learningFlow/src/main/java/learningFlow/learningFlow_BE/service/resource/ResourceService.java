@@ -2,9 +2,12 @@ package learningFlow.learningFlow_BE.service.resource;
 
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
+import learningFlow.learningFlow_BE.converter.ResourceConverter;
 import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.*;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,7 +68,7 @@ public class ResourceService {
     }
 
     @Transactional
-    public UserCollection updateUserCollection(CollectionEpisode episode, String loginId) {
+    public void updateUserCollection(CollectionEpisode episode, String loginId) {
         log.info("Received loginId: {}", loginId);
         log.info("Received episode: {}", episode);
         // UserCollection 조회
@@ -100,6 +103,19 @@ public class ResourceService {
         // 저장
         UserCollection savedCollection = userCollectionRepository.save(userCollection);
         log.info("Saved UserCollection: {}", savedCollection);
-        return savedCollection;
+    }
+    @Transactional
+    public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId) {
+        UserEpisodeProgressId progressId = new UserEpisodeProgressId(request.getEpisodeId(), userId);
+        UserEpisodeProgress progress = userEpisodeProgressRepository.findById(progressId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
+        if (request.getResourceType() == ResourceType.VIDEO && request.getProgress() != null) {
+            progress.setCurrentProgress(request.getProgress());
+        } else if (request.getResourceType() == ResourceType.TEXT && request.getProgress() != null) {
+            progress.setCurrentProgress(request.getProgress());
+        } else {
+            throw new ResourceHandler(ErrorStatus._BAD_REQUEST);
+        }
+        userEpisodeProgressRepository.save(progress);
     }
 }

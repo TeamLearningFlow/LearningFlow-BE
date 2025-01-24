@@ -53,9 +53,13 @@ public enum ErrorStatus implements BaseErrorCode {
     // 임베드 에러
     YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다."),
     UNSUPPORTED_BLOG_PLATFORM(HttpStatus.BAD_REQUEST, "EMBED4002", "지원하지 않는 블로그 플랫폼입니다."),
-    // Resource 에러
-    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다.");
+    BLOG_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PORXY5001", "블로그 데이터를 가져오는 과정에서 오류가 발생했습니다."),
 
+    // Resource 에러
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다."),
+
+    // User Progress
+    USER_PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "USER-PROGRESS4001", "진도 값이 null 인 상태입니다.");
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;

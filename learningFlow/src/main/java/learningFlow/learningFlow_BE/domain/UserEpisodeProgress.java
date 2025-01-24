@@ -5,10 +5,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
@@ -22,6 +19,7 @@ public class UserEpisodeProgress extends BaseEntity{
     @Column(nullable = false)
     private int episodeNumber;
 
+    @Setter
     private Integer currentProgress;
     @Column(nullable = false)
     private Integer totalProgress;

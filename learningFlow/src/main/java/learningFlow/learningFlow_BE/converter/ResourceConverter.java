@@ -2,7 +2,10 @@ package learningFlow.learningFlow_BE.converter;
 
 import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.enums.ResourceType;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
+import org.springframework.http.ResponseEntity;
 
 import java.util.*;
 
@@ -34,5 +37,20 @@ public class ResourceConverter {
         }
         Collections.sort(episodeInformationList, Comparator.comparingInt(ResourceResponseDTO.episodeInformation::getEpisodeNumber));
         return episodeInformationList;
+    }
+
+    public static ResourceResponseDTO.BlogResponseDTO proxyBlogResponse(String url,  ResponseEntity<String> response){
+        return ResourceResponseDTO.BlogResponseDTO.builder()
+                .url(url)
+                .htmlContent(response.getBody())
+                .build();
+    }
+
+    public static ResourceResponseDTO.ProgressResponseDTO toSaveProgressResponse(ResourceRequestDTO.ProgressRequestDTO request){
+        return ResourceResponseDTO.ProgressResponseDTO.builder()
+                .progress(request.getProgress())
+                .resourceType(request.getResourceType())
+                .build();
+
     }
 }
