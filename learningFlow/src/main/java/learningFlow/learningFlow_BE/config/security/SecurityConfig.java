@@ -44,13 +44,14 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/find/**",
                                 "/reset-password",
-                                "/search/**"
-                                ).permitAll()
+                                "/search/**",
+                                "/collections/{collectionId:[\\d]+}"
+                        ).permitAll()
                         .requestMatchers(
-                                "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
+                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
                                 "/home/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**", "/resources/**").authenticated()
+                        .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId}/bookmark").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
