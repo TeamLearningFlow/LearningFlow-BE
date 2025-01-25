@@ -29,8 +29,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: ./learningFlow  # Dockerfile이 있는 디렉토리
-        file: ./learningFlow/Dockerfile  # Dockerfile 경로 지정
+        context: . # Dockerfile이 있는 디렉토리
+        file: ./Dockerfile  # Dockerfile 경로 지정
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
 
