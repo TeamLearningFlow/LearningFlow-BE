@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @Tag(name = "Home", description = "홈 화면 보여주는 API")
 public class HomeRestController {
+
     private final HomeService homeService;
 
     @GetMapping
