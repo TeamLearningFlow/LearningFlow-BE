@@ -1,5 +1,7 @@
 package learningFlow.learningFlow_BE.converter;
 
+import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO;
 
@@ -12,6 +14,24 @@ public class HomeConverter {
     ) {
         return HomeResponseDTO.GuestHomeInfoDTO.builder()
                 .recommendedCollections(collectionPreviewList)
+                .build();
+    }
+
+    public static HomeResponseDTO.UserHomeInfoDTO convertToUserHomeInfoDTO(
+            HomeResponseDTO.RecentLearningDTO recentLearning,
+            List<Collection> recommendedCollections,
+            User user,
+            int size
+    ) {
+        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedPreviewDTOs = recommendedCollections.stream()
+                .distinct()
+                .map(collection -> CollectionConverter.toCollectionPreviewDTO(collection, user))
+                .limit(size)
+                .toList();
+
+        return HomeResponseDTO.UserHomeInfoDTO.builder()
+                .recentLearning(recentLearning)
+                .recommendedCollections(recommendedPreviewDTOs)
                 .build();
     }
 }

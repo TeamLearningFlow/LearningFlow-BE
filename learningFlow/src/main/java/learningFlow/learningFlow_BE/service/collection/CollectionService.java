@@ -123,16 +123,7 @@ public class CollectionService {
             );
         }
 
-        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedPreviewDTOs = recommendedCollections.stream()
-                .distinct()
-                .map(collection -> CollectionConverter.toCollectionPreviewDTO(collection, user))
-                .limit(HOME_COLLECTION_SIZE)
-                .toList();
-
-        return HomeResponseDTO.UserHomeInfoDTO.builder()
-                .recentLearning(recentLearning)
-                .recommendedCollections(recommendedPreviewDTOs)
-                .build();
+        return HomeConverter.convertToUserHomeInfoDTO(recentLearning, recommendedCollections, user, HOME_COLLECTION_SIZE);
     }
 
     private HomeResponseDTO.RecentLearningDTO getRecentLearning(User user) {
