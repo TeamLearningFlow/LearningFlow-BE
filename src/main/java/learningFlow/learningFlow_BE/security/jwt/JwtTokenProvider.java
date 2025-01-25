@@ -22,6 +22,8 @@ public class JwtTokenProvider {
     private final JwtProperties jwtProperties;
     private final SecretKey jwtSecretKey;
 
+
+
     public String createAccessToken(Authentication authentication) {
         PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
         User user = principalDetails.getUser();
