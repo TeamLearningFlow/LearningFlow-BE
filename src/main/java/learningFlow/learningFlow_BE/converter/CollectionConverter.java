@@ -11,12 +11,6 @@ import java.util.List;
 
 public class CollectionConverter {
 
-    public static List<CollectionResponseDTO.CollectionPreviewDTO> convertToHomeCollection(List<Collection> collections) {
-        return collections.stream()
-                .map(collection -> CollectionConverter.toCollectionPreviewDTO(collection, null))
-                .toList();
-    }
-
     public static SearchRequestDTO.SearchConditionDTO toSearchConditionDTO(
             String keyword,
             InterestField interestFields,

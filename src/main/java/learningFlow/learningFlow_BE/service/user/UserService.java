@@ -33,6 +33,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserConverter userConverter;
     private final CollectionRepository collectionRepository;
     private final UserCollectionRepository userCollectionRepository;
 
@@ -42,7 +43,7 @@ public class UserService {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        return UserConverter.convertToUserInfoDTO(user);
+        return userConverter.convertToUserInfoDTO(user);
     }
 
     @Transactional
