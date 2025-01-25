@@ -43,7 +43,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Job job;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests")
     @Enumerated(EnumType.STRING)
     @Column(name = "interest_field", nullable = false)
@@ -68,7 +68,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "image_id")
     private Image image;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "collection_id")
     private List<Long> bookmarkedCollectionIds = new ArrayList<>();
