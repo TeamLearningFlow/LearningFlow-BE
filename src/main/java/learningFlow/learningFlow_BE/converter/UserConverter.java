@@ -6,9 +6,11 @@ import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class UserConverter {
 
     public static UserResponseDTO.UserLoginResponseDTO toUserLoginResponseDTO(User user) {
