@@ -9,6 +9,7 @@ import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.QCollection;
 import learningFlow.learningFlow_BE.domain.QCollectionEpisode;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
+import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import learningFlow.learningFlow_BE.web.dto.search.SearchRequestDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -110,6 +111,42 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
                 )
                 .fetchOne();
         return count != null ? count.intValue() : 0;
+    }
+
+    @Override
+    public List<Collection> findTopBookmarkedCollections(int limit) {
+        return jpaQueryFactory
+                .selectFrom(collection)
+                .orderBy(collection.bookmarkCount.desc())
+                .limit(limit)
+                .fetch();
+    }
+
+    @Override
+    public List<Collection> findByInterestFieldAndPreferType(
+            List<InterestField> interestFields,
+            MediaType preferType,
+            boolean matchInterest,
+            boolean matchPreferType,
+            int limit
+    ) {
+
+        BooleanExpression interestCondition = matchInterest ?
+                collection.interestField.in(interestFields) : collection.interestField.notIn(interestFields);
+
+        BooleanExpression preferTypeCondition = null;
+        if (preferType != MediaType.NO_PREFERENCE) {
+            preferTypeCondition = preferType == MediaType.VIDEO ?
+                    (matchPreferType ? collection.resourceTypeRatio.goe(50) : collection.resourceTypeRatio.lt(50)) :
+                    (matchPreferType ? collection.resourceTypeRatio.lt(50) : collection.resourceTypeRatio.goe(50));
+        }
+
+        return jpaQueryFactory
+                .selectFrom(collection)
+                .where(interestCondition, preferTypeCondition)
+                .orderBy(collection.bookmarkCount.desc())
+                .limit(limit)
+                .fetch();
     }
 
     private BooleanExpression createDynamicInterestFields(InterestField interestFields) {

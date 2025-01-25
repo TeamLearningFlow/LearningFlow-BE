@@ -30,115 +30,82 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         log.info("JWT 필터 진입, URL: {}", request.getRequestURI());
-
-        /**
-         * 로그인, 회원가입 등 인증이 필요없는 경로는 토큰 검증을 건너뛰도록 설정
-         * 인증 미필요 URL 체크
-         */
-        if (isPermitAllUrl(request.getRequestURI())) {
-            log.info("인증이 필요없는 URL: {}", request.getRequestURI());
-            filterChain.doFilter(request, response);
-            return;
-        }
+        String jwt = getJwtFromRequest(request);
 
         try {
-            String jwt = getJwtFromRequest(request);
-            log.info("요청에서 추출한 토큰: {}", jwt);
+            if (StringUtils.hasText(jwt)) {
+                if (jwtTokenProvider.validateToken(jwt)) {
+                    log.info("유효한 Access Token");
 
-            if (!StringUtils.hasText(jwt)) {
-                log.info("토큰이 없는 요청");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write(
-                        new ObjectMapper().writeValueAsString(
-                                ApiResponse.onFailure("AUTH4001", "로그인이 필요한 서비스입니다.", null)
-                        )
-                );
-                return;
-            }
-                //AccessToken 검증
-            if (jwtTokenProvider.validateToken(jwt)) {
+                    if (!request.getRequestURI().equals("/logout/test")) {
+                        Boolean isBlacklisted = redisTemplate.hasKey("BLACKLIST:" + jwt);
+                        log.info("블랙리스트 체크 결과: {}", isBlacklisted);
 
-                log.info("유효한 Access Token");
-
-                //로그아웃 요청이 아닌 경우에만 블랙리스트 체크
-                if (!request.getRequestURI().equals("/logout/test")) {
-                    //TODO : 테스트 위해서 URI 설정을 /logout/test로 해놓음. 추후 수정 필요
-                    //Redis에서 블랙리스트 체크하기 - 로그아웃된 사용자인지 여부 파악
-                    Boolean isBlacklisted = redisTemplate.hasKey("BLACKLIST:" + jwt);
-                    log.info("블랙리스트 체크 결과: {}", isBlacklisted);
-
-                    if (Boolean.TRUE.equals(isBlacklisted)) {
-                        throw new RuntimeException("이미 로그아웃된 토큰입니다.");
+                        if (Boolean.TRUE.equals(isBlacklisted)) {
+                            throw new RuntimeException("이미 로그아웃된 토큰입니다.");
+                        }
                     }
-                }
 
-                //유효한 토큰이면 인증 처리
-                String email = jwtTokenProvider.getEmailFromToken(jwt);
-                log.info("토큰에서 추출한 이메일: {}", email);
+                    String email = jwtTokenProvider.getEmailFromToken(jwt);
+                    log.info("토큰에서 추출한 이메일: {}", email);
 
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-                UsernamePasswordAuthenticationToken authentication
-                        = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.info("인증 정보 SecurityContext에 저장");
-            } else {
-                log.info("Access Token이 만료되어 Refresh Token 확인을 시도");
-                // Access Token이 만료된 경우, Refresh Token 확인
-                String refreshToken = request.getHeader("Refresh-Token");
-                log.info("전달받은 Refresh Token: {}", refreshToken);
-
-                if (!StringUtils.hasText(refreshToken)) {
-                    log.info("Refresh Token이 없음 - 재로그인 필요");
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    String error = new ObjectMapper().writeValueAsString(
-                            ApiResponse.onFailure("401", "토큰이 만료되었습니다. 다시 로그인해주세요.", null)
-                    );
-                    response.getWriter().write(error);
-                    return;
-                }
-
-                if (jwtTokenProvider.validateToken(refreshToken)) {
-                    log.info("유효한 Refresh Token. 새로운 Access Token을 발급 시작");
-
-                    // Refresh Token이 유효하면 새로운 Access Token 발급
-                    String email = jwtTokenProvider.getEmailFromToken(refreshToken);
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
 
-                    UsernamePasswordAuthenticationToken authentication
-                            = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-                    //새로운 AccessToken 발급 및 헤더에 추가
-                    String newAccessToken = jwtTokenProvider.createAccessToken(authentication);
-                    log.info("새로 발급된 Access Token: {}", newAccessToken);
-                    response.addHeader("Authorization", "Bearer " + newAccessToken);
-
-                    //새로운 토큰으로 인증 처리
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.info("새로운 Access Token으로 인증 정보를 업데이트 완료");
+                    log.info("인증 정보 SecurityContext에 저장");
+
+                } else {
+                    log.info("Access Token이 만료되어 Refresh Token 확인을 시도");
+                    String refreshToken = request.getHeader("Refresh-Token");
+                    log.info("전달받은 Refresh Token: {}", refreshToken);
+
+                    if (!StringUtils.hasText(refreshToken)) {
+                        if (!isPermitAllUrl(request.getRequestURI())) {
+                            handleAuthenticationError(response, "토큰이 만료되었습니다. 다시 로그인해주세요.");
+                            return;
+                        }
+                    } else if (jwtTokenProvider.validateToken(refreshToken)) {
+                        String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+                        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+
+                        String newAccessToken = jwtTokenProvider.createAccessToken(authentication);
+                        log.info("새로 발급된 Access Token: {}", newAccessToken);
+                        response.addHeader("Authorization", "Bearer " + newAccessToken);
+
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        log.info("새로운 Access Token으로 인증 정보를 업데이트 완료");
+                    }
                 }
+            } else if (!isPermitAllUrl(request.getRequestURI())) {
+                handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
+                return;
             }
         } catch (Exception e) {
-            log.error("Security Context에서 사용자 인증을 설정할 수 없습니다: {}", e.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write(
-                    new ObjectMapper().writeValueAsString(
-                            ApiResponse.onFailure("AUTH4001", "로그인이 필요한 서비스입니다.", null)
-                    )
-            );
-            return;
+            if (!isPermitAllUrl(request.getRequestURI())) {
+                handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void handleAuthenticationError(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(
+                new ObjectMapper().writeValueAsString(
+                        ApiResponse.onFailure("AUTH4001", message, null)
+                )
+        );
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
@@ -161,7 +128,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/webjars") ||
                 requestURI.startsWith("/find") ||
                 requestURI.startsWith("/search") ||
-                requestURI.matches("/collections/\\d+$") ||
+                requestURI.startsWith("/home") ||
                 requestURI.equals("/reset-password");
     }
 }
