@@ -1,6 +1,7 @@
 package learningFlow.learningFlow_BE.web.dto.home;
 
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,13 +10,22 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 public class HomeResponseDTO {
+
     @Getter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class HomeInfoDTO {
-        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
+    public static class UserHomeInfoDTO {
         RecentLearningDTO recentLearning;
+        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GuestHomeInfoDTO {
+        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
     }
 
     @Getter
@@ -23,19 +33,8 @@ public class HomeResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RecentLearningDTO {
-        private Long collectionId;
-        private String title;
-        private Integer currentEpisode;
-        private boolean isCompleted;
-        private List<EpisodeDTO> episodes;
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class EpisodeDTO {
-        private Integer episodeNumber;
-        private String episodeName;
+        private CollectionResponseDTO.CompletedCollectionDTO collection;
+        private List<ResourceResponseDTO.SearchResultResourceDTO> resources;
+        private String progressRatio;
     }
 }
