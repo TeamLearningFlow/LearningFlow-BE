@@ -39,18 +39,15 @@ jobs:
     needs: [docker]
 
     steps:
-    # SSH Connect and Docker Image Pull and Container Run
-    - name: SSH Connect and Docker Image Pull and Container Run
-      uses: appleboy/ssh-action@v1.0.0
+    - name: Deploy to Server
+      uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
-        port: 22
+        envs: GITHUB_SHA
         script: |
-          docker stop my-was || true
-          docker rm my-was || true
-          docker image rm ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }} || true
-          docker run -d -p 8080:8080 \
-          -v /root/my-proj/resources:/app/resources \
-          --name my-was ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}
+          sudo docker ps -qa | xargs -r sudo docker rm -f
+          sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}:latest
+          sudo docker run -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPONAME }}:latest
+          sudo docker image prune -f
