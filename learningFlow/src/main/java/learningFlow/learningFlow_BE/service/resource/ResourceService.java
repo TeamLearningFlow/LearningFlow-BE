@@ -47,6 +47,8 @@ public class ResourceService {
             if (resourceQuantity == null) throw new ResourceHandler(ErrorStatus.QUANTITY_IS_NULL);
             UserEpisodeProgress userEpisodeProgress = new UserEpisodeProgress(userEpisodeProgressId, episode.getEpisodeNumber(), 0, episode.getResource().getResourceQuantity(), episode.getResource().getType());
 
+            log.info("resourceType", episode.getResource().getType());
+
             return userEpisodeProgressRepository.save(userEpisodeProgress);
         });
     }

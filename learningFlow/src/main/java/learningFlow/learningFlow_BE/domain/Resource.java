@@ -31,7 +31,7 @@ public class Resource extends BaseEntity {
     @Column(nullable = false)
     private String url; // 자료 링크
 
-    @Column(name = "client_url")
+    @Column(name = "client_url", columnDefinition = "TEXT")
     private String clientUrl; // 클라이언트에게 보내줄 url
 
     @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
