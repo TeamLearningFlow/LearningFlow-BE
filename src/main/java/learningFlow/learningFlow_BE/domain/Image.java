@@ -23,7 +23,6 @@ public class Image {
 
     @Column(nullable = false)
     private String fileType;
-
     @Column(nullable = false)
     private BigInteger fileSize;
 

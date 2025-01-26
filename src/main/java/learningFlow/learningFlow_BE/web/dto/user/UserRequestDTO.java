@@ -95,6 +95,7 @@ public class UserRequestDTO {
         String name;
         Job job;
         List<InterestField> interestFields;
+        String imageUrl;
     }
 }
 

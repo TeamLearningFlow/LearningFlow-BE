@@ -9,9 +9,12 @@ import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.UserCollection;
 import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
+import learningFlow.learningFlow_BE.domain.uuid.Uuid;
+import learningFlow.learningFlow_BE.domain.uuid.UuidRepository;
 import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
 import learningFlow.learningFlow_BE.repository.collection.CollectionRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
+import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.web.dto.bookmark.BookmarkDTO;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
@@ -25,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -35,6 +39,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final CollectionRepository collectionRepository;
     private final UserCollectionRepository userCollectionRepository;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
 
     private static final int BOOKMARK_PAGE_SIZE = 8;
 
@@ -52,8 +58,17 @@ public class UserService {
 
         // TODO: 이미지 업데이트 로직 추가 예정
         if (imageFile != null && !imageFile.isEmpty()) {
-            log.info("이미지 업데이트 요청 발생 - 추후 구현 예정");
+            log.info("이미지 업데이트 요청 발생");
+            // UUID 생성 및 저장
+            String uuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+                    .uuid(uuid).build());
+
+            // 이미지 업로드
+            String imageKey = s3Manager.generateKeyName(savedUuid); // 프로필 이미지에 적합한 KeyName 생성
+            String imageUrl = s3Manager.uploadFile(imageKey, imageFile);
         }
+
 
         // 각 필드가 null이 아닌 경우에만 업데이트
         if (updateUserDTO.getName() != null) {
