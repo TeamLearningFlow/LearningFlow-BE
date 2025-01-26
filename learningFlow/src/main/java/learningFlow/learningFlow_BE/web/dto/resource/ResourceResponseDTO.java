@@ -19,7 +19,7 @@ public class ResourceResponseDTO {
         InterestField interestField;
         ResourceType resourceType;
         @NotBlank
-        String clientUrl;
+        String episodeContents;
         String urlTitle;
         Integer progress;
         String memoContents;
@@ -43,15 +43,6 @@ public class ResourceResponseDTO {
         String url;
         String resourceSource;
         Integer episodeNumber;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Builder
-    public static class BlogResponseDTO {
-        private String url;        // 요청된 블로그 URL
-        private String htmlContent; // 블로그 HTML 데이터
     }
 
     @Getter

@@ -30,6 +30,13 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+	// Selenium WebDriver
+	implementation 'org.seleniumhq.selenium:selenium-java:4.28.1'
+
+	// WebDriver Manager (ChromeDriver 자동 다운로드)
+	implementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
+
+
 	// 데이터베이스
 	implementation 'mysql:mysql-connector-java:8.0.33'
 

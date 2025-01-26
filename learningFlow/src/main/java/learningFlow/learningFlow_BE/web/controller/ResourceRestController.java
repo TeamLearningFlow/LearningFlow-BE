@@ -44,7 +44,7 @@ public class ResourceRestController {
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
     private final BlogEmbedService blogEmbedService;
-    @GetMapping("/{episode-id}")
+    @GetMapping("/{episode-id}/youtube")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
@@ -60,19 +60,35 @@ public class ResourceRestController {
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
-        ResourceType resourceType = resourceService.getResourceType(episodeId);
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
-
-        Resource resource = null;
-
-        if (resourceType == ResourceType.VIDEO) {
-            resource = youtubeUrlEmbedService.getResource(episodeId);
-        } else if (resourceType == ResourceType.TEXT) {
-            resource = blogEmbedService.getResource(episodeId);
-        }
+        Resource resource = youtubeUrlEmbedService.getResource(episodeId);
 
         return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));
     }
+
+    @GetMapping("/{episode-id}/blog")
+    @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+    })
+    @Parameters({
+            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+    })
+    public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchBlogEpisode(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @PathVariable("episode-id") Long episodeId) {
+
+        String loginId = principalDetails.getUser().getLoginId();
+        UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
+        Collection collection = resourceService.getCollection(episodeId);
+        Optional<Memo> memo = resourceService.getMemoContents(episodeId);
+        String resourceTitle = resourceService.getResourceTitle(episodeId);
+        String blogSource = blogEmbedService.getBlogSource(episodeId);
+
+        return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSource,resourceTitle , memo));
+    }
+
 
     @PostMapping("/{episode-id}/save-progress")
     @Operation(summary = "강의 진도 저장 API", description = "강의 진도 저장 API")

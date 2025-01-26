@@ -59,10 +59,10 @@ public class ResourceService {
         return episode.getCollection();
     }
     @Transactional
-    public ResourceType getResourceType(Long episodeId) {
+    public String getResourceTitle(Long episodeId) {
         CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
-        return episode.getResource().getType();
+        return episode.getResource().getTitle();
     }
     @Transactional
     public Optional<Memo> getMemoContents(Long episodeId){

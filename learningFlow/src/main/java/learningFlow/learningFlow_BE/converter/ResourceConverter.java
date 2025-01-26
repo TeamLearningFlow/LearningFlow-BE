@@ -18,8 +18,23 @@ public class ResourceConverter {
                 .collectionTitle(collection.getTitle())
                 .interestField(collection.getInterestField())
                 .resourceType(userProgress.getResourceType())
-                .clientUrl(resource.getClientUrl())
+                .episodeContents(resource.getClientUrl())
                 .urlTitle(resource.getTitle())
+                .progress(userProgress.getCurrentProgress())
+                .memoContents(memoContents)
+                .episodeInformationList(episodeInformationList(collection))
+                .build();
+    }
+    public static ResourceResponseDTO.ResourceUrlDTO watchBlogEpisode(Collection collection, UserEpisodeProgress userProgress, String pageResource,String resourceTitle, Optional<Memo> memo){
+        String memoContents = "작성하신 글의 첫 줄은 노트의 제목이 됩니다, 최대 2,000자까지 입력하실 수 있어요";
+        if (!memo.isEmpty())
+            memoContents = memo.get().getContents();
+        return ResourceResponseDTO.ResourceUrlDTO.builder()
+                .collectionTitle(collection.getTitle())
+                .interestField(collection.getInterestField())
+                .resourceType(userProgress.getResourceType())
+                .episodeContents(pageResource)
+                .urlTitle(resourceTitle)
                 .progress(userProgress.getCurrentProgress())
                 .memoContents(memoContents)
                 .episodeInformationList(episodeInformationList(collection))
@@ -39,12 +54,12 @@ public class ResourceConverter {
         return episodeInformationList;
     }
 
-    public static ResourceResponseDTO.BlogResponseDTO proxyBlogResponse(String url,  ResponseEntity<String> response){
+/*    public static ResourceResponseDTO.BlogResponseDTO proxyBlogResponse(String url,  ResponseEntity<String> response){
         return ResourceResponseDTO.BlogResponseDTO.builder()
                 .url(url)
                 .htmlContent(response.getBody())
                 .build();
-    }
+    }*/
 
     public static ResourceResponseDTO.ProgressResponseDTO toSaveProgressResponse(ResourceRequestDTO.ProgressRequestDTO request){
         return ResourceResponseDTO.ProgressResponseDTO.builder()
