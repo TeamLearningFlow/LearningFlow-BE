@@ -20,7 +20,7 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
-#../.idea
+../.idea
 
 *.iws
 *.iml
@@ -40,3 +40,9 @@ out/
 .vscode/
 .idea/
 .DS_Store
+
+### gradle ###
+.gradle/
+
+### 환경변수 ###
+.env
