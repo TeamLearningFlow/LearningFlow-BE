@@ -64,6 +64,7 @@ public class LoginController {
         log.info("/login 시작");
         return ApiResponse.onSuccess(localUserAuthService.login(request, response));
         //TODO: 로그인 후에도 /home으로 리다이렉트 되는게 나을 것 같은데 이 부분 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
+        // 화면 redirect는 프엔쪽에서 처리해주시는 부분이어서 백엔드는 처리를 안하는 게 맞습니다!
     }
 
     /**
