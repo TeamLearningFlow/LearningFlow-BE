@@ -3,9 +3,10 @@ package learningFlow.learningFlow_BE.s3;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import hackathon.spring.config.AmazonConfig;
-import hackathon.spring.domain.uuid.Uuid;
-import hackathon.spring.domain.uuid.UuidRepository;
+
+import learningFlow.learningFlow_BE.config.AmazonConfig;
+import learningFlow.learningFlow_BE.domain.uuid.Uuid;
+import learningFlow.learningFlow_BE.domain.uuid.UuidRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
