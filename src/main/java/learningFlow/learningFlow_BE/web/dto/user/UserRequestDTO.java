@@ -73,6 +73,9 @@ public class UserRequestDTO {
 
     @Getter
     public static class ResetPasswordDTO {
+        @NotBlank(message = "현재 비밀번호는 필수 입력값입니다")
+        String currentPassword;
+
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])(?!.*\\s)[A-Za-z\\d@$!%*?&]{8,16}$",
                 message = "비밀번호는 8-16자 사이, 영문 대/소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 하며 공백은 포함할 수 없습니다.")

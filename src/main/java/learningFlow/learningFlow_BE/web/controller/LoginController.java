@@ -116,16 +116,25 @@ public class LoginController {
         return ApiResponse.onSuccess(localUserAuthService.logout(request, response));
     }
 
-    @GetMapping("/change-password")
+    @PostMapping("/send/change-password")
     @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 이메일을 통해 비밀번호 재설정 링크를 전송하는 API")
-    public ApiResponse<String> goChangePassword(
+    public ApiResponse<String> sendPasswordResetEmail(
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(localUserAuthService.sendPasswordResetEmail(principalDetails));
     }
 
+    @GetMapping("/change-password")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 이메일을 통해 비밀번호 재설정 링크를 통해 토큰 유효성 검증하고 폼으로 안내하는 API")
+    public ApiResponse<String> goChangePassword(
+            @RequestParam String token
+    ) {
+        localUserAuthService.validatePasswordResetToken(token);
+        return ApiResponse.onSuccess("토큰이 유효합니다. 새로운 비밀번호를 입력해주세요.");
+    }
+
     @PostMapping("/change-password")
-    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 이메일을 통해 전송된 비밀번호 재설정 링크를 통해 설정할 새 비밀번호 전달받는 API")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 폼을 통해 설정할 새 비밀번호 전달받는 API")
     public ApiResponse<String> changePassword(
             @RequestParam String token,
             @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request

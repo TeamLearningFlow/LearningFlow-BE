@@ -204,10 +204,7 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public String resetPassword(
-            String token,
-            UserRequestDTO.ResetPasswordDTO request
-    ) {
+    public PasswordResetToken validatePasswordResetToken(String token) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
 
@@ -216,7 +213,26 @@ public class LocalUserAuthService {
             throw new RuntimeException("만료된 토큰입니다. 비밀번호 재설정을 다시 요청해주세요.");
         }
 
+        return resetToken;
+    }
+
+    @Transactional
+    public String resetPassword(
+            String token,
+            UserRequestDTO.ResetPasswordDTO request
+    ) {
+        PasswordResetToken resetToken = validatePasswordResetToken(token);
+
         User user = resetToken.getUser();
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPw())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPw())) {
+            throw new RuntimeException("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+        }
+
         user.changePassword(passwordEncoder.encode(request.getNewPassword()));
 
         // 사용된 토큰 삭제

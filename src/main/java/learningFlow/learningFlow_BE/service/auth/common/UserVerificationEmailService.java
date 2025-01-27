@@ -157,7 +157,7 @@ public class UserVerificationEmailService {
                                         버튼을 누르면 자동으로 인증 후 비밀번호 재설정 페이지로 이동합니다.
                                     </p>
                                     
-                                    <a href="%s/register/complete?token=%s" 
+                                    <a href="%s/change-password?token=%s" 
                                        class="btn" 
                                        style="background-color: #5e52ff; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 4px; font-weight: bold; display: inline-block; margin: 20px 0;">
                                         이메일 인증하기
