@@ -45,8 +45,7 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/find/**",
                                 "/reset-password",
-                                "/search/**",
-                                "/proxy/blog/**"
+                                "/search/**"
                                 ).permitAll()
                         .requestMatchers(
                                 "/register","/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**",
