@@ -52,7 +52,7 @@ public class SecurityConfig {
                                 "/find/**",
                                 "/reset-password",
                                 "/search/**",
-                                "/home/**",
+                                "/",
                                 "/collections/{collectionId:[\\d]+}"
                         ).permitAll()
                         .requestMatchers(
