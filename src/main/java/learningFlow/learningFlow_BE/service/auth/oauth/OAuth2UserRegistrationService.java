@@ -75,7 +75,6 @@ public class OAuth2UserRegistrationService {
                 .socialType(socialType)
                 .job(additionalInfo.getJob())
                 .interestFields(additionalInfo.getInterestFields())
-                .gender(additionalInfo.getGender())
                 .preferType(additionalInfo.getPreferType())
                 .role(Role.USER)
                 .inactive(false)

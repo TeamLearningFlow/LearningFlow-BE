@@ -93,8 +93,7 @@ public class LocalUserAuthService {
     @Transactional
     public UserResponseDTO.UserLoginResponseDTO completeRegister(
             String token,
-            UserRequestDTO.CompleteRegisterDTO requestDTO,
-            HttpServletResponse response
+            UserRequestDTO.CompleteRegisterDTO requestDTO
     ) {
         //이메일 토큰 검증
         EmailVerificationToken verificationToken = validateRegistrationToken(token);
@@ -111,7 +110,6 @@ public class LocalUserAuthService {
                 .name(requestDTO.getName())
                 .job(requestDTO.getJob())
                 .interestFields(requestDTO.getInterestFields())
-                .gender(requestDTO.getGender())
                 .preferType(requestDTO.getPreferType())
                 .socialType(SocialType.LOCAL)
                 .role(Role.USER)

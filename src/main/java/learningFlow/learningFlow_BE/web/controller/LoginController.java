@@ -48,10 +48,9 @@ public class LoginController {
     @Operation(summary = "회원가입 완료 API", description = "이메일 인증 후 추가 정보를 입력받아 회원가입을 완료하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
             @RequestParam String token,
-            @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request,
-            HttpServletResponse response
+            @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request
     ) {
-        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, response));
+        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request));
         //TODO: 회원가입 후 로그인 창으로 리다이렉트 하는게 나을것 같은데 이 부분은 아직 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
     }
 
