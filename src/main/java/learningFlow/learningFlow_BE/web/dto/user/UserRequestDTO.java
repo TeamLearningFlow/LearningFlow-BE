@@ -2,12 +2,10 @@ package learningFlow.learningFlow_BE.web.dto.user;
 
 import jakarta.validation.constraints.*;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
-import learningFlow.learningFlow_BE.domain.enums.Gender;
 import learningFlow.learningFlow_BE.domain.enums.Job;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class UserRequestDTO {
