@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.service.auth.local;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.handler.JwtLogoutHandler;
@@ -208,10 +209,16 @@ public class LocalUserAuthService {
         log.info("비밀번호 재설정 완료: {}", user.getEmail());
     }
 
-    public void logout(String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
+    @Transactional
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            jwtLogoutHandler.logout(request, response, authentication);
+            log.info("로그아웃 완료: {}", authentication.getName());
+            return "로그아웃 성공";
+        } else {
+            log.info("이미 로그아웃된 상태입니다");
+            return "이미 로그아웃된 상태입니다";
         }
-        jwtLogoutHandler.addToBlacklist(token);
     }
 }

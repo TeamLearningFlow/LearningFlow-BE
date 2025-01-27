@@ -56,12 +56,14 @@ public class SecurityConfig {
                                 "/collections/{collectionId:[\\d]+}"
                         ).permitAll()
                         .requestMatchers(
-                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**", "/logout/**").permitAll()
+                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId}/bookmark").authenticated()
+                        .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId}/bookmark", "/logout/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable  // 기본 로그아웃 처리 비활성화
+                )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(OAuth2UserAuthenticationService))
