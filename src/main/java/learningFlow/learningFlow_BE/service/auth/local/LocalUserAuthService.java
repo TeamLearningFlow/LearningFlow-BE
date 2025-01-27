@@ -2,6 +2,8 @@ package learningFlow.learningFlow_BE.service.auth.local;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
+import learningFlow.learningFlow_BE.apiPayload.exception.handler.LoginHandler;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.handler.JwtLogoutHandler;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
@@ -163,9 +165,17 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public void sendPasswordResetEmail(UserRequestDTO.FindPasswordDTO request) {
+    public String sendPasswordResetEmail(PrincipalDetails principalDetails) {
+
+        if (principalDetails == null || principalDetails.getUser() == null) {
+            throw new LoginHandler(ErrorStatus.USER_NOT_FOUND);
+        }
+        User user = principalDetails.getUser();
+
+/*
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("해당 이메일로 가입된 계정이 없습니다."));
+*/
 
         if (user.getSocialType() != SocialType.LOCAL) {
             throw new RuntimeException("구글 로그인으로 가입된 계정입니다.");
@@ -189,11 +199,16 @@ public class LocalUserAuthService {
 
         tokenRepository.save(resetToken);
         userVerificationEmailService.sendPasswordResetEmail(user.getEmail(), token);
+
+        return "비밀번호 재설정 링크를 담은 이메일이 성공적으로 발송되었습니다.";
     }
 
     @Transactional
-    public void resetPassword(UserRequestDTO.ResetPasswordDTO request) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(request.getToken())
+    public String resetPassword(
+            String token,
+            UserRequestDTO.ResetPasswordDTO request
+    ) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
 
         if (resetToken.isExpired()) {
@@ -207,6 +222,8 @@ public class LocalUserAuthService {
         // 사용된 토큰 삭제
         tokenRepository.delete(resetToken);
         log.info("비밀번호 재설정 완료: {}", user.getEmail());
+
+        return "비밀번호 재설정이 완료되었습니다.";
     }
 
     @Transactional
