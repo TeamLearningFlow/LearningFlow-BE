@@ -33,10 +33,6 @@ public class Resource extends BaseEntity {
 
     @Column(name = "client_url", columnDefinition = "TEXT")
     private String clientUrl; // 클라이언트에게 보내줄 url
-    // 블로그일 경우
-    @Setter
-    @Column(name = "source_code", columnDefinition = "TEXT")
-    private String sourceCode;
 
     @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
     private Integer studyDuration; // 학습 시간 (초 단위 저장)

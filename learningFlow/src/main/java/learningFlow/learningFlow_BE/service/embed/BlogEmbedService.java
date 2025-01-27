@@ -87,12 +87,16 @@ public class BlogEmbedService {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         try (GZIPOutputStream gzipStream = new GZIPOutputStream(byteStream)) {
             gzipStream.write(data.getBytes(StandardCharsets.UTF_8));
+            gzipStream.flush(); //  flush() 호출
         }
         return byteStream.toByteArray();
     }
 
     // JSON 문자열 이스케이프 처리
     private String escapeJson(String json) {
-        return json.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+        return json.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r");
     }
 }

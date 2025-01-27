@@ -35,8 +35,6 @@ public class QResource extends EntityPathBase<Resource> {
 
     public final NumberPath<Integer> resourceQuantity = createNumber("resourceQuantity", Integer.class);
 
-    public final StringPath sourceCode = createString("sourceCode");
-
     public final NumberPath<Integer> studyDuration = createNumber("studyDuration", Integer.class);
 
     public final StringPath title = createString("title");

@@ -22,7 +22,7 @@ public class ResourceConverter {
                 .episodeInformationList(episodeInformationList(collection))
                 .build();
     }
-    public static ResourceResponseDTO.ResourceBlogUrlDTO watchBlogEpisode(Collection collection, UserEpisodeProgress userProgress, byte[] pageResource, String resourceTitle, Optional<Memo> memo){
+    public static ResourceResponseDTO.ResourceBlogUrlDTO watchBlogEpisode(Collection collection, UserEpisodeProgress userProgress, String pageResource, String resourceTitle, Optional<Memo> memo){
         String memoContents = "작성하신 글의 첫 줄은 노트의 제목이 됩니다, 최대 2,000자까지 입력하실 수 있어요";
         if (memo.isPresent())
             memoContents = memo.get().getContents();

@@ -26,11 +26,16 @@ import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -84,16 +89,28 @@ public class ResourceRestController {
         Collection collection = resourceService.getCollection(episodeId);
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
         String resourceTitle = resourceService.getResourceTitle(episodeId);
-        byte[] blogSource = new byte[0];
-        try {
-            blogSource = blogEmbedService.getBlogSource(episodeId).get(); // 예외 처리 추가
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("블로그 데이터를 가져오는 중 오류 발생: {}", e.getMessage(), e);
-        }
-
-        return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSource,resourceTitle , memo));
+        String blogSourceUrl = "/resources/" + episodeId + "/blog/content";
+        return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl,resourceTitle , memo));
     }
 
+    // Gzip으로 HTML을 반환하는 API
+    @GetMapping("{episode-id}/blog/content")
+    public ResponseEntity<byte[]> getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId) {
+        CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);  // 바이너리 파일 반환
+        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");  // 올바르게 설정
+
+        try {
+            byte[] blogContent = blogSource.get();  // 예외 처리 추가
+            headers.setContentLength(blogContent.length);
+            return new ResponseEntity<>(blogContent, headers, HttpStatus.OK);
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("블로그 데이터를 가져오는 중 오류 발생: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]); // 빈 응답 반환
+        }
+    }
 
     @PostMapping("/{episode-id}/save-progress")
     @Operation(summary = "강의 진도 저장 API", description = "강의 진도 저장 API")

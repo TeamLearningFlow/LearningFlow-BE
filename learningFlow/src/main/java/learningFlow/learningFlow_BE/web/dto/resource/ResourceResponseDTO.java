@@ -35,7 +35,7 @@ public class ResourceResponseDTO {
         InterestField interestField;
         ResourceType resourceType;
         @NotBlank
-        byte[] episodeContents;
+        String episodeContents;
         String urlTitle;
         Integer progress;
         String memoContents;
