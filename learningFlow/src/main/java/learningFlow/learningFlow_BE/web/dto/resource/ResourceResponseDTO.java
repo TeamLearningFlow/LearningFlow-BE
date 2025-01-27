@@ -26,6 +26,22 @@ public class ResourceResponseDTO {
         List<episodeInformation> episodeInformationList;
     }
     @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class ResourceBlogUrlDTO {
+        String collectionTitle;
+        InterestField interestField;
+        ResourceType resourceType;
+        @NotBlank
+        byte[] episodeContents;
+        String urlTitle;
+        Integer progress;
+        String memoContents;
+        List<episodeInformation> episodeInformationList;
+    }
+    @Getter
     @AllArgsConstructor
     @NoArgsConstructor
     @Builder

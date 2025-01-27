@@ -15,7 +15,6 @@ import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.Memo;
 import learningFlow.learningFlow_BE.domain.Resource;
 import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
-import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.embed.BlogEmbedService;
 import learningFlow.learningFlow_BE.service.embed.YoutubeUrlEmbedService;
@@ -32,6 +31,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
@@ -75,7 +75,7 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
     })
-    public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchBlogEpisode(
+    public ApiResponse<ResourceResponseDTO.ResourceBlogUrlDTO> watchBlogEpisode (
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable("episode-id") Long episodeId) {
 
@@ -84,7 +84,12 @@ public class ResourceRestController {
         Collection collection = resourceService.getCollection(episodeId);
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
         String resourceTitle = resourceService.getResourceTitle(episodeId);
-        String blogSource = blogEmbedService.getBlogSource(episodeId);
+        byte[] blogSource = new byte[0];
+        try {
+            blogSource = blogEmbedService.getBlogSource(episodeId).get(); // 예외 처리 추가
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("블로그 데이터를 가져오는 중 오류 발생: {}", e.getMessage(), e);
+        }
 
         return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSource,resourceTitle , memo));
     }

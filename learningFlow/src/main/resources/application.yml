@@ -52,4 +52,7 @@ app:
 
 server:
   port: 8080                                         # Spring Boot ?????? ?? ??
-
+  compression:
+    enabled: true  # Gzip 압축 활성화
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/css,text/javascript
+    min-response-size: 4096  # 최소 크기(1KB) 이상의 응답만 압축
