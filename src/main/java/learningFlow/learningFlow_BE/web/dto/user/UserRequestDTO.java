@@ -2,12 +2,10 @@ package learningFlow.learningFlow_BE.web.dto.user;
 
 import jakarta.validation.constraints.*;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
-import learningFlow.learningFlow_BE.domain.enums.Gender;
 import learningFlow.learningFlow_BE.domain.enums.Job;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class UserRequestDTO {
@@ -38,9 +36,6 @@ public class UserRequestDTO {
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
 
-        @NotNull(message = "성별은 필수 선택값입니다")
-        Gender gender;
-
         @NotNull(message = "선호하는 미디어 타입은 필수 선택값입니다")
         MediaType preferType;
     }
@@ -65,9 +60,6 @@ public class UserRequestDTO {
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
 
-        @NotNull(message = "성별은 필수 선택값입니다")
-        Gender gender;
-
         @NotNull(message = "선호하는 미디어 타입은 필수 선택값입니다")
         MediaType preferType;
     }
@@ -81,8 +73,8 @@ public class UserRequestDTO {
 
     @Getter
     public static class ResetPasswordDTO {
-        @NotBlank(message = "토큰은 필수 입력값입니다")
-        String token;
+        @NotBlank(message = "현재 비밀번호는 필수 입력값입니다")
+        String currentPassword;
 
         @NotBlank(message = "비밀번호는 필수 입력값입니다")
         @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])(?!.*\\s)[A-Za-z\\d@$!%*?&]{8,16}$",
