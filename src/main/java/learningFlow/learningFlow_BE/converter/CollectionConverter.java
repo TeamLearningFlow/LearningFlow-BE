@@ -97,7 +97,7 @@ public class CollectionConverter {
     private static int getTotalHours(Collection collection) {
         int totalSeconds = collection.getEpisodes().stream()
                 .map(CollectionEpisode::getResource)
-                .mapToInt(Resource::getRuntime).sum();
+                .mapToInt(Resource::getStudyDuration).sum();
 
         return (int) Math.ceil((double) totalSeconds / 3600);
     }
