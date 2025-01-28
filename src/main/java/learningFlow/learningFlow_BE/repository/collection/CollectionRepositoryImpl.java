@@ -1,6 +1,7 @@
 package learningFlow.learningFlow_BE.repository.collection;
 
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
@@ -37,10 +38,7 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
                     .from(episode)
                     .where(searchConditions)
                     .groupBy(episode.collection.id)
-                    .orderBy(
-                            episode.collection.bookmarkCount.desc(),
-                            episode.collection.id.desc()
-                    )
+                    .orderBy(createOrderSpecifier(condition.getSortType()))
                     .limit(pageable.getPageSize())
                     .fetch();
         }
@@ -55,6 +53,16 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
         }
 
         return searchNextPage(condition, lastCollection, pageable);
+    }
+
+    private OrderSpecifier<?>[] createOrderSpecifier(Integer sortType) {  // 반환 타입을 배열로 변경
+        if (sortType == null || sortType == 0) {
+            return new OrderSpecifier[]{ episode.collection.id.desc() };
+        }
+        return new OrderSpecifier[]{
+                episode.collection.bookmarkCount.desc(),
+                episode.collection.id.desc()
+        };
     }
 
     private BooleanExpression createSearchConditions(SearchRequestDTO.SearchConditionDTO condition) {
@@ -81,36 +89,50 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
     @Override
     public List<Collection> searchNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection, Pageable pageable) {
         BooleanExpression searchConditions = createSearchConditions(condition);
-        BooleanExpression cursorCondition = episode.collection.bookmarkCount.lt(lastCollection.getBookmarkCount())
-                .or(episode.collection.bookmarkCount.eq(lastCollection.getBookmarkCount())
-                        .and(episode.collection.id.lt(lastCollection.getId())));
+        BooleanExpression cursorCondition = createCursorCondition(condition.getSortType(), lastCollection);
 
         return jpaQueryFactory
                 .select(episode.collection)
                 .from(episode)
                 .where(searchConditions, cursorCondition)
                 .groupBy(episode.collection.id)
-                .orderBy(
-                        episode.collection.bookmarkCount.desc(),
-                        episode.collection.id.desc()
-                )
+                .orderBy(createOrderSpecifier(condition.getSortType()))
                 .limit(pageable.getPageSize())
                 .fetch();
     }
 
+    private BooleanExpression createCursorCondition(Integer sortType, Collection lastCollection) {
+        if (sortType == null || sortType == 0) {
+            return episode.collection.id.lt(lastCollection.getId());
+        }
+
+        return episode.collection.bookmarkCount.lt(lastCollection.getBookmarkCount())
+                .or(episode.collection.bookmarkCount.eq(lastCollection.getBookmarkCount())
+                        .and(episode.collection.id.lt(lastCollection.getId())));
+    }
+
     @Override
     public Integer getCountGreaterThanBookmark(Integer bookmarkCount, Long lastId, SearchRequestDTO.SearchConditionDTO condition) {
+
+        BooleanExpression cursorCondition = createCountCursorCondition(condition.getSortType(), bookmarkCount, lastId);
+
         Long count = jpaQueryFactory
                 .select(episode.collection.countDistinct())
                 .from(episode)
-                .where(
-                        createSearchConditions(condition),
-                        episode.collection.bookmarkCount.gt(bookmarkCount)
-                                .or(episode.collection.bookmarkCount.eq(bookmarkCount)
-                                        .and(episode.collection.id.gt(lastId)))
-                )
+                .where(createSearchConditions(condition), cursorCondition)
                 .fetchOne();
+
         return count != null ? count.intValue() : 0;
+    }
+
+    private BooleanExpression createCountCursorCondition(Integer sortType, Integer bookmarkCount, Long lastId) {
+        if (sortType == null || sortType == 0) {
+            return episode.collection.id.gt(lastId);
+        }
+
+        return episode.collection.bookmarkCount.gt(bookmarkCount)
+                .or(episode.collection.bookmarkCount.eq(bookmarkCount)
+                        .and(episode.collection.id.gt(lastId)));
     }
 
     @Override
