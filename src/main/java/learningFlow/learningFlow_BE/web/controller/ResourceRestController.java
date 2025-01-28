@@ -9,9 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
-import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
-import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
-import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
 import learningFlow.learningFlow_BE.converter.MemoConverter;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
@@ -20,15 +17,9 @@ import learningFlow.learningFlow_BE.web.dto.memo.MemoResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-
-import static org.springframework.data.redis.connection.ReactiveStreamCommands.AddStreamRecord.body;
 
 @RestController
 @RequiredArgsConstructor

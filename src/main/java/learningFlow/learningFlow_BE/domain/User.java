@@ -51,10 +51,6 @@ public class User extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Gender gender;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
@@ -138,10 +134,6 @@ public class User extends BaseEntity {
 //    public void updateBirthDay(LocalDate birthDay) {
 //        this.birthDay = birthDay;
 //    }
-
-    public void updateGender(Gender gender) {
-        this.gender = gender;
-    }
 
     public void updatePreferType(MediaType preferType) {
         this.preferType = preferType;

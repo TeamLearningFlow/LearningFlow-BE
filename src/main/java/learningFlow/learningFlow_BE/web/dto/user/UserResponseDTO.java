@@ -24,7 +24,6 @@ public class UserResponseDTO {
         Job job;
         List<InterestField> interestFields;
         LocalDate birthDay;
-        Gender gender;
         MediaType preferType;
         String profileImageUrl;
         /**
