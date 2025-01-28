@@ -106,7 +106,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPermitAllUrl(String requestURI) {
-        return requestURI.equals("/login") ||
+        return requestURI.equals("/") ||
+                requestURI.equals("/login") ||
                 requestURI.equals("/register") ||
                 requestURI.startsWith("/register/complete") ||
                 requestURI.equals("/login/google") ||
@@ -117,7 +118,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/webjars") ||
                 requestURI.startsWith("/find") ||
                 requestURI.startsWith("/search") ||
-                requestURI.startsWith("/") ||
                 requestURI.equals("/reset-password");
     }
 }
