@@ -49,6 +49,7 @@ public class ResourceRestController {
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
     private final BlogEmbedService blogEmbedService;
+
     @GetMapping("/{episode-id}/youtube")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
@@ -137,7 +138,6 @@ public class ResourceRestController {
 
         return ApiResponse.onSuccess(ResourceConverter.toSaveProgressResponse(request));
     }
-
 
     @PostMapping("/{episode-id}/memo")
     @Operation(summary = "강의 메모 생성 API", description = "강의 에피소드에 메모를 추가하는 API")

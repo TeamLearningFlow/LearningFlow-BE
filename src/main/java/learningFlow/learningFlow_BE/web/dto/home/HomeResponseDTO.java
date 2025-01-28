@@ -1,6 +1,8 @@
 package learningFlow.learningFlow_BE.web.dto.home;
 
 import learningFlow.learningFlow_BE.domain.Image;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +26,15 @@ public class HomeResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class UserHomeInfoDTO {
+        RecentLearningDTO recentLearning;
+        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class RecommendedCollectionDTO {
         Long collectionId;           // 컬렉션 ID
         String title;                // 컬렉션 제목
@@ -33,6 +44,13 @@ public class HomeResponseDTO {
         String category;             // 카테고리
         String detailInformation;    // 상세 정보
         String collectionUrl;        // 컬렉션 상세 페이지 URL
+    }
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class GuestHomeInfoDTO {
+        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
     }
 
     @Getter
@@ -48,5 +66,14 @@ public class HomeResponseDTO {
         Integer progress;             // 진행률
         String collectionUrl;         // 컬렉션 상세 페이지 URL
         Integer currentEpisode;       // 현재 학습 중인 에피소드 번호
+    }
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecentLearningDTO {
+        private CollectionResponseDTO.CompletedCollectionDTO collection;
+        private List<ResourceResponseDTO.SearchResultResourceDTO> resources;
+        private String progressRatio;
     }
 }

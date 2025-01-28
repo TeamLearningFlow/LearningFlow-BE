@@ -43,15 +43,11 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private Job job;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_interests")
     @Enumerated(EnumType.STRING)
     @Column(name = "interest_field", nullable = false)
     private List<InterestField> interestFields;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Gender gender;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -68,7 +64,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "image_id")
     private Image image;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "collection_id")
     private List<Long> bookmarkedCollectionIds = new ArrayList<>();
@@ -138,10 +134,6 @@ public class User extends BaseEntity {
 //    public void updateBirthDay(LocalDate birthDay) {
 //        this.birthDay = birthDay;
 //    }
-
-    public void updateGender(Gender gender) {
-        this.gender = gender;
-    }
 
     public void updatePreferType(MediaType preferType) {
         this.preferType = preferType;

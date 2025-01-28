@@ -4,8 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import lombok.*;
-
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 public class ResourceResponseDTO {
 
@@ -55,6 +58,7 @@ public class ResourceResponseDTO {
     @NoArgsConstructor
     @Builder
     public static class SearchResultResourceDTO {
+        Long resourceId;
         String episodeName;
         String url;
         String resourceSource;
@@ -70,4 +74,16 @@ public class ResourceResponseDTO {
         private Integer progress;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecentlyWatchedEpisodeDTO {
+        Long resourceId;
+        String CollectionTitle;
+        String resourceSource;
+        Integer episodeNumber;
+        String episodeName;
+        String progressRatio;
+    }
 }

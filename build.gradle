@@ -21,6 +21,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://aws.oss.sonatype.org/content/repositories/releases/' } // AWS Repository 추가
 }
 
 dependencies {
@@ -36,9 +37,12 @@ dependencies {
 	// WebDriver Manager (ChromeDriver 자동 다운로드)
 	implementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
 
-
 	// 데이터베이스
-	implementation 'mysql:mysql-connector-java:8.0.33'
+//	implementation 'mysql:mysql-connector-java:8.0.33'
+	implementation 'com.mysql:mysql-connector-j'
+	// AWS RDS 및 JDBC 드라이버 의존성 추가
+	runtimeOnly 'software.aws.rds:aws-mysql-jdbc:1.1.6'
+	runtimeOnly 'software.amazon.awssdk:rds:2.20.57'
 
 	// 보안
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -50,9 +54,6 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
-
-	// Redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// 템플릿 엔진
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'

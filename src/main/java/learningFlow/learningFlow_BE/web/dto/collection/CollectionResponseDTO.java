@@ -1,10 +1,13 @@
 package learningFlow.learningFlow_BE.web.dto.collection;
 
+import learningFlow.learningFlow_BE.domain.enums.InterestField;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public class CollectionResponseDTO {
@@ -13,21 +16,46 @@ public class CollectionResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CollectionListDto {
-        List<CollectionDto> collectionList;
-        Integer listSize;
-        boolean isFirst;
-        boolean isLast;
-        Integer totalPage;
-        Long totalElements;
+    public static class SearchResultDTO {
+        List<CollectionPreviewDTO> searchResults;
+        Long lastId;     // 마지막 컬렉션의 ID
+        Boolean hasNext; // 다음 페이지 존재 여부
+        Integer currentPage; //현재 페이지
+        Integer totalPages; //전체 페이지 수
     }
 
     @Getter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CollectionDto {
+    public static class CollectionPreviewDTO {
+        Long collectionId;
+        InterestField interestField;
         String title;
-        // TODO: collection 조회 시 조회할 필드 들 구체적으로 정해서 넣어야 합니다.
+        String creator;
+        List<String> keywords;
+        List<Integer> difficulties;
+        Integer amount;
+        Integer runtime; //TODO : 필드 이름 수정 필요, 해당 컬렉션 수강 전체에 드느 시간이기 때문에 좀 더 좋은 필드 이름으로..
+        Integer textCount;
+        Integer videoCount;
+        List<ResourceResponseDTO.SearchResultResourceDTO> resource;
+        Integer bookmarkCount;
+        boolean isBookmarked;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CompletedCollectionDTO {
+        Long collectionId;
+        InterestField interestField;
+        String collectionTitle;
+        String creator;
+        List<String> keywords;
+        List<Integer> difficulties;
+        Integer runtime; //TODO : 필드 이름 수정 필요, 해당 컬렉션 수강 전체에 드느 시간이기 때문에 좀 더 좋은 필드 이름으로..
+        LocalDate lastAccessedTime;
     }
 }

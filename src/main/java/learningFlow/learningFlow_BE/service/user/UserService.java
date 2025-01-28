@@ -3,15 +3,19 @@ package learningFlow.learningFlow_BE.service.user;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.CollectionHandler;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
-import learningFlow.learningFlow_BE.converter.SearchConverter;
+import learningFlow.learningFlow_BE.converter.CollectionConverter;
 import learningFlow.learningFlow_BE.converter.UserConverter;
 import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.User;
-import learningFlow.learningFlow_BE.repository.CollectionRepository;
+import learningFlow.learningFlow_BE.domain.UserCollection;
+import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
+import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
+import learningFlow.learningFlow_BE.repository.collection.CollectionRepository;
 import learningFlow.learningFlow_BE.web.dto.bookmark.BookmarkDTO;
-import learningFlow.learningFlow_BE.web.dto.search.SearchResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
+import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +33,8 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserConverter userConverter;
     private final CollectionRepository collectionRepository;
+    private final UserCollectionRepository userCollectionRepository;
 
     private static final int BOOKMARK_PAGE_SIZE = 8;
 
@@ -38,7 +42,7 @@ public class UserService {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        return userConverter.convertToUserInfoDTO(user);
+        return UserConverter.convertToUserInfoDTO(user);
     }
 
     @Transactional
@@ -86,8 +90,7 @@ public class UserService {
         return new BookmarkDTO.BookmarkResponseDTO(!isCurrentlyBookmarked);
     }
 
-    @Transactional(readOnly = true)
-    public SearchResponseDTO.SearchResultDTO getBookmarkedCollections(String loginId, Long lastId) {
+    public CollectionResponseDTO.SearchResultDTO getBookmarkedCollections(String loginId, Long lastId) {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
@@ -95,7 +98,7 @@ public class UserService {
         List<Long> bookmarkedIds = user.getBookmarkedCollectionIds();
 
         if (bookmarkedIds.isEmpty()) {
-            return SearchConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user);
+            return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user);
         }
 
         // lastId 이후의 컬렉션만 필터링
@@ -109,7 +112,7 @@ public class UserService {
         } else {
             int startIndex = bookmarkedIds.indexOf(lastId) + 1;
             if (startIndex == 0 || startIndex >= bookmarkedIds.size()) {
-                return SearchConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user);
+                return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user);
             }
             collections = collectionRepository.findByIdIn(
                     bookmarkedIds.stream()
@@ -120,7 +123,7 @@ public class UserService {
         }
 
         if (collections.isEmpty()) {
-            return SearchConverter.toSearchResultDTO(collections, null, false, 0, 0, user);
+            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, user);
         }
 
         Long lastCollectionId = collections.getLast().getId();
@@ -129,7 +132,7 @@ public class UserService {
         int totalPages = (int) Math.ceil((double) bookmarkedIds.size() / BOOKMARK_PAGE_SIZE);
         int currentPage = (lastId == 0) ? 1 : (bookmarkedIds.indexOf(lastId) / BOOKMARK_PAGE_SIZE) + 2;
 
-        return SearchConverter.toSearchResultDTO(
+        return CollectionConverter.toSearchResultDTO(
                 collections,
                 lastCollectionId,
                 hasNext,
@@ -137,5 +140,18 @@ public class UserService {
                 currentPage,
                 user
         );
+    }
+
+    public UserResponseDTO.UserMyPageResponseDTO getUserMyPageResponseDTO(String loginId) {
+        User user = userRepository.findById(loginId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        List<UserCollection> inProgressUserCollectionList
+                = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.IN_PROGRESS);
+
+        List<UserCollection> completedUserCollectionList
+                = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.COMPLETED);
+
+        return UserConverter.convertToUserMyPageResponseDTO(inProgressUserCollectionList, completedUserCollectionList);
     }
 }
