@@ -95,6 +95,13 @@ public class ResourceRestController {
 
     // Gzip으로 HTML을 반환하는 API
     @GetMapping("{episode-id}/blog/content")
+    @Operation(summary = "blog HTML 반환 API", description = "/resources/{episode-id}/blog 호출 이후 호출하는 API")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
+    })
+    @Parameters({
+            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+    })
     public ResponseEntity<byte[]> getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId) {
         CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
 
