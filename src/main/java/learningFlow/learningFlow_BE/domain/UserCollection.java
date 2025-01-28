@@ -15,8 +15,9 @@ import java.time.LocalDate;
 @DynamicUpdate
 @Builder
 @Entity
-@Table(name = "user_collection")
-public class UserCollection {
+@Table(name = "user_collection",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "collection_id"}))
+public class UserCollection{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,13 +34,13 @@ public class UserCollection {
     @Column(name = "user_collection_status", nullable = false)
     private Integer userCollectionStatus;
 
+
     @Column(name = "last_accessed_at", nullable = false)
     private LocalDate lastAccessedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'IN_PROGRESS'", nullable = false)
     private UserCollectionStatus status;
-
     public void setUser(User user) {
         // 기존 유저와의 관계 제거
         if (this.user != null) {
@@ -62,6 +63,17 @@ public class UserCollection {
         if (collection != null && !collection.getUserCollections().contains(this)) {
             collection.getUserCollections().add(this);
         }
+    }
+
+    public void setUserCollection(User user, Collection collection, Integer userCollectionStatus) {
+        this.user = user;
+        this.collection = collection;
+        this.userCollectionStatus = userCollectionStatus;
+        this.lastAccessedAt = LocalDate.now();
+    }
+    public void updateUserCollection(Integer userCollectionStatus) {
+        this.userCollectionStatus = userCollectionStatus;
+        this.lastAccessedAt = LocalDate.now();
     }
 }
 

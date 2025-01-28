@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.auth.local.LocalUserAuthService;
 import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserRegistrationService;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
@@ -16,6 +17,7 @@ import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -127,15 +129,53 @@ public class LoginController {
         return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, profileImage, response));
     }
 
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃 API", description = "로그아웃 실행하는 API")
+    public ApiResponse<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        log.info("로그아웃 시작");
+        return ApiResponse.onSuccess(localUserAuthService.logout(request, response));
+    }
+
+    @PostMapping("/send/change-password")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 이메일을 통해 비밀번호 재설정 링크를 전송하는 API")
+    public ApiResponse<String> sendPasswordResetEmail(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        return ApiResponse.onSuccess(localUserAuthService.sendPasswordResetEmail(principalDetails));
+    }
+
+    @GetMapping("/change-password")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 이메일을 통해 비밀번호 재설정 링크를 통해 토큰 유효성 검증하고 폼으로 안내하는 API")
+    public ApiResponse<String> goChangePassword(
+            @RequestParam String token
+    ) {
+        localUserAuthService.validatePasswordResetToken(token);
+        return ApiResponse.onSuccess("토큰이 유효합니다. 새로운 비밀번호를 입력해주세요.");
+    }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버리지 않은 경우, 폼을 통해 설정할 새 비밀번호 전달받는 API")
+    public ApiResponse<String> changePassword(
+            @RequestParam String token,
+            @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request
+    ) {
+        return ApiResponse.onSuccess(localUserAuthService.resetPassword(token, request));
+    }
+
+/*
+    //일단은 사용X
     @PostMapping("/find/password")
-    @Operation(summary = "비밀번호 재설정 요청 API", description = "이메일을 통해 비밀번호 재설정 링크를 전송하는 API")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = "비밀번호를 잃어버렸을 경우, 이메일을 통해 비밀번호 재설정 링크를 전송하는 API")
     public ApiResponse<String> requestPasswordReset(
             @Valid @RequestBody UserRequestDTO.FindPasswordDTO request
     ) {
         localUserAuthService.sendPasswordResetEmail(request);
         return ApiResponse.onSuccess("이메일이 성공적으로 발송되었습니다.");
     }
+*/
 
+/*
+    //일단은 사용X
     @PostMapping("/reset-password")
     @Operation(summary = "비밀번호 재설정 API", description = "이메일로 받은 토큰을 통해 비밀번호를 재설정하는 API")
     public ApiResponse<String> resetPassword(
@@ -144,32 +184,6 @@ public class LoginController {
         localUserAuthService.resetPassword(request);
         return ApiResponse.onSuccess("비밀번호 재설정이 완료되었습니다.");
     }
-
-    @PostMapping("/logout")
-    @Operation(summary = "로그아웃 API", description = "로그아웃 실행하는 API, 실행 후 홈 화면으로 리다이렉트")
-    public String logout(
-            HttpServletRequest request
-    ) {
-        String token = request.getHeader("Authorization");
-        localUserAuthService.logout(token);
-        return "redirect:/home";
-    }
-
-    @PostMapping("/logout/test") // 테스트 전용 API
-    @Operation(summary = "로그아웃 테스트 용 API", description = "로그 아웃 테스트 후 리다이렉트 수행 안하고 스웨거에서 확인 가능하게 문자열 출력해주는 API")
-    public ApiResponse<String> testLogout(
-            HttpServletRequest request
-    ) {
-        log.info("로그아웃 요청 받음, /logout/test 시작");
-        try {
-            String token = request.getHeader("Authorization");
-            log.info("받은 토큰: {}", token);
-            localUserAuthService.logout(token);
-            return ApiResponse.onSuccess("로그아웃 성공");
-        } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류: {}", e.getMessage());
-            throw new RuntimeException("로그아웃 처리 중 오류가 발생했습니다.");
-        }
-    }
+*/
 }
 

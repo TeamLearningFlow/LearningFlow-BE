@@ -9,7 +9,6 @@ import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.service.user.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +25,6 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
-    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -37,15 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwt)) {
                 if (jwtTokenProvider.validateToken(jwt)) {
                     log.info("유효한 Access Token");
-
-                    if (!request.getRequestURI().equals("/logout/test")) {
-                        Boolean isBlacklisted = redisTemplate.hasKey("BLACKLIST:" + jwt);
-                        log.info("블랙리스트 체크 결과: {}", isBlacklisted);
-
-                        if (Boolean.TRUE.equals(isBlacklisted)) {
-                            throw new RuntimeException("이미 로그아웃된 토큰입니다.");
-                        }
-                    }
 
                     String email = jwtTokenProvider.getEmailFromToken(jwt);
                     log.info("토큰에서 추출한 이메일: {}", email);
@@ -117,7 +106,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPermitAllUrl(String requestURI) {
-        return requestURI.equals("/login") ||
+        return requestURI.equals("/") ||
+                requestURI.equals("/login") ||
                 requestURI.equals("/register") ||
                 requestURI.startsWith("/register/complete") ||
                 requestURI.equals("/login/google") ||
@@ -128,7 +118,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/webjars") ||
                 requestURI.startsWith("/find") ||
                 requestURI.startsWith("/search") ||
-                requestURI.startsWith("/home") ||
                 requestURI.equals("/reset-password");
     }
 }

@@ -1,12 +1,12 @@
 spring:
   datasource:
-#    url: jdbc:mysql://localhost:3307/learningFlow_db  # Docker?? ?? ?? MySQL ??
-#    username: learningFlow                           # Docker Compose?? ??? ??? ??
-#    password: learningFlow123                        # Docker Compose?? ??? ????
+    #    url: jdbc:mysql://localhost:3307/learningFlow_db  # Docker?? ?? ?? MySQL ??
+    #    username: learningFlow                           # Docker Compose?? ??? ??? ??
+    #    password: learningFlow123                        # Docker Compose?? ??? ????
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-#    driver-class-name: com.mysql.cj.jdbc.Driver      # MySQL JDBC ????
+    #    driver-class-name: com.mysql.cj.jdbc.Driver      # MySQL JDBC ????
     driver-class-name: software.aws.rds.jdbc.mysql.Driver
   jpa:
     hibernate:
@@ -55,10 +55,11 @@ custom:
     refresh-token-validity-in-seconds: 604800 # Refresh Token 1주일
 
 app:
-  url: http://localhost:8080
+  url: http://localhost:3000 #http://54.180.118.227:8080
+
 
 server:
-  port: 8081                                   # Spring Boot ?????? ?? ??
+  port: 8080                                  # Spring Boot ?????? ?? ??
 logging:
   level:
     org.hibernate.SQL: DEBUG
@@ -77,4 +78,4 @@ cloud:
       secretKey: ${AWS_SECRET_ACCESS_KEY}
 
 
-
+#     org.hibernate.type.descriptor.sql.BasicBinder: DEBUG

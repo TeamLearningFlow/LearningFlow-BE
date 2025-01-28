@@ -22,10 +22,10 @@ public class QResource extends EntityPathBase<Resource> {
 
     public final QBaseEntity _super = new QBaseEntity(this);
 
+    public final StringPath clientUrl = createString("clientUrl");
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
-
-    public final StringPath embeddedUrl = createString("embeddedUrl");
 
     public final ListPath<CollectionEpisode, QCollectionEpisode> episodes = this.<CollectionEpisode, QCollectionEpisode>createList("episodes", CollectionEpisode.class, QCollectionEpisode.class, PathInits.DIRECT2);
 
@@ -33,7 +33,9 @@ public class QResource extends EntityPathBase<Resource> {
 
     public final StringPath resourceDetails = createString("resourceDetails");
 
-    public final NumberPath<Integer> runtime = createNumber("runtime", Integer.class);
+    public final NumberPath<Integer> resourceQuantity = createNumber("resourceQuantity", Integer.class);
+
+    public final NumberPath<Integer> studyDuration = createNumber("studyDuration", Integer.class);
 
     public final StringPath title = createString("title");
 

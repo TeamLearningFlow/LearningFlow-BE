@@ -26,7 +26,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //Resources 관련 에어
     RESOURCES_NOT_FOUND(HttpStatus.NOT_FOUND,"RESOURCE4001","강의 에피소드를 찾을 수 없습니다."),
-
+    QUANTITY_IS_NULL(HttpStatus.BAD_REQUEST, "RESOURCE4002", "분량이 존재하지 않습니다"),
     //페이징 시 페이지 범위를 벗어났을 때
     PAGE_OUT_OF_RANGE(HttpStatus.BAD_REQUEST, "PAGE4001","페이지 범위에 맞지 않는 페이지 값 입니다."),
 
@@ -49,7 +49,22 @@ public enum ErrorStatus implements BaseErrorCode {
     IMAGE_FORMAT_BADREQUEST(HttpStatus.BAD_REQUEST,"COMMON400","이미지 파일만 업로드할 수 있습니다."),
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5001", "이미지 업로드에 실패했습니다. 다시 시도해주세요.");
 
+    // 컬렉션 에피소드 에러
+    EPISODE_NOT_FOUND(HttpStatus.NOT_FOUND, "EPISODE4001", "존재하지 않는 에피소드 입니다."),
 
+    //URI 에러
+    URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "URI4001", "잘못된 형태의 URI 입니다"),
+    // 임베드 에러
+    YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다."),
+    UNSUPPORTED_BLOG_PLATFORM(HttpStatus.BAD_REQUEST, "EMBED4002", "지원하지 않는 블로그 플랫폼입니다."),
+    BLOG_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PORXY5001", "블로그 데이터를 가져오는 과정에서 오류가 발생했습니다."),
+
+
+    // Resource 에러
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다."),
+
+    // User Progress
+    USER_PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "USER-PROGRESS4001", "진도 값이 null 인 상태입니다.");
     private final HttpStatus httpStatus;
     private final String code;
     private final String message;

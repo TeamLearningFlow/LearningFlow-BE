@@ -16,5 +16,6 @@ public class SearchRequestDTO {
         private Integer preferMediaType;
         private List<Integer> difficulties;
         private List<String> amounts;
+        private Integer sortType;
     }
 }

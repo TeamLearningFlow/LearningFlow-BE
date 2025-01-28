@@ -29,7 +29,7 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath email = createString("email");
 
-    public final EnumPath<learningFlow.learningFlow_BE.domain.enums.Gender> gender = createEnum("gender", learningFlow.learningFlow_BE.domain.enums.Gender.class);
+    public final QImage image;
 
     public final BooleanPath inactive = createBoolean("inactive");
 
