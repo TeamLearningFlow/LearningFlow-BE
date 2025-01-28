@@ -28,9 +28,8 @@ public class UserConverter {
                 .email(user.getEmail())
                 .job(user.getJob())
                 .interestFields(user.getInterestFields())
-                .gender(user.getGender())
                 .preferType(user.getPreferType())
-                .profileImageUrl(user.getImage() != null ? user.getImage().getImageURL() : null)
+                .profileImageUrl(user.getProfileImgUrl())
                 .build();
     }
 

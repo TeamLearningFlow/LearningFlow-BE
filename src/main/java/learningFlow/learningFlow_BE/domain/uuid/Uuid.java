@@ -1,7 +1,7 @@
 package learningFlow.learningFlow_BE.domain.uuid;
 
-import hackathon.spring.domain.common.BaseEntity;
 import jakarta.persistence.*;
+import learningFlow.learningFlow_BE.domain.BaseEntity;
 import lombok.*;
 
 @Entity

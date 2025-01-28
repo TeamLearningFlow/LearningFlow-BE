@@ -1,5 +1,8 @@
 package learningFlow.learningFlow_BE.web.controller;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -12,7 +15,9 @@ import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
@@ -44,15 +49,22 @@ public class LoginController {
         return ApiResponse.onSuccess("토큰이 유효. 추가 정보를 입력해주세요.");
     }
 
-    @PostMapping("/register/complete")
+    @PostMapping(value = "/register/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "회원가입 완료 API", description = "이메일 인증 후 추가 정보를 입력받아 회원가입을 완료하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
             @RequestParam String token,
-            @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request,
+            @Parameter(
+                    description = "회원가입 추가 정보 (클라이언트측에서 JSON 데이터를 type=application/json으로 설정 필요)",
+                    content = @Content(
+                            mediaType = "application/json", // JSON 데이터
+                            schema = @Schema(implementation = UserRequestDTO.CompleteRegisterDTO.class)
+                    )
+            )
+            @RequestPart("request") @Valid UserRequestDTO.CompleteRegisterDTO request, // ✅ JSON 데이터 - application/json
+            @RequestPart MultipartFile profileImage, // ✅ 이미지 파일 업로드 - image/jpeg
             HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, response));
-        //TODO: 회원가입 후 로그인 창으로 리다이렉트 하는게 나을것 같은데 이 부분은 아직 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
+        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, profileImage, response));
     }
 
     @PostMapping("/login")
@@ -63,8 +75,6 @@ public class LoginController {
     ) {
         log.info("/login 시작");
         return ApiResponse.onSuccess(localUserAuthService.login(request, response));
-        //TODO: 로그인 후에도 /home으로 리다이렉트 되는게 나을 것 같은데 이 부분 설정 안함(리다이렉트 설정 시 스웨거 테스트 불편)
-        // 화면 redirect는 프엔쪽에서 처리해주시는 부분이어서 백엔드는 처리를 안하는 게 맞습니다!
     }
 
     /**
@@ -99,14 +109,22 @@ public class LoginController {
      * 그리고 회원가입 완료되면 세션에 저장된 oauth2UserTemp는 삭제하고 인증 정보를 SecurityContextHolder에 추가해서 인증이 가능하게 한다.
      * @return UserResponseDTO.UserLoginResponseDTO
      */
-    @PutMapping("/oauth2/additional-info")
+    @PutMapping(value = "/oauth2/additional-info",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "추가 정보 입력 API", description = "OAuth2 회원가입 후 추가 정보를 입력하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
             @RequestParam String token,
-            @Valid @RequestBody UserRequestDTO.AdditionalInfoDTO request,
+            @Parameter(
+                    description = "회원가입 추가 정보 (클라이언트측에서 JSON 데이터를 type=application/json으로 설정 필요)",
+                    content = @Content(
+                            mediaType = "application/json", // JSON 데이터
+                            schema = @Schema(implementation = UserRequestDTO.AdditionalInfoDTO.class)
+                    )
+            )
+            @RequestPart("request") @Valid UserRequestDTO.AdditionalInfoDTO request, // ✅ JSON 데이터 - application/json
+            @RequestPart MultipartFile profileImage, // ✅ 이미지 파일 업로드 - image/jpeg
             HttpServletResponse response) {
         log.info("put info");
-        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, response));
+        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, profileImage, response));
     }
 
     @PostMapping("/find/password")

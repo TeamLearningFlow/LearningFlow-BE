@@ -50,7 +50,7 @@ public class QCollectionEpisode extends EntityPathBase<CollectionEpisode> {
 
     public QCollectionEpisode(Class<? extends CollectionEpisode> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.collection = inits.isInitialized("collection") ? new QCollection(forProperty("collection"), inits.get("collection")) : null;
+        this.collection = inits.isInitialized("collection") ? new QCollection(forProperty("collection")) : null;
         this.resource = inits.isInitialized("resource") ? new QResource(forProperty("resource")) : null;
     }
 

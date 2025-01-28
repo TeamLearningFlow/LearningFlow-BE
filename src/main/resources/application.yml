@@ -58,7 +58,7 @@ app:
   url: http://localhost:8080
 
 server:
-  port: 8080                                         # Spring Boot ?????? ?? ??
+  port: 8081                                   # Spring Boot ?????? ?? ??
 logging:
   level:
     org.hibernate.SQL: DEBUG

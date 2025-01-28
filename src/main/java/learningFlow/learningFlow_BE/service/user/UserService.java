@@ -1,6 +1,7 @@
 package learningFlow.learningFlow_BE.service.user;
 
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
+import learningFlow.learningFlow_BE.apiPayload.exception.GeneralException;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.CollectionHandler;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
 import learningFlow.learningFlow_BE.converter.CollectionConverter;
@@ -56,19 +57,12 @@ public class UserService {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // TODO: 이미지 업데이트 로직 추가 예정
         if (imageFile != null && !imageFile.isEmpty()) {
             log.info("이미지 업데이트 요청 발생");
-            // UUID 생성 및 저장
-            String uuid = UUID.randomUUID().toString();
-            Uuid savedUuid = uuidRepository.save(Uuid.builder()
-                    .uuid(uuid).build());
-
-            // 이미지 업로드
-            String imageKey = s3Manager.generateKeyName(savedUuid); // 프로필 이미지에 적합한 KeyName 생성
-            String imageUrl = s3Manager.uploadFile(imageKey, imageFile);
+            String imageUrl = s3Manager.uploadImageToS3(imageFile);
+            // user 엔티티에 이미지 URL 업데이트
+            user.updateImage(imageUrl);
         }
-
 
         // 각 필드가 null이 아닌 경우에만 업데이트
         if (updateUserDTO.getName() != null) {
@@ -83,6 +77,33 @@ public class UserService {
 
         return getUserInfo(loginId);
     }
+
+//    private String uploadImageToS3(MultipartFile imageFile) {
+//        try {
+//            // UUID 생성 및 저장
+//            String imageUuid = UUID.randomUUID().toString();
+//            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+//                    .uuid(imageUuid).build());
+//
+//            // 이미지 업로드
+//            String imageKey = s3Manager.generateKeyName(savedUuid); // KeyName 생성
+//            String imageUrl = s3Manager.uploadFile(imageKey, imageFile); // 업로드된 URL 반환
+//
+//            // 업로드 성공 여부 확인
+//            if (imageUrl == null || imageUrl.isEmpty()) {
+//                throw new GeneralException(ErrorStatus._BAD_REQUEST); // 업로드 실패 시 예외 처리
+//            }
+//
+//            return imageUrl; // 성공 시 URL 반환
+//
+//        } catch (GeneralException e) {
+//            log.error("이미지 업로드 실패: {}", e.getMessage());
+//            throw e; // GeneralException은 그대로 전달
+//        } catch (Exception e) {
+//            log.error("이미지 업로드 중 내부 오류 발생: {}", e.getMessage());
+//            throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 기타 예외 처리
+//        }
+//    }
 
     @Transactional
     public BookmarkDTO.BookmarkResponseDTO toggleBookmark(String loginId, Long collectionId) {
