@@ -52,8 +52,8 @@ public class QUserCollection extends EntityPathBase<UserCollection> {
 
     public QUserCollection(Class<? extends UserCollection> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.collection = inits.isInitialized("collection") ? new QCollection(forProperty("collection"), inits.get("collection")) : null;
-        this.user = inits.isInitialized("user") ? new QUser(forProperty("user"), inits.get("user")) : null;
+        this.collection = inits.isInitialized("collection") ? new QCollection(forProperty("collection")) : null;
+        this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
     }
 
 }

@@ -45,6 +45,10 @@ public enum ErrorStatus implements BaseErrorCode {
     EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),
 
+    //이미지
+    IMAGE_FORMAT_BADREQUEST(HttpStatus.BAD_REQUEST,"COMMON400","이미지 파일만 업로드할 수 있습니다."),
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5001", "이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+
     // 컬렉션 에피소드 에러
     EPISODE_NOT_FOUND(HttpStatus.NOT_FOUND, "EPISODE4001", "존재하지 않는 에피소드 입니다."),
 
@@ -54,6 +58,7 @@ public enum ErrorStatus implements BaseErrorCode {
     YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다."),
     UNSUPPORTED_BLOG_PLATFORM(HttpStatus.BAD_REQUEST, "EMBED4002", "지원하지 않는 블로그 플랫폼입니다."),
     BLOG_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PORXY5001", "블로그 데이터를 가져오는 과정에서 오류가 발생했습니다."),
+
 
     // Resource 에러
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다."),

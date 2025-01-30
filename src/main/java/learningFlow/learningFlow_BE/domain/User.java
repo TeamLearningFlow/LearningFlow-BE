@@ -60,9 +60,8 @@ public class User extends BaseEntity {
     @Column(name = "prefer_type", nullable = false)
     private MediaType preferType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "image_id")
-    private Image image;
+    @Column(nullable = true)
+    private String profileImgUrl;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))
@@ -89,17 +88,17 @@ public class User extends BaseEntity {
         return bookmarkedCollectionIds.contains(collectionId);
     }
 
-    public void setImage(Image image) {
-        //기존 이미지와의 연관관계 제거
-        if (this.image != null) {
-            this.image.getUsers().remove(this);
-        }
-        this.image = image;
-        //새로운 이미지와 연관관계 설정
-        if (image != null) {
-            image.getUsers().add(this);
-        }
-    }
+//    public void setImage(Image image) {
+//        //기존 이미지와의 연관관계 제거
+//        if (this.image != null) {
+//            this.image.getUsers().remove(this);
+//        }
+//        this.image = image;
+//        //새로운 이미지와 연관관계 설정
+//        if (image != null) {
+//            image.getUsers().add(this);
+//        }
+//    }
 
     public void addUserCollection(UserCollection userCollection) {
         this.userCollections.add(userCollection);
@@ -129,6 +128,10 @@ public class User extends BaseEntity {
 
     public void updateInterestFields(List<InterestField> interestFields) {
         this.interestFields = interestFields;
+    }
+
+    public void updateImage(String profileImgUrl) {
+        this.profileImgUrl = profileImgUrl;
     }
 
 //    public void updateBirthDay(LocalDate birthDay) {

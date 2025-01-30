@@ -5,6 +5,7 @@ import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.domain.enums.Job;
 import learningFlow.learningFlow_BE.domain.enums.MediaType;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -59,7 +60,6 @@ public class UserRequestDTO {
         @NotEmpty(message = "관심 분야는 최소 1개 이상 선택해야 합니다")
         @Size(max = 3, message = "관심 분야는 최대 3개까지만 선택이 가능합니다.")
         List<InterestField> interestFields;
-
         @NotNull(message = "선호하는 미디어 타입은 필수 선택값입니다")
         MediaType preferType;
     }

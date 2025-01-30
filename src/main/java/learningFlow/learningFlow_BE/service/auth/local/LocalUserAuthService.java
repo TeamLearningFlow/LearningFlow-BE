@@ -3,6 +3,10 @@ package learningFlow.learningFlow_BE.service.auth.local;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
+import learningFlow.learningFlow_BE.apiPayload.exception.GeneralException;
+import learningFlow.learningFlow_BE.domain.uuid.Uuid;
+import learningFlow.learningFlow_BE.domain.uuid.UuidRepository;
+import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.LoginHandler;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.handler.JwtLogoutHandler;
@@ -28,6 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -48,6 +53,8 @@ public class LocalUserAuthService {
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtLogoutHandler jwtLogoutHandler;
+    private final AmazonS3Manager s3Manager;
+    private final UuidRepository uuidRepository;
 
     @Transactional
     public void initialRegister(UserRequestDTO.InitialRegisterDTO requestDTO) {
@@ -96,14 +103,26 @@ public class LocalUserAuthService {
     @Transactional
     public UserResponseDTO.UserLoginResponseDTO completeRegister(
             String token,
-            UserRequestDTO.CompleteRegisterDTO requestDTO
+            UserRequestDTO.CompleteRegisterDTO requestDTO,
+            MultipartFile imageFile,
+            HttpServletResponse response
     ) {
+        String imageUrl = null;
         //이메일 토큰 검증
         EmailVerificationToken verificationToken = validateRegistrationToken(token);
 
         // 로그인 ID 생성
-        String uuid = UUID.randomUUID().toString().substring(0, 8);
-        String loginId = "LOCAL_" + uuid;
+        String loginuuid = UUID.randomUUID().toString().substring(0, 8);
+        String loginId = "LOCAL_" + loginuuid;
+
+        //이미지 파일
+        if (imageFile != null && !imageFile.isEmpty()) {
+            log.info("이미지 업로드 요청 발생");
+            imageUrl = s3Manager.uploadImageToS3(imageFile);
+            // user 엔티티에 이미지 URL 업데이트
+            //user.updateImage(imageUrl);
+        }
+
 
         // 새로운 유저 생성
         User user = User.builder()
@@ -116,6 +135,7 @@ public class LocalUserAuthService {
                 .preferType(requestDTO.getPreferType())
                 .socialType(SocialType.LOCAL)
                 .role(Role.USER)
+                .profileImgUrl(imageUrl)
                 .inactive(false)
                 .build();
 
@@ -126,6 +146,41 @@ public class LocalUserAuthService {
 
         return toUserLoginResponseDTO(savedUser);
     }
+
+    private String uploadImageToS3(MultipartFile imageFile) {
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new GeneralException(ErrorStatus.IMAGE_FORMAT_BADREQUEST); // 이미지 파일 검증 실패
+        }
+
+        try {
+            // UUID 생성 및 저장
+            String imageUuid = UUID.randomUUID().toString();
+            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+                    .uuid(imageUuid).build());
+
+            // 이미지 업로드
+            String imageKey = s3Manager.generateKeyName(savedUuid); // KeyName 생성
+            String imageUrl = s3Manager.uploadFile(imageKey, imageFile); // 업로드된 URL 반환
+
+            // 업로드 성공 여부 확인
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                throw new GeneralException(ErrorStatus._BAD_REQUEST); // 업로드 실패 시 예외 처리
+            }
+
+            return imageUrl; // 성공 시 URL 반환
+
+        } catch (GeneralException e) {
+            log.error("이미지 업로드 실패: {}", e.getMessage());
+            throw e; // GeneralException은 그대로 전달
+        } catch (Exception e) {
+            log.error("이미지 업로드 중 내부 오류 발생: {}", e.getMessage());
+            throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 기타 예외 처리
+        }
+    }
+
+
+
+
 
     public UserResponseDTO.UserLoginResponseDTO login(UserRequestDTO.UserLoginDTO request,
                                                       HttpServletResponse response) {

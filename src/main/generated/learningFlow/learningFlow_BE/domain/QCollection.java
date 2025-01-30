@@ -18,8 +18,6 @@ public class QCollection extends EntityPathBase<Collection> {
 
     private static final long serialVersionUID = -819230162L;
 
-    private static final PathInits INITS = PathInits.DIRECT2;
-
     public static final QCollection collection = new QCollection("collection");
 
     public final QBaseEntity _super = new QBaseEntity(this);
@@ -27,6 +25,8 @@ public class QCollection extends EntityPathBase<Collection> {
     public final NumberPath<Integer> amount = createNumber("amount", Integer.class);
 
     public final NumberPath<Integer> bookmarkCount = createNumber("bookmarkCount", Integer.class);
+
+    public final StringPath collectionImgUrl = createString("collectionImgUrl");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
@@ -40,8 +40,6 @@ public class QCollection extends EntityPathBase<Collection> {
     public final ListPath<CollectionEpisode, QCollectionEpisode> episodes = this.<CollectionEpisode, QCollectionEpisode>createList("episodes", CollectionEpisode.class, QCollectionEpisode.class, PathInits.DIRECT2);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
-
-    public final QImage image;
 
     public final EnumPath<learningFlow.learningFlow_BE.domain.enums.InterestField> interestField = createEnum("interestField", learningFlow.learningFlow_BE.domain.enums.InterestField.class);
 
@@ -57,24 +55,15 @@ public class QCollection extends EntityPathBase<Collection> {
     public final ListPath<UserCollection, QUserCollection> userCollections = this.<UserCollection, QUserCollection>createList("userCollections", UserCollection.class, QUserCollection.class, PathInits.DIRECT2);
 
     public QCollection(String variable) {
-        this(Collection.class, forVariable(variable), INITS);
+        super(Collection.class, forVariable(variable));
     }
 
     public QCollection(Path<? extends Collection> path) {
-        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
+        super(path.getType(), path.getMetadata());
     }
 
     public QCollection(PathMetadata metadata) {
-        this(metadata, PathInits.getFor(metadata, INITS));
-    }
-
-    public QCollection(PathMetadata metadata, PathInits inits) {
-        this(Collection.class, metadata, inits);
-    }
-
-    public QCollection(Class<? extends Collection> type, PathMetadata metadata, PathInits inits) {
-        super(type, metadata, inits);
-        this.image = inits.isInitialized("image") ? new QImage(forProperty("image")) : null;
+        super(Collection.class, metadata);
     }
 
 }
