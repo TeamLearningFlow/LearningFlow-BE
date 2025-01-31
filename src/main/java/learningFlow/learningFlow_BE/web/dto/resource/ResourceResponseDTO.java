@@ -80,10 +80,13 @@ public class ResourceResponseDTO {
     @AllArgsConstructor
     public static class RecentlyWatchedEpisodeDTO {
         Long resourceId;
-        String CollectionTitle;
+        Long collectionId;
+        String collectionTitle;
         String resourceSource;
         Integer episodeNumber;
         String episodeName;
         String progressRatio;
+        Integer currentProgress;
+        Integer totalProgress;
     }
 }
