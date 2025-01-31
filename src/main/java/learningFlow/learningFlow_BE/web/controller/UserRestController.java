@@ -36,12 +36,12 @@ public class UserRestController {
     private final UserService userService;
     private final AmazonS3Manager amazonS3Manager;
 
-    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "이미지 업로드 API", description = "회원가입 절차에서 이미지를 업로드하는 API")
-    public ApiResponse<String> imageUpload(@RequestPart MultipartFile image) {
-        String imgUrl = amazonS3Manager.uploadImageToS3(image);
-        return ApiResponse.onSuccess(imgUrl); // ✅ 프론트에서 이 URL을 저장하고 사용
-    }
+//    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @Operation(summary = "이미지 업로드 API", description = "회원가입 절차에서 이미지를 업로드하는 API")
+//    public ApiResponse<String> imageUpload(@RequestPart MultipartFile image) {
+//        String imgUrl = amazonS3Manager.uploadImageToS3(image);
+//        return ApiResponse.onSuccess(imgUrl); // ✅ 프론트에서 이 URL을 저장하고 사용
+//    }
 
     @PutMapping( consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "사용자 정보 수정 API", description = "사용자 정보를 수정하는 API\n" +

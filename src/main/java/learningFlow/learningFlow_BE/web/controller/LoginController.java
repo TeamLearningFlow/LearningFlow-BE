@@ -27,14 +27,14 @@ import java.io.IOException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"}) // ✅ CORS 허용
+//@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"}) // ✅ CORS 허용
 @Tag(name = "Login", description = "회원가입, 로그인 관련 API")
 @Slf4j
 public class LoginController {
 
     private final LocalUserAuthService localUserAuthService;
     private final OAuth2UserRegistrationService OAuth2UserRegistrationService;
-    private final AmazonS3Manager amazonS3Manager;
+//    private final AmazonS3Manager amazonS3Manager;
 
     @PostMapping("/register")
     @Operation(summary = "회원가입 초기 단계 API", description = "이메일과 비밀번호를 입력받아 인증 이메일을 발송하는 API")
@@ -54,12 +54,12 @@ public class LoginController {
         return ApiResponse.onSuccess("토큰이 유효. 추가 정보를 입력해주세요.");
     }
 
-    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "이미지 업로드 API", description = "회원가입 절차에서 이미지를 업로드하는 API")
-    public ApiResponse<String> imageUpload(@RequestPart MultipartFile image) {
-        String imgUrl = amazonS3Manager.uploadImageToS3(image);
-        return ApiResponse.onSuccess(imgUrl); // ✅ 프론트에서 이 URL을 저장하고 사용
-    }
+//    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @Operation(summary = "이미지 업로드 API", description = "회원가입 절차에서 이미지를 업로드하는 API")
+//    public ApiResponse<String> imageUpload(@RequestPart MultipartFile image) {
+//        String imgUrl = amazonS3Manager.uploadImageToS3(image);
+//        return ApiResponse.onSuccess(imgUrl); // ✅ 프론트에서 이 URL을 저장하고 사용
+//    }
 
 
     @PostMapping(value = "/register/complete", consumes = MediaType.APPLICATION_JSON_VALUE)

@@ -131,7 +131,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        boolean shouldSkip = path.equals("/imgUpload") || isPermitAllUrl(path);
+        boolean shouldSkip = path.equals("/image/upload") || isPermitAllUrl(path);
         log.info("🛑 [JwtAuthenticationFilter] shouldNotFilter 실행: path={}, shouldSkip={}", path, shouldSkip);
         return shouldSkip;
     }

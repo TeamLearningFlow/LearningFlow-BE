@@ -53,7 +53,7 @@ public class SecurityConfig {
                                 "/search/**",
                                 "/",
                                 "/collections/{collectionId:[\\d]+}",
-                                "/user/imgUpload", "/imgUpload" //이미지 업로드는 허용
+                                 "/image/upload" //이미지 업로드는 허용
                         ).permitAll()
                         .requestMatchers(
                                 "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
