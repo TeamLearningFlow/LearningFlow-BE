@@ -14,16 +14,19 @@ import lombok.*;
 @Entity
 @Table(name = "user_episode_progress")
 public class UserEpisodeProgress extends BaseEntity{
+
     @EmbeddedId
     private UserEpisodeProgressId userEpisodeProgressId;
+
     @Column(nullable = false)
     private int episodeNumber;
 
     @Setter
     private Integer currentProgress;
+
     @Column(nullable = false)
     private Integer totalProgress;
+
     @Column(nullable = false)
     private ResourceType resourceType;
-
 }
