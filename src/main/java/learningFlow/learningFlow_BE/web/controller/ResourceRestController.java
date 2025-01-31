@@ -91,7 +91,7 @@ public class ResourceRestController {
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
         String resourceTitle = resourceService.getResourceTitle(episodeId);
         String blogSourceUrl = "/resources/" + episodeId + "/blog/content";
-        return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl,resourceTitle , memo));
+        return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl, resourceTitle, memo));
     }
 
     // Gzip으로 HTML을 반환하는 API
