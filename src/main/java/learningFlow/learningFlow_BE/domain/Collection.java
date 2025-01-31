@@ -56,9 +56,8 @@ public class Collection extends BaseEntity {
     @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
     private Integer bookmarkCount = 0;
 
-    @ManyToOne
-    @JoinColumn(name = "image_id")
-    private Image image;
+    @Column(nullable = false)
+    private String collectionImgUrl;
 
     @OneToMany(mappedBy = "collection", cascade = CascadeType.ALL)
     private List<UserCollection> userCollections;
@@ -74,17 +73,6 @@ public class Collection extends BaseEntity {
         this.bookmarkCount--;
     }
 
-    public void setImage(Image image) {
-        // 기존 이미지와의 관계 제거
-        if (this.image != null) {
-            this.image.getCollections().remove(this);
-        }
-        this.image = image;
-        // 새로운 이미지와 관계 설정
-        if (image != null) {
-            image.getCollections().add(this);
-        }
-    }
 
     public void addUserCollection(UserCollection userCollection) {
         this.userCollections.add(userCollection);

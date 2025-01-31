@@ -3,6 +3,7 @@ package learningFlow.learningFlow_BE.service.auth.oauth;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.User;
@@ -18,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,6 +36,8 @@ public class OAuth2UserRegistrationService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+//     private final RedisTemplate<String, String> redisTemplate;
+    private final AmazonS3Manager s3Manager;
 
     // 추가 정보 입력 필요 여부와 필드 정보를 반환하는 메소드
     public Map<String, Object> getAdditionalInfoRequirements() {
@@ -50,7 +54,10 @@ public class OAuth2UserRegistrationService {
     public UserResponseDTO.UserLoginResponseDTO updateAdditionalInfo(
             String temporaryToken,
             UserRequestDTO.AdditionalInfoDTO additionalInfo,
+            MultipartFile imageFile,
             HttpServletResponse response) {
+
+        String imageUrl = null;
 
         if (!jwtTokenProvider.validateToken(temporaryToken) || !jwtTokenProvider.isTemporaryToken(temporaryToken)) {
             throw new RuntimeException("유효하지 않은 토큰입니다.");
@@ -61,6 +68,14 @@ public class OAuth2UserRegistrationService {
         String name = claims.get("name", String.class);
         String providerId = claims.get("providerId", String.class);
         SocialType socialType = SocialType.valueOf(claims.get("socialType", String.class));
+
+        //이미지 파일
+        if (imageFile != null && !imageFile.isEmpty()) {
+            log.info("이미지 업로드 요청 발생");
+            imageUrl = s3Manager.uploadImageToS3(imageFile);
+            // user 엔티티에 이미지 URL 업데이트
+            //user.updateImage(imageUrl);
+        }
 
 
         User newUser = User.builder()
@@ -73,6 +88,7 @@ public class OAuth2UserRegistrationService {
                 .job(additionalInfo.getJob())
                 .interestFields(additionalInfo.getInterestFields())
                 .preferType(additionalInfo.getPreferType())
+                .profileImgUrl(imageUrl)
                 .role(Role.USER)
                 .inactive(false)
                 .build();

@@ -46,6 +46,7 @@ public class SearchRestController {
             @Parameter(name = "preferMediaType", description = "미디어 타입 필터 (1: 텍스트만, 2 : 텍스트 선호, 3: 상관 없음, 4: 영상 선호, 5: 영상만)"),
             @Parameter(name = "difficulties", description = "난이도 필터 (1: 입문, 2: 초급, 3: 중급, 4: 실무)"),
             @Parameter(name = "amounts", description = "강의량 필터 (SHORT(1-5), MEDIUM(5-10), LONG(11이상)"),
+            @Parameter(name = "sortType", description = "정렬 기준 (0: 최신순(기본값), 1: 북마크순)"),
             @Parameter(name = "lastId", description = "마지막으로 조회된 컬렉션의 ID (첫 페이지는 0)")
     })
     public ApiResponse<CollectionResponseDTO.SearchResultDTO> searchEpisodes(
@@ -54,12 +55,13 @@ public class SearchRestController {
             @RequestParam(required = false) Integer preferMediaType,
             @RequestParam(required = false) List<Integer> difficulties,
             @RequestParam(required = false) List<String> amounts,
+            @RequestParam(required = false, defaultValue = "0") Integer sortType,
             @RequestParam(required = false, defaultValue = "0") Long lastId,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(
                 collectionService.search(
-                        CollectionConverter.toSearchConditionDTO(keyword, interestFields, preferMediaType, difficulties, amounts),
+                        CollectionConverter.toSearchConditionDTO(keyword, interestFields, preferMediaType, difficulties, amounts, sortType),
                         lastId, principalDetails)
         );
     }

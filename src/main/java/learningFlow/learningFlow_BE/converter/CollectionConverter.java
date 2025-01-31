@@ -22,7 +22,8 @@ public class CollectionConverter {
             InterestField interestFields,
             Integer preferMediaType,
             List<Integer> difficulties,
-            List<String> amounts
+            List<String> amounts,
+            Integer sortType
     ) {
         return SearchRequestDTO.SearchConditionDTO.builder()
                 .keyword(keyword)
@@ -30,6 +31,7 @@ public class CollectionConverter {
                 .preferMediaType(preferMediaType)
                 .difficulties(difficulties)
                 .amounts(amounts)
+                .sortType(sortType)
                 .build();
     }
 
@@ -74,8 +76,8 @@ public class CollectionConverter {
                 .textCount(textCount)
                 .videoCount(videoCount)
                 .resource(resourceDTOList)
-                .bookmarkCount(collection.getBookmarkCount())
-                .isBookmarked(currentUser != null && currentUser.hasBookmarked(collection.getId()))
+                .likesCount(collection.getBookmarkCount()) //북마크 -> 좋아요로 이름만 변경 
+                .isLiked(currentUser != null && currentUser.hasBookmarked(collection.getId())) //북마크 -> 좋아요로 이름만 변경 
                 .build();
     }
 
@@ -97,7 +99,7 @@ public class CollectionConverter {
     private static int getTotalHours(Collection collection) {
         int totalSeconds = collection.getEpisodes().stream()
                 .map(CollectionEpisode::getResource)
-                .mapToInt(Resource::getRuntime).sum();
+                .mapToInt(Resource::getStudyDuration).sum();
 
         return (int) Math.ceil((double) totalSeconds / 3600);
     }

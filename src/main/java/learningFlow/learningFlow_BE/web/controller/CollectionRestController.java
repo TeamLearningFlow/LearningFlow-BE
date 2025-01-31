@@ -8,6 +8,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
+import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.LoginHandler;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
@@ -39,6 +47,7 @@ public class CollectionRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COLLECTION4001", description = "존재하지 않는 컬렉션입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
+
             @Parameter(name = "collectionId", description = "컬렉션 ID"),
     })
     public ApiResponse<CollectionResponseDTO.CollectionPreviewDTO> getCollection(
@@ -50,8 +59,8 @@ public class CollectionRestController {
         );
     }
 
-    @PostMapping("{collectionId}/bookmark")
-    @Operation(summary = "북마크 설정,해제 API", description = "컬렉션의 북마크를 설정,해제하는 API")
+    @PostMapping("{collectionId}/likes")
+    @Operation(summary = "좋아요 설정,해제 API", description = "컬렉션의 좋아요를 설정,해제하는 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),

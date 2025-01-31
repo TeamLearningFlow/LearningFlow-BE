@@ -31,14 +31,17 @@ public class Resource extends BaseEntity {
     @Column(nullable = false)
     private String url; // 자료 링크
 
-    @Column(name = "embedded_url",nullable = false)
-    private String embeddedUrl; // 임베드 url
+    @Column(name = "client_url", columnDefinition = "TEXT")
+    private String clientUrl; // 클라이언트에게 보내줄 url
+
+    @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+    private Integer studyDuration; // 학습 시간 (초 단위 저장)
 
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL)
     private List<CollectionEpisode> episodes;
 
     @Column(nullable = false)
-    private Integer runtime; //초단위로 저장(유튜브 동영상이 초단위이기 때문)
+    private Integer resourceQuantity; //초단위로 저장(유튜브 동영상이 초단위이기 때문)
 
     public void addEpisode(CollectionEpisode episode) {
         this.episodes.add(episode);
@@ -52,5 +55,10 @@ public class Resource extends BaseEntity {
         if (episode.getResource() == this) {
             episode.setResource(null);
         }
+    }
+
+    public void setClientUrl(String clientUrl) {
+        if (this.clientUrl != null) return;
+        this.clientUrl = clientUrl;
     }
 }

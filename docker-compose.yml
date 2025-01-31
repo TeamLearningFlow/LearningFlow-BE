@@ -7,7 +7,7 @@ services:
     image: app-image   # 생성될 Docker 이미지 이름
     ports:
       - "8080:8080" # 애플리케이션 포트 매핑
-#    image: mysql:8.0  # 사용할 Docker 이미지 (MySQL 8.0)
+    #    image: mysql:8.0  # 사용할 Docker 이미지 (MySQL 8.0)
     container_name: learningFlow_db  # 컨테이너 이름
     restart: always  # 컨테이너 재시작 정책
     environment:
@@ -19,6 +19,8 @@ services:
       DB_URL: ${DB_URL}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
 volumes:
   db_data:
@@ -26,4 +28,3 @@ volumes:
 networks:
   default:
     driver: bridge
-
