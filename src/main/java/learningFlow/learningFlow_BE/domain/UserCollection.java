@@ -34,7 +34,6 @@ public class UserCollection{
     @Column(name = "user_collection_status", nullable = false)
     private Integer userCollectionStatus;
 
-
     @Column(name = "last_accessed_at", nullable = false)
     private LocalDate lastAccessedAt;
 
