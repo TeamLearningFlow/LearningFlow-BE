@@ -34,17 +34,15 @@ public class UserConverter {
     }
 
     public static UserResponseDTO.UserMyPageResponseDTO convertToUserMyPageResponseDTO(
-            List<UserCollection> inProgressUserCollectionList,
+            List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeDTOList,
             List<UserCollection> completedUserCollectionList
     ) {
-        List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeList = inProgressUserCollectionList.stream()
-                .map(ResourceConverter::convertToRecentlyWatchedEpisodeDTO).toList();
 
         List<CollectionResponseDTO.CompletedCollectionDTO> completedCollectionList = completedUserCollectionList.stream()
                 .map(CollectionConverter::convertToCompletedCollectionDTO).toList();
 
         return UserResponseDTO.UserMyPageResponseDTO.builder()
-                .recentlyWatchedEpisodeList(recentlyWatchedEpisodeList)
+                .recentlyWatchedEpisodeList(recentlyWatchedEpisodeDTOList)
                 .completedCollectionList(completedCollectionList)
                 .build();
     }
