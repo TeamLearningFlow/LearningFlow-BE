@@ -28,8 +28,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.info("JWT 필터 진입, URL: {}", request.getRequestURI());
+        log.info("🔍 [JwtAuthenticationFilter] 요청 수신: {}", request.getRequestURI());
         String jwt = getJwtFromRequest(request);
+        log.info("🟡 [JwtAuthenticationFilter] 추출된 JWT: {}", jwt);
 
         try {
             if (StringUtils.hasText(jwt)) {
@@ -74,10 +75,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 }
             } else if (!isPermitAllUrl(request.getRequestURI())) {
+                log.error("❌ [JwtAuthenticationFilter] 인증되지 않은 요청 → 401 반환");
                 handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
                 return;
             }
         } catch (Exception e) {
+            log.error("❌ [JwtAuthenticationFilter] 예외 발생: {}", e.getMessage(), e);
             if (!isPermitAllUrl(request.getRequestURI())) {
                 handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
                 return;
@@ -88,6 +91,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void handleAuthenticationError(HttpServletResponse response, String message) throws IOException {
+        log.error("🚨 [JwtAuthenticationFilter] 인증 실패: {}", message);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(
@@ -99,6 +103,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+        log.info("🟡 [JwtAuthenticationFilter] Authorization 헤더: {}", bearerToken);
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
@@ -118,6 +123,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/webjars") ||
                 requestURI.startsWith("/find") ||
                 requestURI.startsWith("/search") ||
-                requestURI.equals("/reset-password");
+                requestURI.equals("/reset-password") ||
+                requestURI.startsWith("/user/imgUpload");  // 이미지 업로드는 인증 없이 허용
     }
+
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        boolean shouldSkip = path.equals("/imgUpload") || isPermitAllUrl(path);
+        log.info("🛑 [JwtAuthenticationFilter] shouldNotFilter 실행: path={}, shouldSkip={}", path, shouldSkip);
+        return shouldSkip;
+    }
+
+
 }

@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.auth.local.LocalUserAuthService;
 import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserRegistrationService;
@@ -26,12 +27,14 @@ import java.io.IOException;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"}) // ✅ CORS 허용
 @Tag(name = "Login", description = "회원가입, 로그인 관련 API")
 @Slf4j
 public class LoginController {
 
     private final LocalUserAuthService localUserAuthService;
     private final OAuth2UserRegistrationService OAuth2UserRegistrationService;
+    private final AmazonS3Manager amazonS3Manager;
 
     @PostMapping("/register")
     @Operation(summary = "회원가입 초기 단계 API", description = "이메일과 비밀번호를 입력받아 인증 이메일을 발송하는 API")
@@ -51,22 +54,23 @@ public class LoginController {
         return ApiResponse.onSuccess("토큰이 유효. 추가 정보를 입력해주세요.");
     }
 
-    @PostMapping(value = "/register/complete", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "회원가입 완료 API", description = "이메일 인증 후 추가 정보를 입력받아 회원가입을 완료하는 API")
+    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "이미지 업로드 API", description = "회원가입 절차에서 이미지를 업로드하는 API")
+    public ApiResponse<String> imageUpload(@RequestPart MultipartFile image) {
+        String imgUrl = amazonS3Manager.uploadImageToS3(image);
+        return ApiResponse.onSuccess(imgUrl); // ✅ 프론트에서 이 URL을 저장하고 사용
+    }
+
+
+    @PostMapping(value = "/register/complete", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원가입 완료 API", description = "이메일 인증 후 추가 정보를 입력받아 회원가입을 완료하는 API.\n" +
+            "이때 같은 페이지에서 업로드한 이미지 url string을 DTO에 추가하여 회원가입을 진행함")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
             @RequestParam String token,
-            @Parameter(
-                    description = "회원가입 추가 정보 (클라이언트측에서 JSON 데이터를 type=application/json으로 설정 필요)",
-                    content = @Content(
-                            mediaType = "application/json", // JSON 데이터
-                            schema = @Schema(implementation = UserRequestDTO.CompleteRegisterDTO.class)
-                    )
-            )
             @RequestPart("request") @Valid UserRequestDTO.CompleteRegisterDTO request, // ✅ JSON 데이터 - application/json
-            @RequestPart MultipartFile profileImage, // ✅ 이미지 파일 업로드 - image/jpeg
             HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, profileImage, response));
+        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, response));
     }
 
     @PostMapping("/login")
@@ -108,6 +112,7 @@ public class LoginController {
     /**
      * updateAdditionalInfo()에서 프론트에서 전달한 추가 데이터와 세션에 저장된 oauth2UserTemp에
      * 추가 데이터를 저장해서 회원가입 완료.
+     * 이때, 같은 페이지에서 업로드한 이미지 url string을 DTO에 추가하여 회원가입을 진행함.
      * 그리고 회원가입 완료되면 세션에 저장된 oauth2UserTemp는 삭제하고 인증 정보를 SecurityContextHolder에 추가해서 인증이 가능하게 한다.
      * @return UserResponseDTO.UserLoginResponseDTO
      */
@@ -115,18 +120,10 @@ public class LoginController {
     @Operation(summary = "추가 정보 입력 API", description = "OAuth2 회원가입 후 추가 정보를 입력하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
             @RequestParam String token,
-            @Parameter(
-                    description = "회원가입 추가 정보 (클라이언트측에서 JSON 데이터를 type=application/json으로 설정 필요)",
-                    content = @Content(
-                            mediaType = "application/json", // JSON 데이터
-                            schema = @Schema(implementation = UserRequestDTO.AdditionalInfoDTO.class)
-                    )
-            )
             @RequestPart("request") @Valid UserRequestDTO.AdditionalInfoDTO request, // ✅ JSON 데이터 - application/json
-            @RequestPart MultipartFile profileImage, // ✅ 이미지 파일 업로드 - image/jpeg
             HttpServletResponse response) {
         log.info("put info");
-        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, profileImage, response));
+        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, response));
     }
 
     @PostMapping("/logout")

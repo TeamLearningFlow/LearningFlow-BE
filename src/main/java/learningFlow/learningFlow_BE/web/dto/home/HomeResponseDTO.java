@@ -1,6 +1,5 @@
 package learningFlow.learningFlow_BE.web.dto.home;
 
-import learningFlow.learningFlow_BE.domain.Image;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.AllArgsConstructor;
@@ -39,7 +38,7 @@ public class HomeResponseDTO {
         Long collectionId;           // 컬렉션 ID
         String title;                // 컬렉션 제목
         String creator;              // 생성자
-        Image image;                 // 컬렉션 이미지 URL
+        String collectionImgUrl;     // 컬렉션 이미지 URL
         Integer difficulty;          // 난이도
         String category;             // 카테고리
         String detailInformation;    // 상세 정보
@@ -61,7 +60,7 @@ public class HomeResponseDTO {
         Long collectionId;            // 컬렉션 ID
         String title;                 // 컬렉션 제목
         String creator;               // 생성자
-        Image image;                  // 컬렉션 이미지 URL
+        String collectionImgUrl;                  // 컬렉션 이미지 URL
         LocalDateTime lastAccessedAt; // 마지막 접속 시간, UserCollection 엔티티의 lastAccessedAt 필드, 최신 순으로 정렬 시 사용
         Integer progress;             // 진행률
         String collectionUrl;         // 컬렉션 상세 페이지 URL

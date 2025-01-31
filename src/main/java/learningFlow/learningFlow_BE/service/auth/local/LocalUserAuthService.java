@@ -67,6 +67,7 @@ public class LocalUserAuthService {
         if (emailVerificationTokenRepository.existsByEmailAndVerifiedFalse(requestDTO.getEmail())) {
             throw new RuntimeException("이미 진행 중인 이메일 인증이 있습니다. 이메일을 확인해주세요.");
         }
+        //TODO: 현재는 진행중이던 이메일이면 500에러가 나는데 400에러가 나야함!
 
         // 토큰 생성
         String token = UUID.randomUUID().toString();
@@ -104,7 +105,6 @@ public class LocalUserAuthService {
     public UserResponseDTO.UserLoginResponseDTO completeRegister(
             String token,
             UserRequestDTO.CompleteRegisterDTO requestDTO,
-            MultipartFile imageFile,
             HttpServletResponse response
     ) {
         String imageUrl = null;
@@ -115,13 +115,13 @@ public class LocalUserAuthService {
         String loginuuid = UUID.randomUUID().toString().substring(0, 8);
         String loginId = "LOCAL_" + loginuuid;
 
-        //이미지 파일
-        if (imageFile != null && !imageFile.isEmpty()) {
-            log.info("이미지 업로드 요청 발생");
-            imageUrl = s3Manager.uploadImageToS3(imageFile);
-            // user 엔티티에 이미지 URL 업데이트
-            //user.updateImage(imageUrl);
-        }
+//        //이미지 파일
+//        if (imageFile != null && !imageFile.isEmpty()) {
+//            log.info("이미지 업로드 요청 발생");
+//            imageUrl = s3Manager.uploadImageToS3(imageFile);
+//            // user 엔티티에 이미지 URL 업데이트
+//            //user.updateImage(imageUrl);
+//        }
 
 
         // 새로운 유저 생성
@@ -147,36 +147,36 @@ public class LocalUserAuthService {
         return toUserLoginResponseDTO(savedUser);
     }
 
-    private String uploadImageToS3(MultipartFile imageFile) {
-        if (imageFile == null || imageFile.isEmpty()) {
-            throw new GeneralException(ErrorStatus.IMAGE_FORMAT_BADREQUEST); // 이미지 파일 검증 실패
-        }
-
-        try {
-            // UUID 생성 및 저장
-            String imageUuid = UUID.randomUUID().toString();
-            Uuid savedUuid = uuidRepository.save(Uuid.builder()
-                    .uuid(imageUuid).build());
-
-            // 이미지 업로드
-            String imageKey = s3Manager.generateKeyName(savedUuid); // KeyName 생성
-            String imageUrl = s3Manager.uploadFile(imageKey, imageFile); // 업로드된 URL 반환
-
-            // 업로드 성공 여부 확인
-            if (imageUrl == null || imageUrl.isEmpty()) {
-                throw new GeneralException(ErrorStatus._BAD_REQUEST); // 업로드 실패 시 예외 처리
-            }
-
-            return imageUrl; // 성공 시 URL 반환
-
-        } catch (GeneralException e) {
-            log.error("이미지 업로드 실패: {}", e.getMessage());
-            throw e; // GeneralException은 그대로 전달
-        } catch (Exception e) {
-            log.error("이미지 업로드 중 내부 오류 발생: {}", e.getMessage());
-            throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 기타 예외 처리
-        }
-    }
+//    private String uploadImageToS3(MultipartFile imageFile) {
+//        if (imageFile == null || imageFile.isEmpty()) {
+//            throw new GeneralException(ErrorStatus.IMAGE_FORMAT_BADREQUEST); // 이미지 파일 검증 실패
+//        }
+//
+//        try {
+//            // UUID 생성 및 저장
+//            String imageUuid = UUID.randomUUID().toString();
+//            Uuid savedUuid = uuidRepository.save(Uuid.builder()
+//                    .uuid(imageUuid).build());
+//
+//            // 이미지 업로드
+//            String imageKey = s3Manager.generateKeyName(savedUuid); // KeyName 생성
+//            String imageUrl = s3Manager.uploadFile(imageKey, imageFile); // 업로드된 URL 반환
+//
+//            // 업로드 성공 여부 확인
+//            if (imageUrl == null || imageUrl.isEmpty()) {
+//                throw new GeneralException(ErrorStatus._BAD_REQUEST); // 업로드 실패 시 예외 처리
+//            }
+//
+//            return imageUrl; // 성공 시 URL 반환
+//
+//        } catch (GeneralException e) {
+//            log.error("이미지 업로드 실패: {}", e.getMessage());
+//            throw e; // GeneralException은 그대로 전달
+//        } catch (Exception e) {
+//            log.error("이미지 업로드 중 내부 오류 발생: {}", e.getMessage());
+//            throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 기타 예외 처리
+//        }
+//    }
 
 
 

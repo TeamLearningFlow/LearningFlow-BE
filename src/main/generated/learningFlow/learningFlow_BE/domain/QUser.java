@@ -29,8 +29,6 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath email = createString("email");
 
-    public final QImage image;
-
     public final BooleanPath inactive = createBoolean("inactive");
 
     public final ListPath<learningFlow.learningFlow_BE.domain.enums.InterestField, EnumPath<learningFlow.learningFlow_BE.domain.enums.InterestField>> interestFields = this.<learningFlow.learningFlow_BE.domain.enums.InterestField, EnumPath<learningFlow.learningFlow_BE.domain.enums.InterestField>>createList("interestFields", learningFlow.learningFlow_BE.domain.enums.InterestField.class, EnumPath.class, PathInits.DIRECT2);
