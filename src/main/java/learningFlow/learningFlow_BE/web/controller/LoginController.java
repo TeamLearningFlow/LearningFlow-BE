@@ -116,7 +116,7 @@ public class LoginController {
      * 그리고 회원가입 완료되면 세션에 저장된 oauth2UserTemp는 삭제하고 인증 정보를 SecurityContextHolder에 추가해서 인증이 가능하게 한다.
      * @return UserResponseDTO.UserLoginResponseDTO
      */
-    @PutMapping(value = "/oauth2/additional-info",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/oauth2/additional-info",  consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "추가 정보 입력 API", description = "OAuth2 회원가입 후 추가 정보를 입력하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
             @RequestParam String token,
