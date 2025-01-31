@@ -61,6 +61,17 @@ public class ResourceConverter {
                 .resourceType(request.getResourceType())
                 .build();
     }
+
+    public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(CollectionEpisode episode) {
+        return ResourceResponseDTO.SearchResultResourceDTO.builder()
+                .resourceId(episode.getId())
+                .episodeName(episode.getEpisodeName())
+                .url(episode.getResource().getUrl())
+                .resourceSource(extractResourceSource(episode.getResource().getUrl()))
+                .episodeNumber(episode.getEpisodeNumber())
+                .build();
+    }
+
     public static HomeResponseDTO.RecentLearningDTO toRecentLearningDTO(UserCollection userCollection) {
         Collection collection = userCollection.getCollection();
         int currentEpisode = userCollection.getUserCollectionStatus();
@@ -86,29 +97,20 @@ public class ResourceConverter {
                 .build();
     }
 
-    public static List<ResourceResponseDTO.SearchResultResourceDTO> getResourceDTOList(Collection collection) {
-
-        return collection.getEpisodes().stream()
-                .map(episode -> ResourceResponseDTO.SearchResultResourceDTO.builder()
-                        .resourceId(episode.getResource().getId())
-                        .episodeName(episode.getEpisodeName())
-                        .url(episode.getResource().getUrl())
-                        .resourceSource(extractResourceSource(episode.getResource().getUrl()))
-                        .episodeNumber(episode.getEpisodeNumber())
-                        .build())
-                .toList();
-    }
-
     public static ResourceResponseDTO.RecentlyWatchedEpisodeDTO convertToRecentlyWatchedEpisodeDTO(
-            UserCollection userCollection
+            UserCollection userCollection,
+            UserEpisodeProgress userEpisodeProgress
     ) {
         return ResourceResponseDTO.RecentlyWatchedEpisodeDTO.builder()
                 .resourceId(getResourceId(userCollection))
-                .CollectionTitle(userCollection.getCollection().getTitle())
+                .collectionId(userCollection.getCollection().getId())
+                .collectionTitle(userCollection.getCollection().getTitle())
                 .resourceSource(extractResourceSource(getResourceUrl(userCollection)))
                 .episodeNumber(userCollection.getUserCollectionStatus())
                 .episodeName(getEpisodeName(userCollection))
                 .progressRatio(calculateProgressRatio(userCollection))
+                .currentProgress(userEpisodeProgress.getCurrentProgress())
+                .totalProgress(userEpisodeProgress.getTotalProgress())
                 .build();
     }
 
