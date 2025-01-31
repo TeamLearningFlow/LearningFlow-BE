@@ -76,8 +76,8 @@ public class CollectionConverter {
                 .textCount(textCount)
                 .videoCount(videoCount)
                 .resource(resourceDTOList)
-                .bookmarkCount(collection.getBookmarkCount())
-                .isBookmarked(currentUser != null && currentUser.hasBookmarked(collection.getId()))
+                .likesCount(collection.getBookmarkCount())
+                .isLiked(currentUser != null && currentUser.hasBookmarked(collection.getId()))
                 .build();
     }
 

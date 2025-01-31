@@ -40,8 +40,8 @@ public class CollectionResponseDTO {
         Integer textCount;
         Integer videoCount;
         List<ResourceResponseDTO.SearchResultResourceDTO> resource;
-        Integer bookmarkCount;
-        boolean isBookmarked;
+        Integer likesCount;
+        boolean isLiked;
     }
 
     @Getter
