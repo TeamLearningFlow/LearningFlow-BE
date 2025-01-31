@@ -88,7 +88,7 @@ public class LoginController {
      * 이미 존재하는 회원인 경우 로그인, 존재하지 않는 회원인 경우 getAdditionalInfoPage() 호출하면서 회원가입 진행
      */
     @GetMapping("/login/google")
-    @Operation(summary = "구글 로그인 리다이렉트", description = "구글 로그인 페이지로 리다이렉트하는 API")
+    @Operation(summary = "구글 로그인 리다이렉트", description = "구글 로그인 페이지로 리다이렉트하는 API\n"+"리다이렉트해야하므로 swagger에서는 테스트 불가!")
     public void googleLogin(
             HttpServletResponse response
     ) throws IOException {
