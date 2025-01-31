@@ -53,18 +53,22 @@ public class UserService {
     }
 
     @Transactional
-    public UserInfoDTO updateUserInfo(String loginId, UpdateUserDTO updateUserDTO, MultipartFile imageFile) {
+    public UserInfoDTO updateUserInfo(String loginId, UpdateUserDTO updateUserDTO) {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        if (imageFile != null && !imageFile.isEmpty()) {
-            log.info("이미지 업데이트 요청 발생");
-            String imageUrl = s3Manager.uploadImageToS3(imageFile);
-            // user 엔티티에 이미지 URL 업데이트
-            user.updateImage(imageUrl);
-        }
+//        if (imageFile != null && !imageFile.isEmpty()) {
+//            log.info("이미지 업데이트 요청 발생");
+//            String imageUrl = s3Manager.uploadImageToS3(imageFile);
+//            // user 엔티티에 이미지 URL 업데이트
+//            user.updateImage(imageUrl);
+//        }
 
         // 각 필드가 null이 아닌 경우에만 업데이트
+        if(updateUserDTO.getImgUrl() != null){
+            user.updateImage(updateUserDTO.getImgUrl());
+        }
+
         if (updateUserDTO.getName() != null) {
             user.updateName(updateUserDTO.getName());
         }

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
+import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.user.UserService;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
@@ -33,28 +34,29 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserRestController {
 
     private final UserService userService;
+    private final AmazonS3Manager amazonS3Manager;
 
-    @PutMapping( consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "사용자 정보 수정 API", description = "사용자 정보를 수정하는 API")
+//    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    @Operation(summary = "이미지 업로드 API", description = "회원가입 절차에서 이미지를 업로드하는 API")
+//    public ApiResponse<String> imageUpload(@RequestPart MultipartFile image) {
+//        String imgUrl = amazonS3Manager.uploadImageToS3(image);
+//        return ApiResponse.onSuccess(imgUrl); // ✅ 프론트에서 이 URL을 저장하고 사용
+//    }
+
+    @PutMapping( consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "사용자 정보 수정 API", description = "사용자 정보를 수정하는 API\n" +
+            "이때 같은 페이지에서 업로드한 이미지 url string을 DTO에 추가하여 회원가입을 진행함")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER4001", description = "사용자를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     public ApiResponse<UserInfoDTO> updateUserInfo(
             //@Valid @RequestBody UpdateUserDTO updateUserDTO,
-            @Parameter(
-                    description = "사용자 정보 업데이트 정보 (클라이언트측에서 JSON 데이터를 type=application/json으로 설정 필요)",
-                    content = @Content(
-                            mediaType = "application/json", // JSON 데이터
-                            schema = @Schema(implementation = UserRequestDTO.UpdateUserDTO.class)
-                    )
-            )
-            @RequestPart("updateUserDTO") @Valid UpdateUserDTO updateUserDTO, // ✅ JSON 데이터 - application/json
-            @RequestPart(required = false) MultipartFile imageFile, // ✅ 이미지 파일 업로드 - image/jpeg
+            @RequestBody @Valid UpdateUserDTO updateUserDTO, // ✅ JSON 데이터 - application/json
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(
-                userService.updateUserInfo(principalDetails.getUser().getLoginId(), updateUserDTO, imageFile)
+                userService.updateUserInfo(principalDetails.getUser().getLoginId(), updateUserDTO)
         );
     }
 

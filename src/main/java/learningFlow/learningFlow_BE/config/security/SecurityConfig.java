@@ -52,7 +52,8 @@ public class SecurityConfig {
                                 "/reset-password",
                                 "/search/**",
                                 "/",
-                                "/collections/{collectionId:[\\d]+}"
+                                "/collections/{collectionId:[\\d]+}",
+                                 "/image/upload" //이미지 업로드는 허용
                         ).permitAll()
                         .requestMatchers(
                                 "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
