@@ -47,7 +47,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     //이미지
     IMAGE_FORMAT_BADREQUEST(HttpStatus.BAD_REQUEST,"COMMON400","이미지 파일만 업로드할 수 있습니다."),
-    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5001", "이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+    IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5001", "이미지 업로드에 실패했습니다. 다시 시도해주세요."),
 
     // 컬렉션 에피소드 에러
     EPISODE_NOT_FOUND(HttpStatus.NOT_FOUND, "EPISODE4001", "존재하지 않는 에피소드 입니다."),

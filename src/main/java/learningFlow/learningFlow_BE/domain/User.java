@@ -62,6 +62,9 @@ public class User extends BaseEntity {
 
     @Column(nullable = true)
     private String profileImgUrl;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "image_id")
+//    private Image image;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_bookmarks", joinColumns = @JoinColumn(name = "user_id"))

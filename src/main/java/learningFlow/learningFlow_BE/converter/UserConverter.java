@@ -29,7 +29,7 @@ public class UserConverter {
                 .job(user.getJob())
                 .interestFields(user.getInterestFields())
                 .preferType(user.getPreferType())
-                .profileImageUrl(user.getProfileImgUrl())
+                .profileImgUrl(user.getProfileImgUrl())
                 .build();
     }
 
