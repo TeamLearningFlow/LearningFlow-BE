@@ -76,8 +76,8 @@ public class CollectionConverter {
                 .textCount(textCount)
                 .videoCount(videoCount)
                 .resource(resourceDTOList)
-                .bookmarkCount(collection.getBookmarkCount())
-                .isBookmarked(currentUser != null && currentUser.hasBookmarked(collection.getId()))
+                .likesCount(collection.getBookmarkCount()) //북마크 -> 좋아요로 이름만 변경 
+                .isLiked(currentUser != null && currentUser.hasBookmarked(collection.getId())) //북마크 -> 좋아요로 이름만 변경 
                 .build();
     }
 

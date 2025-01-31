@@ -84,8 +84,8 @@ public class UserRestController {
         return ApiResponse.onSuccess(userService.getUserMyPageResponseDTO(principalDetails.getUser().getLoginId()));
     }
 
-    @GetMapping("/bookmarks")
-    @Operation(summary = "북마크한 컬렉션 조회 API", description = "사용자가 북마크한 컬렉션 목록을 조회하는 API")
+    @GetMapping("/likes")
+    @Operation(summary = "좋아요한 컬렉션 조회 API", description = "사용자가 좋아요한 컬렉션 목록을 조회하는 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class)))

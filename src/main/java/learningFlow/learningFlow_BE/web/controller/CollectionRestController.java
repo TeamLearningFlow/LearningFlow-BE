@@ -59,8 +59,8 @@ public class CollectionRestController {
         );
     }
 
-    @PostMapping("{collectionId}/bookmark")
-    @Operation(summary = "북마크 설정,해제 API", description = "컬렉션의 북마크를 설정,해제하는 API")
+    @PostMapping("{collectionId}/likes")
+    @Operation(summary = "좋아요 설정,해제 API", description = "컬렉션의 좋아요를 설정,해제하는 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),

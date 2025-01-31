@@ -40,8 +40,8 @@ public class CollectionResponseDTO {
         Integer textCount;
         Integer videoCount;
         List<ResourceResponseDTO.SearchResultResourceDTO> resource;
-        Integer bookmarkCount;
-        boolean isBookmarked;
+        Integer likesCount; //북마크 -> 좋아요로 이름만 변경 
+        boolean isLiked; //북마크 -> 좋아요로 이름만 변경 
     }
 
     @Getter

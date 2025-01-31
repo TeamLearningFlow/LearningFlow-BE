@@ -41,6 +41,7 @@ public class UserCollection{
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'IN_PROGRESS'", nullable = false)
     private UserCollectionStatus status;
+
     public void setUser(User user) {
         // 기존 유저와의 관계 제거
         if (this.user != null) {
