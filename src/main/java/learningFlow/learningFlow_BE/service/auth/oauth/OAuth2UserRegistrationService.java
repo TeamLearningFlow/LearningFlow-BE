@@ -68,14 +68,6 @@ public class OAuth2UserRegistrationService {
         String providerId = claims.get("providerId", String.class);
         SocialType socialType = SocialType.valueOf(claims.get("socialType", String.class));
 
-//        //이미지 파일
-//        if (imageFile != null && !imageFile.isEmpty()) {
-//            log.info("이미지 업로드 요청 발생");
-//            imageUrl = s3Manager.uploadImageToS3(imageFile);
-//            // user 엔티티에 이미지 URL 업데이트
-//            //user.updateImage(imageUrl);
-//        }
-
 
         User newUser = User.builder()
                 .loginId(socialType.name() + "_" + providerId)

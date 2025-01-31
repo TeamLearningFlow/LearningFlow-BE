@@ -67,7 +67,7 @@ public class LoginController {
             "이때 같은 페이지에서 업로드한 이미지 url string을 DTO에 추가하여 회원가입을 진행함")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
             @RequestParam String token,
-            @RequestPart("request") @Valid UserRequestDTO.CompleteRegisterDTO request, // ✅ JSON 데이터 - application/json
+            @RequestBody @Valid UserRequestDTO.CompleteRegisterDTO request, // ✅ JSON 데이터 - application/json
             HttpServletResponse response
     ) {
         return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, response));
@@ -116,15 +116,16 @@ public class LoginController {
      * 그리고 회원가입 완료되면 세션에 저장된 oauth2UserTemp는 삭제하고 인증 정보를 SecurityContextHolder에 추가해서 인증이 가능하게 한다.
      * @return UserResponseDTO.UserLoginResponseDTO
      */
-    @PutMapping(value = "/oauth2/additional-info",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/oauth2/additional-info",  consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "추가 정보 입력 API", description = "OAuth2 회원가입 후 추가 정보를 입력하는 API")
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
             @RequestParam String token,
-            @RequestPart("request") @Valid UserRequestDTO.AdditionalInfoDTO request, // ✅ JSON 데이터 - application/json
+            @RequestBody @Valid UserRequestDTO.AdditionalInfoDTO request, // ✅ JSON 데이터 - application/json
             HttpServletResponse response) {
         log.info("put info");
         return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, response));
     }
+    //TODO: 해당 DTO에 안 맞으면 500에러 나는데, 400에러이고 왜 회원가입 안되는 건지 구체적인 에러 작성 필요.
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃 API", description = "로그아웃 실행하는 API")

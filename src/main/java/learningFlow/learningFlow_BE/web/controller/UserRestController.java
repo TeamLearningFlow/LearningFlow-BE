@@ -52,8 +52,7 @@ public class UserRestController {
     })
     public ApiResponse<UserInfoDTO> updateUserInfo(
             //@Valid @RequestBody UpdateUserDTO updateUserDTO,
-            @RequestPart("updateUserDTO") @Valid UpdateUserDTO updateUserDTO, // ✅ JSON 데이터 - application/json
-//            @RequestPart(required = false) MultipartFile imageFile, // ✅ 이미지 파일 업로드 - image/jpeg
+            @RequestBody @Valid UpdateUserDTO updateUserDTO, // ✅ JSON 데이터 - application/json
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(
