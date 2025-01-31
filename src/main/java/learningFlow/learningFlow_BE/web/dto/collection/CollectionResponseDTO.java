@@ -41,7 +41,7 @@ public class CollectionResponseDTO {
         Integer videoCount;
         List<ResourceResponseDTO.SearchResultResourceDTO> resource;
         Integer likesCount;
-        boolean isLiked;
+        boolean isLiked; //북마크 -> 좋아요로 이름만 변경 
     }
 
     @Getter
