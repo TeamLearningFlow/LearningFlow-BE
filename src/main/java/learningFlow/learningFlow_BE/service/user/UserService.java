@@ -1,23 +1,24 @@
 package learningFlow.learningFlow_BE.service.user;
 
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
-import learningFlow.learningFlow_BE.apiPayload.exception.GeneralException;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.CollectionHandler;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.UserHandler;
 import learningFlow.learningFlow_BE.converter.CollectionConverter;
+import learningFlow.learningFlow_BE.converter.ResourceConverter;
 import learningFlow.learningFlow_BE.converter.UserConverter;
+import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.Collection;
-import learningFlow.learningFlow_BE.domain.User;
-import learningFlow.learningFlow_BE.domain.UserCollection;
 import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
-import learningFlow.learningFlow_BE.domain.uuid.Uuid;
 import learningFlow.learningFlow_BE.domain.uuid.UuidRepository;
 import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
+import learningFlow.learningFlow_BE.repository.UserEpisodeProgressRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
 import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.repository.collection.CollectionRepository;
+import learningFlow.learningFlow_BE.service.collection.CollectionService;
 import learningFlow.learningFlow_BE.web.dto.bookmark.BookmarkDTO;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO.UpdateUserDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
@@ -25,11 +26,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +41,8 @@ public class UserService {
     private final UserCollectionRepository userCollectionRepository;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
+    private final CollectionService collectionService;
+    private final UserEpisodeProgressRepository userEpisodeProgressRepository;
 
     private static final int BOOKMARK_PAGE_SIZE = 8;
 
@@ -138,7 +139,7 @@ public class UserService {
         List<Long> bookmarkedIds = user.getBookmarkedCollectionIds();
 
         if (bookmarkedIds.isEmpty()) {
-            return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user);
+            return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user, new HashMap<>());
         }
 
         // lastId 이후의 컬렉션만 필터링
@@ -152,7 +153,7 @@ public class UserService {
         } else {
             int startIndex = bookmarkedIds.indexOf(lastId) + 1;
             if (startIndex == 0 || startIndex >= bookmarkedIds.size()) {
-                return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user);
+                return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user, new HashMap<>());
             }
             collections = collectionRepository.findByIdIn(
                     bookmarkedIds.stream()
@@ -163,14 +164,19 @@ public class UserService {
         }
 
         if (collections.isEmpty()) {
-            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, user);
+            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, user, new HashMap<>());
         }
-
         Long lastCollectionId = collections.getLast().getId();
         boolean hasNext = (bookmarkedIds.indexOf(lastCollectionId) + 1) < bookmarkedIds.size();
 
         int totalPages = (int) Math.ceil((double) bookmarkedIds.size() / BOOKMARK_PAGE_SIZE);
         int currentPage = (lastId == 0) ? 1 : (bookmarkedIds.indexOf(lastId) / BOOKMARK_PAGE_SIZE) + 2;
+
+        Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
+                .collect(Collectors.toMap(
+                        Collection::getId,
+                        collection -> collectionService.getLearningInfo(collection, user)
+                ));
 
         return CollectionConverter.toSearchResultDTO(
                 collections,
@@ -178,7 +184,8 @@ public class UserService {
                 hasNext,
                 totalPages,
                 currentPage,
-                user
+                user,
+                learningInfoMap
         );
     }
 
@@ -189,9 +196,28 @@ public class UserService {
         List<UserCollection> inProgressUserCollectionList
                 = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.IN_PROGRESS);
 
+        List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeDTOList = inProgressUserCollectionList.stream()
+                .map(userCollection -> {
+                    CollectionEpisode currentEpisode = userCollection.getCollection().getEpisodes().stream()
+                            .filter(episode -> episode.getEpisodeNumber().equals(userCollection.getUserCollectionStatus()))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (currentEpisode == null) {
+                        return null;
+                    }
+
+                    UserEpisodeProgressId progressId = new UserEpisodeProgressId(currentEpisode.getId(), loginId);
+                    UserEpisodeProgress userEpisodeProgress = userEpisodeProgressRepository.findById(progressId).orElse(null);
+
+                    return ResourceConverter.convertToRecentlyWatchedEpisodeDTO(userCollection, userEpisodeProgress);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+
         List<UserCollection> completedUserCollectionList
                 = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.COMPLETED);
 
-        return UserConverter.convertToUserMyPageResponseDTO(inProgressUserCollectionList, completedUserCollectionList);
+        return UserConverter.convertToUserMyPageResponseDTO(recentlyWatchedEpisodeDTOList, completedUserCollectionList);
     }
 }
