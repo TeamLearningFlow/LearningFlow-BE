@@ -12,6 +12,6 @@ public class Memo extends BaseEntity {
     @EmbeddedId
     private MemoId id;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String contents;
 }
