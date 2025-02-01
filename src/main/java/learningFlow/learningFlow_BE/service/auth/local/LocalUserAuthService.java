@@ -301,8 +301,16 @@ public class LocalUserAuthService {
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
+
+            log.info("로그아웃 전 Authorization 헤더: {}", request.getHeader("Authorization"));
+            log.info("로그아웃 전 Refresh-Token 헤더: {}", request.getHeader("Refresh-Token"));
+
             jwtLogoutHandler.logout(request, response, authentication);
+
+            log.info("로그아웃 후 Authorization 헤더: {}", response.getHeader("Authorization"));
+            log.info("로그아웃 후 Refresh-Token 헤더: {}", response.getHeader("Refresh-Token"));
             log.info("로그아웃 완료: {}", authentication.getName());
+
             return "로그아웃 성공";
         } else {
             log.info("이미 로그아웃된 상태입니다");
