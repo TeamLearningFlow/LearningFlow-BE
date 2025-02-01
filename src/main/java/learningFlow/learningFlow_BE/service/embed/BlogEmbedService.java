@@ -1,6 +1,6 @@
 package learningFlow.learningFlow_BE.service.embed;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
+// import io.github.bonigarcia.wdm.WebDriverManager;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.domain.CollectionEpisode;
@@ -37,7 +37,7 @@ public class BlogEmbedService {
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
         String blogUrl = episode.getResource().getUrl();
 
-        WebDriverManager.chromedriver().setup();
+        //WebDriverManager.chromedriver().setup();
         // Headless 모드 설정
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");  // GUI 없이 실행
