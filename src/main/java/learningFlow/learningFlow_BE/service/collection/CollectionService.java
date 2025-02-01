@@ -136,10 +136,9 @@ public class CollectionService {
                 .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                 .build();
     }
-    // added: 진도율 계산 메소드
 
     private int calculateProgressRate(UserCollection userCollection) {
-        return (int) ((double) userCollection.getUserCollectionStatus() /
+        return (int) Math.round((double) userCollection.getUserCollectionStatus() /
                 userCollection.getCollection().getEpisodes().size() * 100);
     }
 
