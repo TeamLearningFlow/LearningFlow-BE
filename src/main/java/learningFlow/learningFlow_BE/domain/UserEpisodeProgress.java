@@ -13,7 +13,7 @@ import lombok.*;
 @Builder
 @Entity
 @Table(name = "user_episode_progress")
-public class UserEpisodeProgress extends BaseEntity{
+public class UserEpisodeProgress extends BaseEntity {
 
     @EmbeddedId
     private UserEpisodeProgressId userEpisodeProgressId;
