@@ -28,7 +28,7 @@ public class Resource extends BaseEntity {
     @Column(name = "type", nullable = false)
     private ResourceType type;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String url; // 자료 링크
 
     @Column(name = "client_url", columnDefinition = "TEXT")
