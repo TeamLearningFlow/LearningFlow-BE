@@ -72,7 +72,8 @@ public class BlogEmbedService {
         catch (IOException e) {
             throw new RuntimeException("Gzip 압축 중 오류 발생", e);  // IOException 처리
         } finally {
-            driver.quit();
+            if (driver != null)
+                driver.quit();
         }
     }
 
