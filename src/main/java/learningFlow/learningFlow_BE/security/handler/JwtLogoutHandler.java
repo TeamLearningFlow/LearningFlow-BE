@@ -20,8 +20,13 @@ public class JwtLogoutHandler implements LogoutHandler {
         SecurityContextHolder.clearContext();
 
         // Authorization 헤더 제거
-        response.setHeader("Authorization", null);
-        response.setHeader("Refresh-Token", null);
+        response.setHeader("Authorization", "");
+        response.setHeader("Refresh-Token", "");
+
+        response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
+
+        log.info("현재 Authorization 헤더 값: {}", response.getHeader("Authorization"));
+        log.info("현재 Refresh-Token 헤더 값: {}", response.getHeader("Refresh-Token"));
 
         log.info("로그아웃 처리 완료: {}",
                 authentication != null ? authentication.getName() : "Unknown user");
