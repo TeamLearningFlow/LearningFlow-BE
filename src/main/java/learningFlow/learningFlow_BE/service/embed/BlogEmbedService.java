@@ -49,7 +49,7 @@ public class BlogEmbedService {
         WebDriver driver = null;
 
         try {
-           String seleniumUrl = "http://172.31.38.3:4444";
+            String seleniumUrl = "http://172.31.38.3:4444";
             driver = new RemoteWebDriver(new URL(seleniumUrl), options);
 
             driver.get(blogUrl);
