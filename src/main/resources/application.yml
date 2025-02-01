@@ -59,7 +59,12 @@ app:
 
 
 server:
-  port: 8080                                
+  port: 8080
+  compression:
+    enabled: true  # Gzip 압축
+    mime-types: application/json
+    min-response-size: 20480
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
@@ -76,6 +81,5 @@ cloud:
     credentials:
       accessKey: ${AWS_ACCESS_KEY_ID}
       secretKey: ${AWS_SECRET_ACCESS_KEY}
-
 
 #     org.hibernate.type.descriptor.sql.BasicBinder: DEBUG
