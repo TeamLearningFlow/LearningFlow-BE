@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "user_collection",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "collection_id"}))
-public class UserCollection{
+public class UserCollection {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,6 +71,7 @@ public class UserCollection{
         this.userCollectionStatus = userCollectionStatus;
         this.lastAccessedAt = LocalDate.now();
     }
+
     public void updateUserCollection(Integer userCollectionStatus) {
         this.userCollectionStatus = userCollectionStatus;
         this.lastAccessedAt = LocalDate.now();
