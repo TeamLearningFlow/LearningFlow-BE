@@ -1,6 +1,5 @@
 package learningFlow.learningFlow_BE.service.embed;
 
-// import io.github.bonigarcia.wdm.WebDriverManager;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.domain.CollectionEpisode;
@@ -9,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -37,7 +37,6 @@ public class BlogEmbedService {
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
         String blogUrl = episode.getResource().getUrl();
 
-        //WebDriverManager.chromedriver().setup();
         // Headless 모드 설정
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless");  // GUI 없이 실행
@@ -45,9 +44,12 @@ public class BlogEmbedService {
         options.addArguments("--disable-dev-shm-usage");  // 메모리 문제 방지
         options.addArguments("--disable-gpu");  // GPU 가속 비활성화 (필요 시)
 
-        WebDriver driver = new ChromeDriver(options);
+        WebDriver driver = null;
 
         try {
+            String seleniumUrl = "http://172.31.38.3:4444";
+            driver = new RemoteWebDriver(new URL(seleniumUrl), options);
+
             driver.get(blogUrl);
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // ✅ Duration.ofSeconds()로 변경
             wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
