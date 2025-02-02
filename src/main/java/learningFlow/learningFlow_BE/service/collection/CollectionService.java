@@ -51,9 +51,21 @@ public class CollectionService {
             currentUser = ((PrincipalDetails) authentication.getPrincipal()).getUser();
         }
 
-        CollectionResponseDTO.CollectionLearningInfo learningInfo = getLearningInfo(collection, currentUser);
+        CollectionResponseDTO.CollectionLearningInfo learningInfo = getLearningInfo(collection, currentUser, true);
 
         return CollectionConverter.toCollectionPreviewDTO(collection, learningInfo, currentUser);
+    }
+
+    private List<ResourceResponseDTO.SearchResultResourceDTO> getAllResources(
+            Collection collection
+    ) {
+        List<CollectionEpisode> episodes = collection.getEpisodes();
+
+        // 모든 에피소드를 에피소드 번호 순으로 정렬
+        return episodes.stream()
+                .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
+                .map(ResourceConverter::convertToResourceDTO)
+                .toList();
     }
 
     public CollectionResponseDTO.SearchResultDTO search(SearchRequestDTO.SearchConditionDTO condition, Long lastId, PrincipalDetails principalDetails) {
@@ -85,7 +97,7 @@ public class CollectionService {
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> getLearningInfo(collection, currentUser)
+                        collection -> getLearningInfo(collection, currentUser, false)
                 ));
 
         return CollectionConverter.toSearchResultDTO(
@@ -99,12 +111,18 @@ public class CollectionService {
         );
     }
 
-    public CollectionResponseDTO.CollectionLearningInfo getLearningInfo(Collection collection, User user) {
+    public CollectionResponseDTO.CollectionLearningInfo getLearningInfo(
+            Collection collection,
+            User user,
+            boolean isDetailView
+    ) {
         if (user == null) {
             return CollectionResponseDTO.CollectionLearningInfo.builder()
                     .learningStatus("BEFORE")
                     .progressRate(null)
-                    .resourceDTOList(getFilteredResources(collection, null, 0))
+                    .resourceDTOList(isDetailView ?
+                            getAllResources(collection) :  // 상세 조회면 전체 리소스
+                            getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
                     .build();
         }
 
@@ -114,7 +132,9 @@ public class CollectionService {
             return CollectionResponseDTO.CollectionLearningInfo.builder()
                     .learningStatus("BEFORE")
                     .progressRate(null)
-                    .resourceDTOList(getFilteredResources(collection, null, 0))
+                    .resourceDTOList(isDetailView ?
+                            getAllResources(collection) :  // 상세 조회면 전체 리소스
+                            getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
                     .build();
         }
 
@@ -125,7 +145,9 @@ public class CollectionService {
                     .progressRate(100)
                     .startDate(realUserCollection.getCreatedAt().toLocalDate())
                     .completedDate(realUserCollection.getCompletedTime())
-                    .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
+                    .resourceDTOList(isDetailView ?
+                            getAllResources(collection) :  // 상세 조회면 전체 리소스
+                            new ArrayList<>())  // 아니면 빈 리스트
                     .build();
         }
 
@@ -135,7 +157,9 @@ public class CollectionService {
                 .progressRate(progressRate)
                 .startDate(realUserCollection.getCreatedAt().toLocalDate())
                 .currentEpisode(realUserCollection.getUserCollectionStatus())
-                .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
+                .resourceDTOList(isDetailView ?
+                        getAllResources(collection) :
+                        getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                 .build();
     }
 
@@ -240,7 +264,7 @@ public class CollectionService {
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = recommendedCollections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> getLearningInfo(collection, user)
+                        collection -> getLearningInfo(collection, user, false)
                 ));
 
         return HomeConverter.convertToUserHomeInfoDTO(
@@ -257,9 +281,9 @@ public class CollectionService {
                 .findFirstByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS)
                 .map(userCollection -> CollectionConverter.toCollectionPreviewDTO(
                         userCollection.getCollection(),
-                        getLearningInfo(userCollection.getCollection(),user),
+                        getLearningInfo(userCollection.getCollection(), user, false),
                         user
-                        ))
+                ))
                 .orElse(null);
     }
 
