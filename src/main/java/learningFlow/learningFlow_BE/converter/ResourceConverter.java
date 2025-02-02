@@ -72,31 +72,6 @@ public class ResourceConverter {
                 .build();
     }
 
-    public static HomeResponseDTO.RecentLearningDTO toRecentLearningDTO(UserCollection userCollection) {
-        Collection collection = userCollection.getCollection();
-        int currentEpisode = userCollection.getUserCollectionStatus();
-
-        List<ResourceResponseDTO.SearchResultResourceDTO> resources = collection.getEpisodes().stream()
-                .filter(episode -> episode.getEpisodeNumber() <= currentEpisode)
-                .map(episode -> ResourceResponseDTO.SearchResultResourceDTO.builder()
-                        .resourceId(episode.getResource().getId())
-                        .episodeName(episode.getEpisodeName())
-                        .url(episode.getResource().getUrl())
-                        .resourceSource(extractResourceSource(episode.getResource().getUrl()))
-                        .episodeNumber(episode.getEpisodeNumber())
-                        .build())
-                .toList();
-
-        CollectionResponseDTO.CompletedCollectionDTO completedCollectionDTO
-                = CollectionConverter.convertToCompletedCollectionDTO(userCollection);
-
-        return HomeResponseDTO.RecentLearningDTO.builder()
-                .collection(completedCollectionDTO)
-                .resources(resources)
-                .progressRatio(calculateProgressRatio(userCollection))
-                .build();
-    }
-
     public static ResourceResponseDTO.RecentlyWatchedEpisodeDTO convertToRecentlyWatchedEpisodeDTO(
             UserCollection userCollection,
             UserEpisodeProgress userEpisodeProgress

@@ -123,7 +123,8 @@ public class CollectionService {
             return CollectionResponseDTO.CollectionLearningInfo.builder()
                     .learningStatus("COMPLETED")
                     .progressRate(100)
-                    .completedTime(realUserCollection.getCompletedTime())
+                    .startDate(realUserCollection.getCreatedAt().toLocalDate())
+                    .completedDate(realUserCollection.getCompletedTime())
                     .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                     .build();
         }
@@ -132,6 +133,7 @@ public class CollectionService {
         return CollectionResponseDTO.CollectionLearningInfo.builder()
                 .learningStatus("IN_PROGRESS")
                 .progressRate(progressRate)
+                .startDate(realUserCollection.getCreatedAt().toLocalDate())
                 .currentEpisode(realUserCollection.getUserCollectionStatus())
                 .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                 .build();
@@ -143,7 +145,8 @@ public class CollectionService {
     }
 
     private List<ResourceResponseDTO.SearchResultResourceDTO> getFilteredResources(
-            Collection collection, User user, int currentEpisode) {
+            Collection collection, User user, int currentEpisode
+    ) {
         List<CollectionEpisode> episodes = collection.getEpisodes();
         List<CollectionEpisode> filteredEpisodes;
 
@@ -156,17 +159,17 @@ public class CollectionService {
         }
 
         if (user == null || currentEpisode == 0) {
-            // 비회원이거나 수강 전인 경우 처음 3개
+            // 비회원이거나 수강 전인 경우 처음 4개
             filteredEpisodes = episodes.stream()
                     .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
-                    .limit(3)
+                    .limit(4)
                     .toList();
         } else {
             // 수강 중인 경우 현재 회차부터 3개
             filteredEpisodes = episodes.stream()
                     .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
                     .filter(ep -> ep.getEpisodeNumber() >= currentEpisode)
-                    .limit(3)
+                    .limit(4)
                     .toList();
         }
 
@@ -178,12 +181,24 @@ public class CollectionService {
     public HomeResponseDTO.GuestHomeInfoDTO getGuestHomeCollections() {
         List<Collection> collections = collectionRepository.findTopBookmarkedCollections(HOME_COLLECTION_SIZE);
 
-        return HomeConverter.convertToGuestHomeInfoDTO(CollectionConverter.convertToHomeCollection(collections));
+        List<CollectionResponseDTO.CollectionPreviewDTO> GuestCollectionList = collections.stream()
+                .map(collection -> {
+                    CollectionResponseDTO.CollectionLearningInfo defaultLearningInfo =
+                            CollectionResponseDTO.CollectionLearningInfo.builder()
+                                    .learningStatus("BEFORE")
+                                    .progressRate(null)
+                                    .resourceDTOList(getFilteredResources(collection, null, 0))
+                                    .build();
+                    return CollectionConverter.toCollectionPreviewDTO(collection, defaultLearningInfo, null);
+                })
+                .toList();
+
+        return HomeConverter.convertToGuestHomeInfoDTO(GuestCollectionList);
     }
 
     public HomeResponseDTO.UserHomeInfoDTO getUserHomeCollections(User user) {
         // 최근 학습 컬렉션 조회
-        HomeResponseDTO.RecentLearningDTO recentLearning = getRecentLearning(user);
+        CollectionResponseDTO.CollectionPreviewDTO recentLearning = getRecentLearning(user);
 
         // 추천 컬렉션 목록 조회
 
@@ -237,10 +252,14 @@ public class CollectionService {
         );
     }
 
-    private HomeResponseDTO.RecentLearningDTO getRecentLearning(User user) {
+    private CollectionResponseDTO.CollectionPreviewDTO getRecentLearning(User user) {
         return userCollectionRepository
                 .findFirstByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS)
-                .map(ResourceConverter::toRecentLearningDTO)
+                .map(userCollection -> CollectionConverter.toCollectionPreviewDTO(
+                        userCollection.getCollection(),
+                        getLearningInfo(userCollection.getCollection(),user),
+                        user
+                        ))
                 .orElse(null);
     }
 

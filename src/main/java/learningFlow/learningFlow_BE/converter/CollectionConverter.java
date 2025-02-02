@@ -97,7 +97,8 @@ public class CollectionConverter {
                 .progressRatePercentage(learningInfo.getProgressRate())
                 .progressRatio(calculateProgressRatio(collection, learningInfo))
                 .learningStatus(learningInfo.getLearningStatus())
-                .completedTime(learningInfo.getCompletedTime())
+                .startDate(learningInfo.getStartDate())
+                .completedDate(learningInfo.getCompletedDate())
                 .build();
     }
 
