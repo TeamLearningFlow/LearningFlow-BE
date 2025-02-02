@@ -15,9 +15,8 @@ import java.time.LocalDate;
 @DynamicUpdate
 @Builder
 @Entity
-@Table(name = "user_collection",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "collection_id"}))
-public class UserCollection {
+@Table(name = "user_collection", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "collection_id"}))
+public class UserCollection extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,8 +33,8 @@ public class UserCollection {
     @Column(name = "user_collection_status", nullable = false)
     private Integer userCollectionStatus;
 
-    @Column(name = "last_accessed_at", nullable = false)
-    private LocalDate lastAccessedAt;
+    @Column(name = "completed_time", nullable = false)
+    private LocalDate completedTime;
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "VARCHAR(20) DEFAULT 'IN_PROGRESS'", nullable = false)
@@ -69,12 +68,12 @@ public class UserCollection {
         this.user = user;
         this.collection = collection;
         this.userCollectionStatus = userCollectionStatus;
-        this.lastAccessedAt = LocalDate.now();
+        this.completedTime = LocalDate.now();
     }
 
     public void updateUserCollection(Integer userCollectionStatus) {
         this.userCollectionStatus = userCollectionStatus;
-        this.lastAccessedAt = LocalDate.now();
+        this.completedTime = LocalDate.now();
     }
 }
 

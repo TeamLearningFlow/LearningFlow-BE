@@ -130,7 +130,7 @@ public class CollectionConverter {
                 .keywords(userCollection.getCollection().getKeywords())
                 .difficulties(userCollection.getCollection().getDifficulty())
                 .runtime(getTotalHours(userCollection.getCollection()))
-                .lastAccessedTime(userCollection.getLastAccessedAt())
+                .lastAccessedTime(userCollection.getCompletedTime())
                 .build();
     }
 

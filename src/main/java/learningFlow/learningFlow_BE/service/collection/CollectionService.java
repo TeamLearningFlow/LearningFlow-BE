@@ -123,7 +123,7 @@ public class CollectionService {
             return CollectionResponseDTO.CollectionLearningInfo.builder()
                     .learningStatus("COMPLETED")
                     .progressRate(100)
-                    .completedTime(realUserCollection.getLastAccessedAt())
+                    .completedTime(realUserCollection.getCompletedTime())
                     .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                     .build();
         }
@@ -239,7 +239,7 @@ public class CollectionService {
 
     private HomeResponseDTO.RecentLearningDTO getRecentLearning(User user) {
         return userCollectionRepository
-                .findFirstByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.IN_PROGRESS)
+                .findFirstByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS)
                 .map(ResourceConverter::toRecentLearningDTO)
                 .orElse(null);
     }

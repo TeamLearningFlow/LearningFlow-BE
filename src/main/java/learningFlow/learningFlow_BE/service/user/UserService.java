@@ -194,7 +194,7 @@ public class UserService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         List<UserCollection> inProgressUserCollectionList
-                = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.IN_PROGRESS);
+                = userCollectionRepository.findByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS);
 
         List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeDTOList = inProgressUserCollectionList.stream()
                 .map(userCollection -> {
@@ -216,7 +216,7 @@ public class UserService {
                 .toList();
 
         List<UserCollection> completedUserCollectionList
-                = userCollectionRepository.findByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.COMPLETED);
+                = userCollectionRepository.findByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.COMPLETED);
 
         return UserConverter.convertToUserMyPageResponseDTO(recentlyWatchedEpisodeDTOList, completedUserCollectionList);
     }
