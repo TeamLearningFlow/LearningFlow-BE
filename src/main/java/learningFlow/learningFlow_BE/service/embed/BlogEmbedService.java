@@ -7,6 +7,7 @@ import learningFlow.learningFlow_BE.repository.CollectionEpisodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -43,6 +44,13 @@ public class BlogEmbedService {
         options.addArguments("--no-sandbox");  // 리눅스 환경에서 필요한 옵션
         options.addArguments("--disable-dev-shm-usage");  // 메모리 문제 방지
         options.addArguments("--disable-gpu");  // GPU 가속 비활성화 (필요 시)
+        // 서버 과부화 문제로 이미지 + 자바스크립트 요청 X -> 나중에 지워야함
+        options.addArguments("--blink-settings=imagesEnabled=false");  // ✅ 이미지 로드 방지
+        options.addArguments("--disable-javascript");  // ✅ JavaScript 실행 방지
+
+        // 🔹 User-Agent를 일반적인 브라우저처럼 설정
+        options.addArguments("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        options.addArguments("--disable-blink-features=AutomationControlled");
 
         WebDriver driver = null;
 
@@ -50,8 +58,12 @@ public class BlogEmbedService {
             String seleniumUrl = "http://172.31.38.3:4444";
             driver = new RemoteWebDriver(new URL(seleniumUrl), options);
 
+            // ✅ 페이지 로드 타임아웃 설정 (기본 무한대기 방지)
+            driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(20));
+
             driver.get(blogUrl);
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10)); // ✅ Duration.ofSeconds()로 변경
+
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20)); // ✅ Duration.ofSeconds()로 변경
             wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("body")));
 
             // JavaScript 실행 후 전체 HTML 가져오기
@@ -69,10 +81,21 @@ public class BlogEmbedService {
 
             return CompletableFuture.completedFuture(gzippedResponse);
         }
+        catch (TimeoutException e) {
+            killChromeProcesses();
+            throw new RuntimeException("페이지 로드 시간이 초과되었습니다.", e);
+        }
         catch (IOException e) {
+            killChromeProcesses();
             throw new RuntimeException("Gzip 압축 중 오류 발생", e);  // IOException 처리
         } finally {
-            driver.quit();
+            if (driver != null) {
+                try {
+                    driver.quit();
+                } catch (Exception e) {
+                    System.out.println("WebDriver 종료 중 오류 발생: " + e.getMessage());
+                }
+            }
         }
     }
 
@@ -100,5 +123,15 @@ public class BlogEmbedService {
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r");
+    }
+
+    public void killChromeProcesses() {
+        try {
+            System.out.println("🔄 실행 중인 Chrome 프로세스를 정리 중...");
+            Runtime.getRuntime().exec("pkill -f chrome");  // ✅ 실행 중인 모든 Chrome 프로세스 종료
+            System.out.println("✅ Chrome 프로세스 정리 완료");
+        } catch (IOException e) {
+            System.err.println("🚨 [ERROR] Chrome 프로세스 강제 종료 실패: " + e.getMessage());
+        }
     }
 }
