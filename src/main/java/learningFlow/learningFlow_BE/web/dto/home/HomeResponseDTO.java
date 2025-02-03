@@ -16,9 +16,8 @@ public class HomeResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class HomeInfoDTO {
-        List<RecommendedCollectionDTO> recommendedCollections;
-        List<RecentCollectionDTO> recentCollections;
+    public static class GuestHomeInfoDTO {
+        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
     }
 
     @Getter
@@ -26,8 +25,18 @@ public class HomeResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UserHomeInfoDTO {
-        RecentLearningDTO recentLearning;
+        CollectionResponseDTO.CollectionPreviewDTO recentLearning;
         List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RecentLearningDTO {
+        CollectionResponseDTO.CompletedCollectionDTO collection;
+        List<ResourceResponseDTO.SearchResultResourceDTO> resources;
+        String progressRatio;
     }
 
     @Getter
@@ -44,13 +53,6 @@ public class HomeResponseDTO {
         String detailInformation;    // 상세 정보
         String collectionUrl;        // 컬렉션 상세 페이지 URL
     }
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class GuestHomeInfoDTO {
-        List<CollectionResponseDTO.CollectionPreviewDTO> recommendedCollections;
-    }
 
     @Getter
     @Builder
@@ -65,14 +67,5 @@ public class HomeResponseDTO {
         Integer progress;             // 진행률
         String collectionUrl;         // 컬렉션 상세 페이지 URL
         Integer currentEpisode;       // 현재 학습 중인 에피소드 번호
-    }
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class RecentLearningDTO {
-        private CollectionResponseDTO.CompletedCollectionDTO collection;
-        private List<ResourceResponseDTO.SearchResultResourceDTO> resources;
-        private String progressRatio;
     }
 }

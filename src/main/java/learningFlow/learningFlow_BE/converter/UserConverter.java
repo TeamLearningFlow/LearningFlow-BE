@@ -34,16 +34,25 @@ public class UserConverter {
     }
 
     public static UserResponseDTO.UserMyPageResponseDTO convertToUserMyPageResponseDTO(
+            User user,
             List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeDTOList,
-            List<UserCollection> completedUserCollectionList
+            List<CollectionResponseDTO.CollectionPreviewDTO> completedCollectionList
     ) {
 
-        List<CollectionResponseDTO.CompletedCollectionDTO> completedCollectionList = completedUserCollectionList.stream()
-                .map(CollectionConverter::convertToCompletedCollectionDTO).toList();
-
         return UserResponseDTO.UserMyPageResponseDTO.builder()
+                .userPreviewDTO(convertToUserPreviewDTO(user))
                 .recentlyWatchedEpisodeList(recentlyWatchedEpisodeDTOList)
                 .completedCollectionList(completedCollectionList)
+                .build();
+    }
+
+    private static UserResponseDTO.UserPreviewDTO convertToUserPreviewDTO(User user) {
+
+        return UserResponseDTO.UserPreviewDTO.builder()
+                .name(user.getName())
+                .email(user.getEmail())
+                .job(user.getJob().getDescription())
+                .profileImgUrl(user.getProfileImgUrl())
                 .build();
     }
 }

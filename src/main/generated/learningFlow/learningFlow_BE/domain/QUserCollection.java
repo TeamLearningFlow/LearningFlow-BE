@@ -22,13 +22,21 @@ public class QUserCollection extends EntityPathBase<UserCollection> {
 
     public static final QUserCollection userCollection = new QUserCollection("userCollection");
 
+    public final QBaseEntity _super = new QBaseEntity(this);
+
     public final QCollection collection;
+
+    public final DatePath<java.time.LocalDate> completedTime = createDate("completedTime", java.time.LocalDate.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final DatePath<java.time.LocalDate> lastAccessedAt = createDate("lastAccessedAt", java.time.LocalDate.class);
-
     public final EnumPath<learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus> status = createEnum("status", learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public final QUser user;
 

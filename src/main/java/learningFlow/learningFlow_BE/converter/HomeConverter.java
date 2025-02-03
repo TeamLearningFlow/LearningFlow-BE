@@ -19,7 +19,7 @@ public class HomeConverter {
     }
 
     public static HomeResponseDTO.UserHomeInfoDTO convertToUserHomeInfoDTO(
-            HomeResponseDTO.RecentLearningDTO recentLearning,
+            CollectionResponseDTO.CollectionPreviewDTO recentLearning,
             List<Collection> recommendedCollections,
             User user,
             int size,
