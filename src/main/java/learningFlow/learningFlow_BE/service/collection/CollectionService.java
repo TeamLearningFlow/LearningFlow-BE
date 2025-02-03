@@ -43,7 +43,7 @@ public class CollectionService {
 
         Authentication authentication = (principalDetails != null) ? SecurityContextHolder.getContext().getAuthentication() : null;
 
-        Collection collection = collectionRepository.findById(collectionId)
+        Collection collection = collectionRepository.findByIdWithEpisodesAndResources(collectionId) //N+1 문제 개선
                 .orElseThrow(() -> new CollectionHandler(ErrorStatus.COLLECTION_NOT_FOUND));
 
         User currentUser = null;
