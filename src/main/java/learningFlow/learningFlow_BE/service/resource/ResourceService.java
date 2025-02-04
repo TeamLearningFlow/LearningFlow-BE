@@ -25,11 +25,6 @@ public class ResourceService {
     private final MemoRepository memoRepository;
     private final UserCollectionRepository userCollectionRepository;
     private final UserRepository userRepository;
-    // 유저 + 에피소드 조회
-    // 존재하지 않을 경우 -> 처음 -> 객체 생성 -> 저장 && 유저-컬렉션에 등록
-    // 있을 경우 -> 에피소드 정보 불러오기
-        // 처음인 경우 -> currentProgress = 0, embeddedUrl 생성
-        // 처음이 아닐 경우 -> embeddedUrl, currentProgress 조회 -> 진도 저장
     @Transactional
     public UserEpisodeProgress getUserEpisodeProgress(Long episodeId, String loginId){
         UserEpisodeProgressId userEpisodeProgressId = new UserEpisodeProgressId(episodeId, loginId);
@@ -58,6 +53,13 @@ public class ResourceService {
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
         return episode.getCollection();
     }
+
+    @Transactional
+    public String getResourceUrl(Long episodeId) {
+        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        return episode.getResource().getUrl();
+    }
     @Transactional
     public String getResourceTitle(Long episodeId) {
         CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
@@ -71,40 +73,29 @@ public class ResourceService {
 
     @Transactional
     public void updateUserCollection(CollectionEpisode episode, String loginId) {
-        log.info("Received loginId: {}", loginId);
-        log.info("Received episode: {}", episode);
         // UserCollection 조회
         Collection collection = episode.getCollection();
-        log.info("Extracted collection: {}", collection);
-
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_NOT_FOUND));
-        log.info("Found user: {}", user);
 
         // UserCollection 조회
         Optional<UserCollection> optionalUserCollection = userCollectionRepository.findByUserAndCollection(user, collection);
-        log.info("UserCollection found: {}", optionalUserCollection.isPresent());
-
         Integer episodeNumber = episode.getEpisodeNumber();
-        log.info("Episode number: {}", episodeNumber);
 
         UserCollection userCollection;
 
         if (optionalUserCollection.isPresent()) {
             // UserCollection 이 존재하는 경우 episodeNumber 만 업데이트
             userCollection = optionalUserCollection.get();
-            log.info("Updating existing UserCollection with id: {}", userCollection.getId());
 
             userCollection.updateUserCollection(episodeNumber);
         } else {
             // UserCollection 이 존재하지 않는 경우 새로 생성
             userCollection = new UserCollection();
             userCollection.setUserCollection(user, collection, episodeNumber);
-            log.info("Created new UserCollection");
         }
         // 저장
         UserCollection savedCollection = userCollectionRepository.save(userCollection);
-        log.info("Saved UserCollection: {}", savedCollection);
     }
     @Transactional
     public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
