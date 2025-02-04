@@ -18,6 +18,7 @@ import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.embed.BlogEmbedService;
 import learningFlow.learningFlow_BE.service.embed.YoutubeUrlEmbedService;
+import learningFlow.learningFlow_BE.service.lambda.LambdaService;
 import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
 import learningFlow.learningFlow_BE.service.resource.ResourceService;
 import learningFlow.learningFlow_BE.web.dto.memo.MemoRequestDTO;
@@ -49,7 +50,7 @@ public class ResourceRestController {
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
     private final BlogEmbedService blogEmbedService;
-
+    private final LambdaService lambdaService;
     @GetMapping("/{episode-id}/youtube")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
@@ -156,5 +157,11 @@ public class ResourceRestController {
         log.info("로그인 상태 확인 {}", loginId);
         memoCommandService.saveMemo(loginId, episodeId, request);
         return ApiResponse.onSuccess(MemoConverter.createMemo(request)); // 성공 시 200 OK 반환
+    }
+
+    // 🚀 Lambda 호출 테스트 API
+    @GetMapping("/invoke")
+    public String invokeLambda() {
+        return lambdaService.invokeLambda();
     }
 }
