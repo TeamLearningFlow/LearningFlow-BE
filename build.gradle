@@ -81,6 +81,8 @@ dependencies {
 
 	//AWS S3
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+	// AWS SDK
+	implementation 'software.amazon.awssdk:lambda:2.30.12'
 
 }
 
