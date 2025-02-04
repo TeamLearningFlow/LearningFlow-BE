@@ -10,7 +10,6 @@ import java.util.Optional;
 
 public interface UserCollectionRepository extends JpaRepository<UserCollection, Long> {
     Optional<UserCollection> findByUserAndCollection(User user, Collection collection);
-    List<UserCollection> findByUserAndStatusOrderByLastAccessedAtDesc(User user, UserCollectionStatus status);
-
-    Optional<UserCollection> findFirstByUserAndStatusOrderByLastAccessedAtDesc(User user, UserCollectionStatus status);
+    List<UserCollection> findByUserAndStatusOrderByCompletedTimeDesc(User user, UserCollectionStatus status);
+    Optional<UserCollection> findFirstByUserAndStatusOrderByCompletedTimeDesc(User user, UserCollectionStatus status);
 }

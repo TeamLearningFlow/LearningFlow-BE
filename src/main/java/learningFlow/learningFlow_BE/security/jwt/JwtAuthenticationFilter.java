@@ -33,51 +33,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("🟡 [JwtAuthenticationFilter] 추출된 JWT: {}", jwt);
 
         try {
+            // JWT 토큰이 있는 경우 검증 및 인증 처리
             if (StringUtils.hasText(jwt)) {
                 if (jwtTokenProvider.validateToken(jwt)) {
                     log.info("유효한 Access Token");
-
-                    String email = jwtTokenProvider.getEmailFromToken(jwt);
-                    log.info("토큰에서 추출한 이메일: {}", email);
-
-                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.info("인증 정보 SecurityContext에 저장");
-
+                    processValidToken(request, jwt);
                 } else {
                     log.info("Access Token이 만료되어 Refresh Token 확인을 시도");
-                    String refreshToken = request.getHeader("Refresh-Token");
-                    log.info("전달받은 Refresh Token: {}", refreshToken);
-
-                    if (!StringUtils.hasText(refreshToken)) {
-                        if (!isPermitAllUrl(request.getRequestURI())) {
-                            handleAuthenticationError(response, "토큰이 만료되었습니다. 다시 로그인해주세요.");
-                            return;
-                        }
-                    } else if (jwtTokenProvider.validateToken(refreshToken)) {
-                        String email = jwtTokenProvider.getEmailFromToken(refreshToken);
-                        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
-
-                        String newAccessToken = jwtTokenProvider.createAccessToken(authentication);
-                        log.info("새로 발급된 Access Token: {}", newAccessToken);
-                        response.addHeader("Authorization", "Bearer " + newAccessToken);
-
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        log.info("새로운 Access Token으로 인증 정보를 업데이트 완료");
-                    }
+                    processExpiredToken(request, response);
                 }
-            } else if (!isPermitAllUrl(request.getRequestURI())) {
-                log.error("❌ [JwtAuthenticationFilter] 인증되지 않은 요청 → 401 반환");
-                handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
-                return;
+            } else {
+                // JWT 토큰이 없는 경우, 허용된 URL이 아니면 401 에러
+                if (!isPermitAllUrl(request.getRequestURI())) {
+                    log.error("❌ [JwtAuthenticationFilter] 인증되지 않은 요청 → 401 반환");
+                    handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
+                    return;
+                }
             }
         } catch (Exception e) {
             log.error("❌ [JwtAuthenticationFilter] 예외 발생: {}", e.getMessage(), e);
@@ -88,6 +59,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void processValidToken(HttpServletRequest request, String jwt) {
+        String email = jwtTokenProvider.getEmailFromToken(jwt);
+        log.info("토큰에서 추출한 이메일: {}", email);
+
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+
+        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.info("인증 정보 SecurityContext에 저장");
+    }
+
+    private void processExpiredToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = request.getHeader("Refresh-Token");
+        log.info("전달받은 Refresh Token: {}", refreshToken);
+
+        if (StringUtils.hasText(refreshToken) && jwtTokenProvider.validateToken(refreshToken)) {
+            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+
+            String newAccessToken = jwtTokenProvider.createAccessToken(authentication);
+            log.info("새로 발급된 Access Token: {}", newAccessToken);
+            response.addHeader("Authorization", "Bearer " + newAccessToken);
+
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.info("새로운 Access Token으로 인증 정보를 업데이트 완료");
+        }
     }
 
     private void handleAuthenticationError(HttpServletResponse response, String message) throws IOException {
@@ -111,6 +116,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPermitAllUrl(String requestURI) {
+
         return requestURI.equals("/") ||
                 requestURI.equals("/login") ||
                 requestURI.equals("/register") ||
@@ -124,6 +130,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/find") ||
                 requestURI.startsWith("/search") ||
                 requestURI.equals("/reset-password") ||
+                requestURI.matches("/collections/\\d+") ||
                 requestURI.startsWith("/user/imgUpload");  // 이미지 업로드는 인증 없이 허용
     }
 
@@ -131,10 +138,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        boolean shouldSkip = path.equals("/image/upload") || isPermitAllUrl(path);
+        boolean shouldSkip = path.equals("/image/upload");
         log.info("🛑 [JwtAuthenticationFilter] shouldNotFilter 실행: path={}, shouldSkip={}", path, shouldSkip);
         return shouldSkip;
     }
-
-
 }

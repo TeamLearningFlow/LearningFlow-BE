@@ -6,6 +6,7 @@ import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public class HomeConverter {
 
@@ -21,11 +22,16 @@ public class HomeConverter {
             HomeResponseDTO.RecentLearningDTO recentLearning,
             List<Collection> recommendedCollections,
             User user,
-            int size
+            int size,
+            Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap
     ) {
         List<CollectionResponseDTO.CollectionPreviewDTO> recommendedPreviewDTOs = recommendedCollections.stream()
                 .distinct()
-                .map(collection -> CollectionConverter.toCollectionPreviewDTO(collection, user))
+                .map(collection -> CollectionConverter.toCollectionPreviewDTO(
+                        collection,
+                        learningInfoMap.get(collection.getId()),
+                        user
+                ))
                 .limit(size)
                 .toList();
 

@@ -22,11 +22,7 @@ import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.collection.CollectionService;
 import learningFlow.learningFlow_BE.service.user.UserService;
 import learningFlow.learningFlow_BE.web.dto.bookmark.BookmarkDTO;
-import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,7 +43,6 @@ public class CollectionRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COLLECTION4001", description = "존재하지 않는 컬렉션입니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-
             @Parameter(name = "collectionId", description = "컬렉션 ID"),
     })
     public ApiResponse<CollectionResponseDTO.CollectionPreviewDTO> getCollection(

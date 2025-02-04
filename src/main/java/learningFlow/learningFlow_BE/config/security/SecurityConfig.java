@@ -58,7 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId}/bookmark", "/logout/**").authenticated()
+                        .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId:[\\d]+}/likes", "/logout/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

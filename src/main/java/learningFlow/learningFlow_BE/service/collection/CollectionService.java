@@ -6,24 +6,29 @@ import learningFlow.learningFlow_BE.converter.CollectionConverter;
 import learningFlow.learningFlow_BE.converter.HomeConverter;
 import learningFlow.learningFlow_BE.converter.ResourceConverter;
 import learningFlow.learningFlow_BE.domain.Collection;
+import learningFlow.learningFlow_BE.domain.CollectionEpisode;
 import learningFlow.learningFlow_BE.domain.User;
+import learningFlow.learningFlow_BE.domain.UserCollection;
 import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
 import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
 import learningFlow.learningFlow_BE.repository.collection.CollectionRepository;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO;
+import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.search.SearchRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -46,7 +51,9 @@ public class CollectionService {
             currentUser = ((PrincipalDetails) authentication.getPrincipal()).getUser();
         }
 
-        return CollectionConverter.toCollectionPreviewDTO(collection, currentUser);
+        CollectionResponseDTO.CollectionLearningInfo learningInfo = getLearningInfo(collection, currentUser);
+
+        return CollectionConverter.toCollectionPreviewDTO(collection, learningInfo, currentUser);
     }
 
     public CollectionResponseDTO.SearchResultDTO search(SearchRequestDTO.SearchConditionDTO condition, Long lastId, PrincipalDetails principalDetails) {
@@ -57,7 +64,7 @@ public class CollectionService {
         List<Collection> collections = collectionRepository.searchCollections(condition, lastId, pageRequest);
 
         if (collections.isEmpty()) {
-            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, null);
+            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, null, null);
         }
 
         Collection lastCollection = collections.getLast();
@@ -68,12 +75,104 @@ public class CollectionService {
 
         int currentPage = calculateCurrentPage(condition, lastCollection);
 
-        User currentUser = null;
+        User currentUser;
         if (authentication != null && authentication.getPrincipal() instanceof PrincipalDetails) {
             currentUser = ((PrincipalDetails) authentication.getPrincipal()).getUser();
+        } else {
+            currentUser = null;
         }
 
-        return CollectionConverter.toSearchResultDTO(collections, lastCollection.getId(), hasNext, totalPages, currentPage, currentUser);
+        Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
+                .collect(Collectors.toMap(
+                        Collection::getId,
+                        collection -> getLearningInfo(collection, currentUser)
+                ));
+
+        return CollectionConverter.toSearchResultDTO(
+                collections,
+                lastCollection.getId(),
+                hasNext,
+                totalPages,
+                currentPage,
+                currentUser,
+                learningInfoMap
+        );
+    }
+
+    public CollectionResponseDTO.CollectionLearningInfo getLearningInfo(Collection collection, User user) {
+        if (user == null) {
+            return CollectionResponseDTO.CollectionLearningInfo.builder()
+                    .learningStatus("BEFORE")
+                    .progressRate(null)
+                    .resourceDTOList(getFilteredResources(collection, null, 0))
+                    .build();
+        }
+
+        Optional<UserCollection> userCollection = userCollectionRepository.findByUserAndCollection(user, collection);
+
+        if (userCollection.isEmpty()) {
+            return CollectionResponseDTO.CollectionLearningInfo.builder()
+                    .learningStatus("BEFORE")
+                    .progressRate(null)
+                    .resourceDTOList(getFilteredResources(collection, null, 0))
+                    .build();
+        }
+
+        UserCollection realUserCollection = userCollection.get();
+        if (realUserCollection.getStatus() == UserCollectionStatus.COMPLETED) {
+            return CollectionResponseDTO.CollectionLearningInfo.builder()
+                    .learningStatus("COMPLETED")
+                    .progressRate(100)
+                    .completedTime(realUserCollection.getCompletedTime())
+                    .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
+                    .build();
+        }
+
+        int progressRate = calculateProgressRate(realUserCollection);
+        return CollectionResponseDTO.CollectionLearningInfo.builder()
+                .learningStatus("IN_PROGRESS")
+                .progressRate(progressRate)
+                .currentEpisode(realUserCollection.getUserCollectionStatus())
+                .resourceDTOList(getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
+                .build();
+    }
+
+    private int calculateProgressRate(UserCollection userCollection) {
+        return (int) Math.round((double) userCollection.getUserCollectionStatus() /
+                userCollection.getCollection().getEpisodes().size() * 100);
+    }
+
+    private List<ResourceResponseDTO.SearchResultResourceDTO> getFilteredResources(
+            Collection collection, User user, int currentEpisode) {
+        List<CollectionEpisode> episodes = collection.getEpisodes();
+        List<CollectionEpisode> filteredEpisodes;
+
+        //수강 완료일때는 resource에 뭐 담을 필요 없음
+        if (user != null) {
+            Optional<UserCollection> userCollection = userCollectionRepository.findByUserAndCollection(user, collection);
+            if (userCollection.isPresent() && userCollection.get().getStatus() == UserCollectionStatus.COMPLETED) {
+                return new ArrayList<>();
+            }
+        }
+
+        if (user == null || currentEpisode == 0) {
+            // 비회원이거나 수강 전인 경우 처음 3개
+            filteredEpisodes = episodes.stream()
+                    .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
+                    .limit(3)
+                    .toList();
+        } else {
+            // 수강 중인 경우 현재 회차부터 3개
+            filteredEpisodes = episodes.stream()
+                    .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
+                    .filter(ep -> ep.getEpisodeNumber() >= currentEpisode)
+                    .limit(3)
+                    .toList();
+        }
+
+        return filteredEpisodes.stream()
+                .map(ResourceConverter::convertToResourceDTO)
+                .toList();
     }
 
     public HomeResponseDTO.GuestHomeInfoDTO getGuestHomeCollections() {
@@ -123,12 +222,24 @@ public class CollectionService {
             );
         }
 
-        return HomeConverter.convertToUserHomeInfoDTO(recentLearning, recommendedCollections, user, HOME_COLLECTION_SIZE);
+        Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = recommendedCollections.stream()
+                .collect(Collectors.toMap(
+                        Collection::getId,
+                        collection -> getLearningInfo(collection, user)
+                ));
+
+        return HomeConverter.convertToUserHomeInfoDTO(
+                recentLearning,
+                recommendedCollections,
+                user,
+                HOME_COLLECTION_SIZE,
+                learningInfoMap
+        );
     }
 
     private HomeResponseDTO.RecentLearningDTO getRecentLearning(User user) {
         return userCollectionRepository
-                .findFirstByUserAndStatusOrderByLastAccessedAtDesc(user, UserCollectionStatus.IN_PROGRESS)
+                .findFirstByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS)
                 .map(ResourceConverter::toRecentLearningDTO)
                 .orElse(null);
     }
