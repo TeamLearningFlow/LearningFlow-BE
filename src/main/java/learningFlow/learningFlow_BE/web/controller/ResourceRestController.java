@@ -104,8 +104,8 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
     })
-    public ResponseEntity<byte[]> getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId) {
-        CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
+    public String getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId) {
+ /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);  // 바이너리 파일 반환
@@ -118,7 +118,10 @@ public class ResourceRestController {
         } catch (InterruptedException | ExecutionException e) {
             log.error("블로그 데이터를 가져오는 중 오류 발생: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]); // 빈 응답 반환
-        }
+        }*/
+
+        String url = resourceService.getResourceUrl(episodeId);
+        return lambdaService.invokeLambda(url);
     }
 
     @PostMapping("/{episode-id}/save-progress")
@@ -157,11 +160,5 @@ public class ResourceRestController {
         log.info("로그인 상태 확인 {}", loginId);
         memoCommandService.saveMemo(loginId, episodeId, request);
         return ApiResponse.onSuccess(MemoConverter.createMemo(request)); // 성공 시 200 OK 반환
-    }
-
-    // 🚀 Lambda 호출 테스트 API
-    @GetMapping("/invoke")
-    public String invokeLambda() {
-        return lambdaService.invokeLambda();
     }
 }
