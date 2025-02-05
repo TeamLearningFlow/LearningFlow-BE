@@ -75,6 +75,4 @@ public class AmazonS3Manager {
             throw new GeneralException(ErrorStatus.IMAGE_UPLOAD_FAILED); // 기타 예외 처리
         }
     }
-
-
 }
