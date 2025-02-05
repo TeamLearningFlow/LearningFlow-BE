@@ -16,6 +16,8 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 
+import java.time.Duration;
+
 @Configuration
 @Getter
 public class AmazonConfig {
@@ -59,6 +61,9 @@ public class AmazonConfig {
         return LambdaClient.builder()
                 .region(Region.AP_NORTHEAST_2)  // Lambda가 배포된 리전
                 .credentialsProvider(DefaultCredentialsProvider.create()) // AWS 기본 자격 증명 사용
+                .overrideConfiguration(builder -> builder
+                        .apiCallTimeout(Duration.ofSeconds(60)) // 🔹 전체 API 호출 타임아웃
+                        .apiCallAttemptTimeout(Duration.ofSeconds(60))) // 🔹 개별 요청 타임아웃
                 .build();
     }
     @Bean
