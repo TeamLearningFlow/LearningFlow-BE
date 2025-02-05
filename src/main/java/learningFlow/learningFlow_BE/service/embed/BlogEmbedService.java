@@ -1,3 +1,4 @@
+/*
 package learningFlow.learningFlow_BE.service.embed;
 
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
@@ -33,6 +34,7 @@ import java.util.zip.GZIPOutputStream;
 @Transactional
 public class BlogEmbedService {
     private final CollectionEpisodeRepository collectionEpisodeRepository;
+*/
 /*    private final LambdaService lambdaService;
     public String getResource(Long episodeId){
         CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
@@ -45,8 +47,10 @@ public class BlogEmbedService {
         }
         // 이미 생성된 경우
         return resource.getClientUrl();
-    }*/
+    }*//*
 
+
+*/
 /*
     @Async // 비동기 처리
     public CompletableFuture<byte[]> getBlogSource(Long episodeId) {
@@ -116,6 +120,8 @@ public class BlogEmbedService {
             }
         }
     }
+*//*
+
 */
 /*
     // 광고 코드 제거
@@ -152,5 +158,6 @@ public class BlogEmbedService {
         } catch (IOException e) {
             System.err.println("🚨 [ERROR] Chrome 프로세스 강제 종료 실패: " + e.getMessage());
         }
-    }*/
-}
+    }*//*
+
+//}*/
