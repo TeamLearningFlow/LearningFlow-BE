@@ -2,12 +2,10 @@ package learningFlow.learningFlow_BE.service.resource;
 
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
-import learningFlow.learningFlow_BE.converter.ResourceConverter;
 import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.*;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
-import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,19 +51,13 @@ public class ResourceService {
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
         return episode.getCollection();
     }
+    @Transactional
+    public Resource getResource(Long episodeId){
+        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        return episode.getResource();
+    }
 
-    @Transactional
-    public String getResourceUrl(Long episodeId) {
-        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
-                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
-        return episode.getResource().getUrl();
-    }
-    @Transactional
-    public String getResourceTitle(Long episodeId) {
-        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
-                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
-        return episode.getResource().getTitle();
-    }
     @Transactional
     public Optional<Memo> getMemoContents(Long episodeId){
         return memoRepository.findByEpisodeId(episodeId);
@@ -95,7 +87,7 @@ public class ResourceService {
             userCollection.setUserCollection(user, collection, episodeNumber);
         }
         // 저장
-        UserCollection savedCollection = userCollectionRepository.save(userCollection);
+        userCollectionRepository.save(userCollection);
     }
     @Transactional
     public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
