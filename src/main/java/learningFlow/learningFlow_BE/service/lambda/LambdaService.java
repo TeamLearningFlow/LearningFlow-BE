@@ -41,14 +41,17 @@ public class LambdaService {
                 throw new RuntimeException("Lambda 내부 오류: " + response.functionError());
             }
 
-            // JSON 파싱하여 `s3_url`만 추출
+            // ✅ Lambda 응답을 JSON으로 변환
             JsonNode jsonResponse = objectMapper.readTree(responseJson);
 
-            // 🔹 `body`가 JSON 문자열일 가능성이 높음 → 한 번 더 파싱 필요
-            String bodyString = jsonResponse.path("body").asText();  // 🔹 `body`를 문자열로 가져옴
-            JsonNode bodyJson = objectMapper.readTree(bodyString);  // 🔹 문자열을 다시 JSON으로 변환
+            // ✅ Lambda 응답에서 `body` 추출 (JSON이 아닌 문자열일 가능성이 있음)
+            String bodyString = jsonResponse.path("body").asText();
 
-            String s3Url = bodyJson.path("body").path("s3_url").asText();
+            // ✅ `body`가 이미 JSON 형식이라면, `asText()`가 아닌 `objectMapper.readTree()` 사용
+            JsonNode bodyJson = objectMapper.readTree(bodyString);
+
+            // ✅ `s3_url`을 올바르게 추출 (불필요한 `body` 중첩 제거)
+            String s3Url = bodyJson.path("s3_url").asText();
 
             if (s3Url == null || s3Url.isEmpty()) {
                 log.error("❌ Lambda 응답에서 `s3_url`을 찾을 수 없음: {}", responseJson);
@@ -63,6 +66,9 @@ public class LambdaService {
         } catch (SdkClientException e) {
             log.error("❌ Lambda 호출 실패 (네트워크 또는 AWS 문제)", e);
             return null; // AWS Lambda 호출 관련 예외 발생 시 null 반환
+        } catch (Exception e) {
+            log.error("❌ Lambda 호출 중 알 수 없는 예외 발생", e);
+            return null;
         }
     }
 }
