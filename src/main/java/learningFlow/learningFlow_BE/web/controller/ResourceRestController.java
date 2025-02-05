@@ -16,7 +16,6 @@ import learningFlow.learningFlow_BE.domain.Memo;
 import learningFlow.learningFlow_BE.domain.Resource;
 import learningFlow.learningFlow_BE.domain.UserEpisodeProgress;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
-import learningFlow.learningFlow_BE.service.embed.BlogEmbedService;
 import learningFlow.learningFlow_BE.service.embed.YoutubeUrlEmbedService;
 import learningFlow.learningFlow_BE.service.lambda.LambdaService;
 import learningFlow.learningFlow_BE.service.memo.MemoCommandService;
@@ -27,17 +26,11 @@ import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,7 +42,6 @@ public class ResourceRestController {
     private final MemoCommandService memoCommandService;
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
-    private final BlogEmbedService blogEmbedService;
     private final LambdaService lambdaService;
     @GetMapping("/{episode-id}/youtube")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
@@ -90,7 +82,7 @@ public class ResourceRestController {
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
-        String resourceTitle = resourceService.getResourceTitle(episodeId);
+        String resourceTitle = resourceService.getResource(episodeId).getTitle();
         String blogSourceUrl = "/resources/" + episodeId + "/blog/content";
         return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl, resourceTitle, memo));
     }
@@ -104,10 +96,10 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
     })
-    public String getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId,
+    public ApiResponse<String> getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId,
                                         @RequestParam(defaultValue = "982") int width,
                                         @RequestParam(defaultValue = "552") int height) {
- /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
+        /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);  // 바이너리 파일 반환
@@ -121,9 +113,11 @@ public class ResourceRestController {
             log.error("블로그 데이터를 가져오는 중 오류 발생: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]); // 빈 응답 반환
         }*/
-
-        String url = resourceService.getResourceUrl(episodeId);
-        return lambdaService.invokeLambda(url, width, height);
+        Resource resource = resourceService.getResource(episodeId);
+        if (resource.getClientUrl() != null) {
+            return ApiResponse.onSuccess(resource.getClientUrl());
+        }
+        return ApiResponse.onSuccess(lambdaService.invokeLambda(resource.getUrl(), width, height));
     }
 
     @PostMapping("/{episode-id}/save-progress")

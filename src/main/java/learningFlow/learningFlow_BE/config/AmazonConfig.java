@@ -11,6 +11,9 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.lambda.LambdaClient;
 
 @Configuration
 @Getter
@@ -48,5 +51,13 @@ public class AmazonConfig {
     @Bean
     public AWSCredentialsProvider awsCredentialsProvider() {
         return new AWSStaticCredentialsProvider(awsCredentials);
+    }
+
+    @Bean
+    public LambdaClient lambdaClient() {
+        return LambdaClient.builder()
+                .region(Region.AP_NORTHEAST_2)  // Lambda가 배포된 리전
+                .credentialsProvider(DefaultCredentialsProvider.create()) // AWS 기본 자격 증명 사용
+                .build();
     }
 }

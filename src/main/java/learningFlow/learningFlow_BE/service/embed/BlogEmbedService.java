@@ -3,7 +3,10 @@ package learningFlow.learningFlow_BE.service.embed;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.domain.CollectionEpisode;
+import learningFlow.learningFlow_BE.domain.Resource;
+import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.CollectionEpisodeRepository;
+import learningFlow.learningFlow_BE.service.lambda.LambdaService;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -30,7 +33,21 @@ import java.util.zip.GZIPOutputStream;
 @Transactional
 public class BlogEmbedService {
     private final CollectionEpisodeRepository collectionEpisodeRepository;
+/*    private final LambdaService lambdaService;
+    public String getResource(Long episodeId){
+        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        Resource resource = episode.getResource();
+        // 블로그 임베드 url 미 생성인 경우
+        if (resource.getType() == ResourceType.TEXT
+                && resource.getClientUrl() == null) {
+            return lambdaService.invokeLambda(u);
+        }
+        // 이미 생성된 경우
+        return resource.getClientUrl();
+    }*/
 
+/*
     @Async // 비동기 처리
     public CompletableFuture<byte[]> getBlogSource(Long episodeId) {
 
@@ -99,7 +116,8 @@ public class BlogEmbedService {
             }
         }
     }
-
+*/
+/*
     // 광고 코드 제거
     private String removeAdsFromHtml(String html) {
         return html.replaceAll("(?i)<script[^>]*>(.*?)</script>", "") // 모든 <script> 태그 제거
@@ -134,5 +152,5 @@ public class BlogEmbedService {
         } catch (IOException e) {
             System.err.println("🚨 [ERROR] Chrome 프로세스 강제 종료 실패: " + e.getMessage());
         }
-    }
+    }*/
 }
