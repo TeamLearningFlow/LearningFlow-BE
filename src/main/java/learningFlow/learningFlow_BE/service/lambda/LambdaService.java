@@ -22,8 +22,8 @@ public class LambdaService {
     }
 
     // 🚀 Lambda 실행 (테스트용 - 기본 JSON 데이터 전달)
-    public String invokeLambda(String url) {
-        String payload =  String.format("{\"url\":\"%s\"}", url); // Lambda에 URL 전달
+    public String invokeLambda(String url,int width, int height) {
+        String payload = String.format("{\"url\":\"%s\", \"width\":%d, \"height\":%d}", url, width, height);
 
         // 🔹 SdkBytes 변환 (AWS SDK v2에서 payload는 byte[]가 아닌 SdkBytes 사용)
         SdkBytes payloadBytes = SdkBytes.fromUtf8String(payload);

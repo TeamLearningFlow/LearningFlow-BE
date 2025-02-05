@@ -104,7 +104,9 @@ public class ResourceRestController {
     @Parameters({
             @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
     })
-    public String getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId) {
+    public String getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId,
+                                        @RequestParam(defaultValue = "982") int width,
+                                        @RequestParam(defaultValue = "552") int height) {
  /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -121,7 +123,7 @@ public class ResourceRestController {
         }*/
 
         String url = resourceService.getResourceUrl(episodeId);
-        return lambdaService.invokeLambda(url);
+        return lambdaService.invokeLambda(url, width, height);
     }
 
     @PostMapping("/{episode-id}/save-progress")
