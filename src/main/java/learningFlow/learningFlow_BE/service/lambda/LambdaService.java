@@ -3,6 +3,8 @@ package learningFlow.learningFlow_BE.service.lambda;
 import com.amazonaws.SdkClientException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import learningFlow.learningFlow_BE.domain.Resource;
+import learningFlow.learningFlow_BE.repository.ResourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,8 +22,13 @@ public class LambdaService {
 
     private final LambdaClient lambdaClient;
     private final ObjectMapper objectMapper;
+    private final ResourceRepository resourceRepository;
 
-    public String invokeLambda(String url,int width, int height) {
+    public void ClientUrlUpdate(Resource resource, String clientUrl){
+        resource.setClientUrl(clientUrl);
+        resourceRepository.save(resource);
+    }
+    public String invokeLambda(String url,int width, int height, Resource resource) {
         try {
             String payload = String.format("{\"url\":\"%s\", \"width\":%d, \"height\":%d}", url, width, height);
             SdkBytes payloadBytes = SdkBytes.fromUtf8String(payload);
@@ -58,7 +65,7 @@ public class LambdaService {
                 throw new RuntimeException("Lambda 호출 실패: s3_url이 없음");
             }
 
-            log.info("✅ Lambda 호출 성공: {}", s3Url);
+            ClientUrlUpdate(resource, s3Url);
             return s3Url;
         } catch (IOException e) {
             log.error("❌ JSON 파싱 오류 발생", e);
@@ -71,4 +78,5 @@ public class LambdaService {
             return null;
         }
     }
+
 }

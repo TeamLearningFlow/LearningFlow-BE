@@ -117,7 +117,7 @@ public class ResourceRestController {
         if (resource.getClientUrl() != null) {
             return ApiResponse.onSuccess(resource.getClientUrl());
         }
-        return ApiResponse.onSuccess(lambdaService.invokeLambda(resource.getUrl(), width, height));
+        return ApiResponse.onSuccess(lambdaService.invokeLambda(resource.getUrl(), width, height, resource));
     }
 
     @PostMapping("/{episode-id}/save-progress")
