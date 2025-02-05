@@ -32,10 +32,20 @@ public class LambdaService {
             // Lambda 실행
             InvokeResponse response = lambdaClient.invoke(request);
             String responseJson = response.payload().asUtf8String();
+            // 🔹 Lambda 내부 오류 체크
+            if (response.functionError() != null) {
+                log.error("❌ Lambda 내부 오류 발생: {}", response.functionError());
+                throw new RuntimeException("Lambda 내부 오류: " + response.functionError());
+            }
 
             // JSON 파싱하여 `s3_url`만 추출
             JsonNode jsonResponse = objectMapper.readTree(responseJson);
-            String s3Url = jsonResponse.path("body").path("s3_url").asText();
+
+            // 🔹 `body`가 JSON 문자열일 가능성이 높음 → 한 번 더 파싱 필요
+            String bodyString = jsonResponse.path("body").asText();  // 🔹 `body`를 문자열로 가져옴
+            JsonNode bodyJson = objectMapper.readTree(bodyString);  // 🔹 문자열을 다시 JSON으로 변환
+
+            String s3Url = bodyJson.path("body").path("s3_url").asText();
 
             if (s3Url == null || s3Url.isEmpty()) {
                 log.error("❌ Lambda 응답에서 `s3_url`을 찾을 수 없음: {}", responseJson);
