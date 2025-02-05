@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.service.lambda;
 
+import com.amazonaws.SdkClientException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.lambda.LambdaClient;
 import software.amazon.awssdk.services.lambda.model.InvokeRequest;
 import software.amazon.awssdk.services.lambda.model.InvokeResponse;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -54,9 +57,12 @@ public class LambdaService {
 
             log.info("✅ Lambda 호출 성공: {}", s3Url);
             return s3Url;
-        } catch (Exception e) {
-            log.error("❌ Lambda 호출 중 예외 발생", e);
-            throw new RuntimeException("Lambda 호출 실패", e);
+        } catch (IOException e) {
+            log.error("❌ JSON 파싱 오류 발생", e);
+            return null; // JSON 파싱 오류 시에도 예외를 던지지 않고 null 반환
+        } catch (SdkClientException e) {
+            log.error("❌ Lambda 호출 실패 (네트워크 또는 AWS 문제)", e);
+            return null; // AWS Lambda 호출 관련 예외 발생 시 null 반환
         }
     }
 }
