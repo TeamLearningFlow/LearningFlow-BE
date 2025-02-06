@@ -43,18 +43,18 @@ public class ResourceRestController {
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
     private final LambdaService lambdaService;
-    @GetMapping("/{episode-id}/youtube")
+    @GetMapping("/{episodeId}/youtube")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
     })
     public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchEpisode(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable("episode-id") Long episodeId) {
+            @PathVariable("episodeId") Long episodeId) {
 
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
@@ -65,18 +65,18 @@ public class ResourceRestController {
         return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));
     }
 
-    @GetMapping("/{episode-id}/blog")
+    @GetMapping("/{episodeId}/blog")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
     })
     public ApiResponse<ResourceResponseDTO.ResourceBlogUrlDTO> watchBlogEpisode (
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable("episode-id") Long episodeId) {
+            @PathVariable("episodeId") Long episodeId) {
 
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
@@ -88,15 +88,15 @@ public class ResourceRestController {
     }
 
     // Gzip으로 HTML을 반환하는 API
-    @GetMapping("{episode-id}/blog/content")
-    @Operation(summary = "blog HTML 반환 API", description = "/resources/{episode-id}/blog 호출 이후 호출하는 API")
+    @GetMapping("{episodeId}/blog/content")
+    @Operation(summary = "blog HTML 반환 API", description = "/resources/{episodeId}/blog 호출 이후 호출하는 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
     })
     @Parameters({
-            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
     })
-    public ApiResponse<String> getBlogEpisodeContent(@PathVariable("episode-id") Long episodeId,
+    public ApiResponse<String> getBlogEpisodeContent(@PathVariable("episodeId") Long episodeId,
                                         @RequestParam(defaultValue = "982") int width,
                                         @RequestParam(defaultValue = "552") int height) {
         /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
@@ -120,18 +120,18 @@ public class ResourceRestController {
         return ApiResponse.onSuccess(lambdaService.invokeLambda(resource.getUrl(), width, height, resource));
     }
 
-    @PostMapping("/{episode-id}/save-progress")
+    @PostMapping("/{episodeId}/save-progress")
     @Operation(summary = "강의 진도 저장 API", description = "강의 진도 저장 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-            @Parameter(name = "episode-id", description = "시청할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
     })
     public ApiResponse<ResourceResponseDTO.ProgressResponseDTO> saveProgress(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable("episode-id") Long episodeId,
+            @PathVariable("episodeId") Long episodeId,
             @Valid @RequestBody ResourceRequestDTO.ProgressRequestDTO request) {
         String loginId = principalDetails.getUser().getLoginId();
         resourceService.saveProgress(request, loginId, episodeId);
@@ -139,18 +139,18 @@ public class ResourceRestController {
         return ApiResponse.onSuccess(ResourceConverter.toSaveProgressResponse(request));
     }
 
-    @PostMapping("/{episode-id}/memo")
+    @PostMapping("/{episodeId}/memo")
     @Operation(summary = "강의 메모 생성 API", description = "강의 에피소드에 메모를 추가하는 API")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-            @Parameter(name = "episode-id", description = "메모를 추가할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "메모를 추가할 강의 에피소드 ID")
     })
     public ApiResponse<MemoResponseDTO.MemoInfoDTO> createMemo(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable("episode-id") Long episodeId,
+            @PathVariable("episodeId") Long episodeId,
             @Valid @RequestBody MemoRequestDTO.MemoJoinDTO request) {
         String loginId = principalDetails.getUser().getLoginId();
         log.info("로그인 상태 확인 {}", loginId);
