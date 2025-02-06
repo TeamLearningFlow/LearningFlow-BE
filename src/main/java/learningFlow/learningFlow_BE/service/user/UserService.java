@@ -175,7 +175,7 @@ public class UserService {
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> collectionService.getLearningInfo(collection, user)
+                        collection -> collectionService.getLearningInfo(collection, user, false)
                 ));
 
         return CollectionConverter.toSearchResultDTO(
@@ -215,9 +215,17 @@ public class UserService {
                 .filter(Objects::nonNull)
                 .toList();
 
+
         List<UserCollection> completedUserCollectionList
                 = userCollectionRepository.findByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.COMPLETED);
 
-        return UserConverter.convertToUserMyPageResponseDTO(recentlyWatchedEpisodeDTOList, completedUserCollectionList);
+        List<CollectionResponseDTO.CollectionPreviewDTO> completedCollectionList = completedUserCollectionList.stream()
+                .map(userCollection -> {
+                    CollectionResponseDTO.CollectionLearningInfo learningInfo = collectionService.getLearningInfo(userCollection.getCollection(), user, false);
+                    return CollectionConverter.toCollectionPreviewDTO(userCollection.getCollection(), learningInfo, user);
+                })
+                .toList();
+
+        return UserConverter.convertToUserMyPageResponseDTO(user, recentlyWatchedEpisodeDTOList, completedCollectionList);
     }
 }

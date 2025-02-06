@@ -45,7 +45,8 @@ public class CollectionResponseDTO {
         Integer progressRatePercentage;
         String progressRatio;
         String learningStatus;
-        LocalDate completedTime;
+        LocalDate startDate;
+        LocalDate completedDate;
     }
 
     @Getter
@@ -56,7 +57,8 @@ public class CollectionResponseDTO {
         String learningStatus;
         Integer progressRate;
         Integer currentEpisode;
-        LocalDate completedTime;
+        LocalDate startDate;
+        LocalDate completedDate;
         List<ResourceResponseDTO.SearchResultResourceDTO> resourceDTOList;
     }
 

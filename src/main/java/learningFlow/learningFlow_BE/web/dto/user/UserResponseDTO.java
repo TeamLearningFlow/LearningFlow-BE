@@ -49,7 +49,19 @@ public class UserResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UserMyPageResponseDTO {
+        UserPreviewDTO userPreviewDTO;
         List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeList;
-        List<CollectionResponseDTO.CompletedCollectionDTO> completedCollectionList;
+        List<CollectionResponseDTO.CollectionPreviewDTO> completedCollectionList;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserPreviewDTO {
+        String name;
+        String email;
+        String job;
+        String profileImgUrl;
     }
 }
