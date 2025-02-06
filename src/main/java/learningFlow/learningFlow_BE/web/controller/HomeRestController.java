@@ -22,81 +22,52 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/")
 @Slf4j
-@Tag(name = "Home", description = "홈 화면 API")
+@Tag(name = "Home", description = "홈 화면 보여주는 API")
 public class HomeRestController {
 
     private final CollectionService collectionService;
 
     @GetMapping
-    @Operation(summary = "홈 화면 조회", description = """
-           사용자 상태(로그인/비로그인)에 따른 홈 화면 정보를 제공합니다.
-           - 비로그인: 추천 컬렉션 목록
-           - 로그인: 최근 학습 컬렉션 + 맞춤 추천 컬렉션 목록
-           """)
+    @Operation(summary = "홈 화면 API", description = """
+            홈 화면 정보를 제공하는 API입니다.
+            
+            [비로그인 사용자]
+            - 인기 컬렉션 6개 제공
+            - 각 컬렉션당 처음 4개 리소스 미리보기
+            
+            [로그인 사용자]
+            1. 최근 학습 컬렉션
+               - 가장 최근 학습 중인 컬렉션
+               - 현재 진행률, 최근 리소스 정보
+               
+            2. 맞춤 추천 컬렉션 6개
+               - 관심분야/선호타입 기반 추천
+               - 추천 우선순위:
+                 a) 관심분야 + 선호타입 일치
+                 b) 관심분야만 일치
+                 c) 선호타입만 일치
+                 d) 인기순
+            """)
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공", content = {
-                    @Content(schema = @Schema(implementation = HomeResponse.class))
-            }),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "COMMON200",
+                    description = "OK, 성공"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "USER4001",
+                    description = "사용자를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            )
     })
-    public ApiResponse<?> getHome(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+    public ApiResponse<?> getHome(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
         if (principalDetails == null || principalDetails.getUser() == null) {
+            log.info("비회원");
             return ApiResponse.onSuccess(collectionService.getGuestHomeCollections());
-        }
-        return ApiResponse.onSuccess(collectionService.getUserHomeCollections(principalDetails.getUser()));
-    }
-
-    @Schema(name = "HomeResponse")
-    private class HomeResponse {
-        @Schema(name = "GuestHomeResponse")
-        private class GuestHomeResponse {
-            @Schema(description = "추천 컬렉션 목록")
-            List<CollectionPreview> recommendedCollections;
-        }
-
-        @Schema(name = "UserHomeResponse")
-        private class UserHomeResponse {
-            @Schema(description = "최근 학습 컬렉션")
-            CollectionPreview recentLearning;
-
-            @Schema(description = "추천 컬렉션 목록")
-            List<CollectionPreview> recommendedCollections;
-        }
-
-        @Schema(name = "CollectionPreview")
-        private class CollectionPreview {
-            @Schema(description = "컬렉션 ID", example = "1")
-            Long collectionId;
-
-            @Schema(description = "관심 분야", example = "DEVELOPMENT")
-            InterestField interestField;
-
-            @Schema(description = "제목", example = "스프링 부트 입문하기")
-            String title;
-
-            @Schema(description = "생성자", example = "김강사")
-            String creator;
-
-            @Schema(description = "키워드 목록", example = "[\"Spring\", \"Backend\"]")
-            List<String> keywords;
-
-            @Schema(description = "난이도 목록 (1:입문, 2:초급, 3:중급, 4:고급)", example = "[1, 2]")
-            List<Integer> difficulties;
-
-            @Schema(description = "텍스트 리소스 수", example = "5")
-            Integer textCount;
-
-            @Schema(description = "비디오 리소스 수", example = "3")
-            Integer videoCount;
-
-            @Schema(description = "좋아요 수", example = "128")
-            Integer likesCount;
-
-            @Schema(description = "학습 상태", example = "IN_PROGRESS")
-            String learningStatus;
-
-            @Schema(description = "학습 진행률", example = "65")
-            Integer progressRatePercentage;
+        } else {
+            log.info("회원");
+            return ApiResponse.onSuccess(collectionService.getUserHomeCollections(principalDetails.getUser()));
         }
     }
 }

@@ -39,23 +39,38 @@ import java.util.Optional;
 @Slf4j
 @Tag(name = "Resource", description = "Collection 내에 특정 resource 관련해서 기능하는 API")
 public class ResourceRestController {
+
     private final MemoCommandService memoCommandService;
     private final ResourceService resourceService;
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
     private final LambdaService lambdaService;
+
     @GetMapping("/{episodeId}/youtube")
-    @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
+    @Operation(summary = "강의 시청, 강좌로 이동 API", description = """
+           영상 리소스 조회 및 시청 처리 API입니다.
+           
+           [제공 정보]
+           - 컬렉션 정보: 제목, 관심분야
+           - 에피소드 정보: 영상 URL, 제목, 회차
+           - 학습 진도: 현재 진도율, 총 진도
+           - 작성된 메모 내용
+           
+           [처리 내용]
+           - 시청 기록 저장
+           - 컬렉션 진도 업데이트
+           - 최근 학습 내역 갱신
+           """)
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID", example = "1")
     })
     public ApiResponse<ResourceResponseDTO.ResourceUrlDTO> watchEpisode(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
-            @PathVariable("episodeId") Long episodeId) {
-
+            @PathVariable("episodeId") Long episodeId)
+    {
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
@@ -66,15 +81,31 @@ public class ResourceRestController {
     }
 
     @GetMapping("/{episodeId}/blog")
-    @Operation(summary = "강의 시청, 강좌로 이동 API", description = "강의 에피소드를 시청하기 위해 강좌로 이동하는 API, 그리고 강의를 시청 처리하는 로직도 포함")
+    @Operation(summary = "블로그 글 조회 API", description = """
+           텍스트(블로그) 리소스 조회 API입니다.
+           
+           [제공 정보]
+           - 컬렉션 정보: 제목, 관심분야
+           - 블로그 글 정보: 제목, 내용, 회차
+           - 학습 진도: 현재 스크롤 위치, 총 높이
+           - 작성된 메모 내용
+           
+           [처리 내용]
+           - 조회 기록 저장
+           - 컬렉션 진도 업데이트
+           - 최근 학습 내역 갱신
+           
+           [주의사항]
+           블로그 내용은 별도 API(/blog/content)를 통해 제공
+           """)
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
     })
     @Parameters({
-            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
+            @Parameter(name = "episodeId", description = "조회할 블로그 에피소드 ID", example = "1")
     })
-    public ApiResponse<ResourceResponseDTO.ResourceBlogUrlDTO> watchBlogEpisode (
+    public ApiResponse<ResourceResponseDTO.ResourceBlogUrlDTO> watchBlogEpisode(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable("episodeId") Long episodeId) {
 
@@ -89,16 +120,25 @@ public class ResourceRestController {
 
     // Gzip으로 HTML을 반환하는 API
     @GetMapping("{episodeId}/blog/content")
-    @Operation(summary = "blog HTML 반환 API", description = "/resources/{episodeId}/blog 호출 이후 호출하는 API")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공")
-    })
-    @Parameters({
-            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
-    })
-    public ApiResponse<String> getBlogEpisodeContent(@PathVariable("episodeId") Long episodeId,
-                                        @RequestParam(defaultValue = "982") int width,
-                                        @RequestParam(defaultValue = "552") int height) {
+    @Operation(summary = "blog HTML 반환 API", description = """
+           블로그 글의 HTML 컨텐츠를 반환하는 API입니다.
+           /resources/{episodeId}/blog 호출 이후 사용됩니다.
+           
+           [처리 내용]
+           - Lambda를 통한 블로그 크롤링
+           - HTML 컨텐츠 가공 및 반환
+           
+           [응답 형식]
+           - Gzip 압축된 HTML 문자열
+           
+           [파라미터]
+           - width: 컨텐츠 영역 너비 (기본값: 982)
+           - height: 컨텐츠 영역 높이 (기본값: 552)
+           """)
+    public ApiResponse<String> getBlogEpisodeContent(
+            @PathVariable("episodeId") Long episodeId,
+            @RequestParam(defaultValue = "982") int width,
+            @RequestParam(defaultValue = "552") int height) {
         /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -121,13 +161,23 @@ public class ResourceRestController {
     }
 
     @PostMapping("/{episodeId}/save-progress")
-    @Operation(summary = "강의 진도 저장 API", description = "강의 진도 저장 API")
+    @Operation(summary = "강의 진도 저장 API", description = """
+           리소스 학습 진도를 저장하는 API입니다.
+           
+           [입력 정보]
+           - resourceType: 리소스 유형 (VIDEO/TEXT)
+           - progress: 
+             * VIDEO: 재생 시간(초)
+             * TEXT: 스크롤 위치(px)
+           
+           [처리 내용]
+           - 진도율 계산 및 저장
+           - 컬렉션 전체 진도 업데이트
+           - 학습 완료 여부 확인
+           """)
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
-    })
-    @Parameters({
-            @Parameter(name = "episodeId", description = "시청할 강의 에피소드 ID")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다."),
     })
     public ApiResponse<ResourceResponseDTO.ProgressResponseDTO> saveProgress(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
@@ -140,14 +190,20 @@ public class ResourceRestController {
     }
 
     @PostMapping("/{episodeId}/memo")
-    @Operation(summary = "강의 메모 생성 API", description = "강의 에피소드에 메모를 추가하는 API")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다.", content = @Content(schema = @Schema(implementation = ApiResponse.class))),
-    })
-    @Parameters({
-            @Parameter(name = "episodeId", description = "메모를 추가할 강의 에피소드 ID")
-    })
+    @Operation(summary = "강의 메모 생성 API", description = """
+           리소스에 대한 메모를 작성하는 API입니다.
+           
+           [입력 정보]
+           - contents: 메모 내용 (필수)
+           
+           [처리 내용]
+           - 메모 저장
+           - 이전 메모가 있을 경우 덮어쓰기
+           - 메모 작성 시간 기록
+           
+           [응답 정보]
+           - 저장된 메모 내용
+           """)
     public ApiResponse<MemoResponseDTO.MemoInfoDTO> createMemo(
             @AuthenticationPrincipal PrincipalDetails principalDetails,
             @PathVariable("episodeId") Long episodeId,
