@@ -80,8 +80,8 @@ public class LoginController {
            
            [필수 입력]
            - 이름: 실명 또는 닉네임
-           - 직업: DEVELOPER, DESIGNER, PLANNER, MARKETER, STUDENT, OTHER
-           - 관심분야: 1-3개 선택 (DEVELOPMENT, DESIGN, PLANNING, MARKETING, DATA_SCIENCE)
+           - 직업: STUDENT, ADULT, EMPLOYEE, JOB_SEEKER, OTHER
+           - 관심분야: 다중선택 (APP_DEVELOPMENT, WEB_DEVELOPMENT, PROGRAMMING_LANGUAGE, DEEP_LEARNING, STATISTICS, DATA_ANALYSIS, UI_UX, PLANNING, BUSINESS_PRODUCTIVITY, FOREIGN_LANGUAGE, CAREER)
            - 선호 미디어: VIDEO, TEXT
            - 프로필 이미지 URL (이미지 업로드 API로 받은 URL)
            """)
@@ -151,7 +151,7 @@ public class LoginController {
            
            [필수 입력]
            - 직업
-           - 관심분야 (1-3개)
+           - 관심분야 (다중선택)
            - 선호 미디어 타입
            
            [선택 입력]
