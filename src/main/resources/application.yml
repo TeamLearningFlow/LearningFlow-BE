@@ -57,7 +57,7 @@ custom:
     refresh-token-validity-in-seconds: 604800 # Refresh Token 1주일
 
 app:
-  url: http://localhost:3000 #http://54.180.118.227:8080
+  frontend-url: http://localhost:3000 #http://54.180.118.227:8080
 
 
 server:

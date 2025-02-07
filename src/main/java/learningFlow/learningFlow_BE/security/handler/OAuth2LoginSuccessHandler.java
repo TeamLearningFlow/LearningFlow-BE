@@ -10,6 +10,7 @@ import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserTemp;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -26,6 +27,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Value("${app.frontend-url}")  // added
+    private String frontendUrl;     // added
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
@@ -34,7 +37,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // Principal 타입 확인, 첫 로그인인 경우 회원가입으로 이동
         if (authentication.getPrincipal() instanceof OAuth2UserTemp oAuth2UserTemp) {
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
-            String redirectUrl = "/oauth2/additional-info?token=" + temporaryToken;
+            String redirectUrl = frontendUrl + "/oauth2/additional-info?token=" + temporaryToken;
             response.sendRedirect(redirectUrl);
             return;
         }
