@@ -16,7 +16,7 @@ public class UserVerificationEmailService {
 
     private final JavaMailSender emailSender;
 
-    @Value("${app.url}")
+    @Value("${app.frontend-url}")
     private String baseUrl;
 
     public void sendVerificationEmail(String email, String token) {
