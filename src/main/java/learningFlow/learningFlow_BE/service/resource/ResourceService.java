@@ -3,7 +3,6 @@ package learningFlow.learningFlow_BE.service.resource;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.ResourceHandler;
 import learningFlow.learningFlow_BE.domain.*;
-import learningFlow.learningFlow_BE.domain.enums.ResourceType;
 import learningFlow.learningFlow_BE.repository.*;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,14 @@ public class ResourceService {
 
             Integer resourceQuantity = episode.getResource().getResourceQuantity();
             if (resourceQuantity == null) throw new ResourceHandler(ErrorStatus.QUANTITY_IS_NULL);
-            UserEpisodeProgress userEpisodeProgress = new UserEpisodeProgress(userEpisodeProgressId, episode.getEpisodeNumber(), 0, episode.getResource().getResourceQuantity(), episode.getResource().getType());
+            UserEpisodeProgress userEpisodeProgress = new UserEpisodeProgress(
+                    userEpisodeProgressId,
+                    episode.getEpisodeNumber(),
+                    0,
+                    episode.getResource().getResourceQuantity(),
+                    false,
+                    episode.getResource().getType()
+            );
 
             log.info("resourceType", episode.getResource().getType());
 
@@ -86,22 +92,27 @@ public class ResourceService {
             userCollection = new UserCollection();
             userCollection.setUserCollection(user, collection, episodeNumber);
         }
-        // 저장
-        userCollectionRepository.save(userCollection);
     }
     @Transactional
     public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
-        UserEpisodeProgressId progressId = new UserEpisodeProgressId(episodeId, userId);
-        UserEpisodeProgress progress = userEpisodeProgressRepository.findById(progressId)
+        UserEpisodeProgressId userEpisodeId = new UserEpisodeProgressId(episodeId, userId);
+        UserEpisodeProgress userEpisode = userEpisodeProgressRepository.findById(userEpisodeId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
+        // 만약 진도가 80이상인 경우 완료로 저장
+        Integer requestProgress = request.getProgress();
+        if (requestProgress >= 80) userEpisode.setIsComplete(true);
+        userEpisode.setCurrentProgress(requestProgress);
+    }
 
-        if (request.getResourceType() == ResourceType.VIDEO && request.getProgress() != null) {
-            progress.setCurrentProgress(request.getProgress());
-        } else if (request.getResourceType() == ResourceType.TEXT && request.getProgress() != null) {
-            progress.setCurrentProgress(request.getProgress());
-        } else {
-            throw new ResourceHandler(ErrorStatus._BAD_REQUEST);
-        }
-        userEpisodeProgressRepository.save(progress);
+    @Transactional
+    public Boolean changeEpisodeComplete(Long episodeId, String loginId){
+        UserEpisodeProgressId userEpisodeId = new UserEpisodeProgressId(episodeId, loginId);
+        UserEpisodeProgress userEpisodeProgress = userEpisodeProgressRepository.findById(userEpisodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
+        Boolean isComplete = userEpisodeProgress.getIsComplete();
+        if (isComplete.equals(true)) isComplete = userEpisodeProgress.setIsComplete(false);
+        else isComplete = userEpisodeProgress.setIsComplete(true);
+        userEpisodeProgress.setCurrentProgress(0);
+        return isComplete;
     }
 }

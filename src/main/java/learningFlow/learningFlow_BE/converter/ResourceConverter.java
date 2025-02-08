@@ -2,12 +2,10 @@ package learningFlow.learningFlow_BE.converter;
 
 import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.Collection;
-import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.domain.CollectionEpisode;
 import learningFlow.learningFlow_BE.domain.UserCollection;
-import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO;
 import java.util.*;
 
 public class ResourceConverter {
@@ -23,10 +21,15 @@ public class ResourceConverter {
                 .urlTitle(resource.getTitle())
                 .progress(userProgress.getCurrentProgress())
                 .memoContents(memoContents)
-                .episodeInformationList(episodeInformationList(collection))
+                .episodeInformationList(episodeInformationList(collection,userProgress))
                 .build();
     }
-    public static ResourceResponseDTO.ResourceBlogUrlDTO watchBlogEpisode(Collection collection, UserEpisodeProgress userProgress, String pageResource, String resourceTitle, Optional<Memo> memo){
+    public static ResourceResponseDTO.ResourceBlogUrlDTO watchBlogEpisode(
+            Collection collection,
+            UserEpisodeProgress userProgress,
+            String pageResource,
+            String resourceTitle,
+            Optional<Memo> memo){
         String memoContents = "작성하신 글의 첫 줄은 노트의 제목이 됩니다, 최대 2,000자까지 입력하실 수 있어요";
         if (memo.isPresent())
             memoContents = memo.get().getContents();
@@ -38,17 +41,20 @@ public class ResourceConverter {
                 .urlTitle(resourceTitle)
                 .progress(userProgress.getCurrentProgress())
                 .memoContents(memoContents)
-                .episodeInformationList(episodeInformationList(collection))
+                .episodeInformationList(episodeInformationList(collection, userProgress))
                 .build();
     }
 
-    public static List<ResourceResponseDTO.episodeInformation> episodeInformationList(Collection collection) {
+    public static List<ResourceResponseDTO.episodeInformation> episodeInformationList(
+            Collection collection, UserEpisodeProgress userEpisodeProgress
+    ) {
         List<ResourceResponseDTO.episodeInformation> episodeInformationList = new ArrayList<>();
 
         for (CollectionEpisode episode : collection.getEpisodes()) {
             episodeInformationList.add(new ResourceResponseDTO.episodeInformation(
                     episode.getEpisodeNumber(),
-                    episode.getResource().getTitle()
+                    episode.getResource().getTitle(),
+                    userEpisodeProgress.getIsComplete()
             ));
         }
         episodeInformationList.sort(Comparator.comparingInt(ResourceResponseDTO.episodeInformation::getEpisodeNumber));
@@ -59,6 +65,12 @@ public class ResourceConverter {
         return ResourceResponseDTO.ProgressResponseDTO.builder()
                 .progress(request.getProgress())
                 .resourceType(request.getResourceType())
+                .build();
+    }
+
+    public static ResourceResponseDTO.changeEpisodeIsCompleteDTO toChangeEpisodeIsCompleteDTO(Boolean isComplete){
+        return ResourceResponseDTO.changeEpisodeIsCompleteDTO.builder()
+                .isComplete(isComplete)
                 .build();
     }
 

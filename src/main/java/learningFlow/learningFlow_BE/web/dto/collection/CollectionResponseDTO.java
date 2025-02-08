@@ -1,5 +1,8 @@
 package learningFlow.learningFlow_BE.web.dto.collection;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
 import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import lombok.AllArgsConstructor;
@@ -45,7 +48,10 @@ public class CollectionResponseDTO {
         Integer progressRatePercentage;
         String progressRatio;
         String learningStatus;
+
+        @JsonSerialize(using = LocalDateSerializer.class)
         LocalDate startDate;
+        @JsonSerialize(using = LocalDateSerializer.class)
         LocalDate completedDate;
     }
 

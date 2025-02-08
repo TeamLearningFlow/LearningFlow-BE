@@ -51,6 +51,7 @@ public class ResourceResponseDTO {
     public static class episodeInformation {
         Integer episodeNumber;
         String urlTitle;
+        Boolean isCompleted;
     }
 
     @Getter
@@ -88,5 +89,13 @@ public class ResourceResponseDTO {
         String progressRatio;
         Integer currentProgress;
         Integer totalProgress;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class changeEpisodeIsCompleteDTO {
+        Boolean isComplete;
     }
 }

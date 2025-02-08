@@ -31,6 +31,8 @@ public class QUserEpisodeProgress extends EntityPathBase<UserEpisodeProgress> {
 
     public final NumberPath<Integer> episodeNumber = createNumber("episodeNumber", Integer.class);
 
+    public final BooleanPath isComplete = createBoolean("isComplete");
+
     public final EnumPath<learningFlow.learningFlow_BE.domain.enums.ResourceType> resourceType = createEnum("resourceType", learningFlow.learningFlow_BE.domain.enums.ResourceType.class);
 
     public final NumberPath<Integer> totalProgress = createNumber("totalProgress", Integer.class);
