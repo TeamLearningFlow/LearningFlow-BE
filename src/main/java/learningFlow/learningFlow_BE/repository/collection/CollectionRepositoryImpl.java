@@ -1,8 +1,8 @@
 package learningFlow.learningFlow_BE.repository.collection;
 
-import com.querydsl.core.types.ExpressionUtils;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.CollectionHandler;
@@ -66,7 +66,7 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
     }
 
     private BooleanExpression createSearchConditions(SearchRequestDTO.SearchConditionDTO condition) {
-        return (BooleanExpression) ExpressionUtils.allOf(
+        return Expressions.allOf(
                 createDynamicKeyword(condition.getKeyword()),
                 createDynamicInterestFields(condition.getInterestFields()),
                 createDynamicPreferMediaType(condition.getPreferMediaType()),
