@@ -24,7 +24,6 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: "http://onboarding.p-e.kr:8080/login/oauth2/code/google"
             client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
             client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
             scope:
@@ -58,7 +57,6 @@ custom:
 
 app:
   frontend-url: http://localhost:3000 #http://54.180.118.227:8080
-
 
 server:
   port: 8080
