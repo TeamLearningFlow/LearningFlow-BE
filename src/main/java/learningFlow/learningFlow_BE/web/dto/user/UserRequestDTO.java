@@ -59,6 +59,10 @@ public class UserRequestDTO {
 
     @Getter
     public static class AdditionalInfoDTO {
+
+        @NotBlank(message = "이름은 필수 입력값입니다")
+        String name;
+
         @NotNull(message = "직업은 필수 선택값입니다")
         Job job;
 

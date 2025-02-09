@@ -150,15 +150,16 @@ public class LoginController {
            OAuth2 회원가입의 추가 정보를 입력받습니다.
            
            [필수 입력]
-           - 직업
-           - 관심분야 (다중선택)
-           - 선호 미디어 타입
+           - 이름: 실명 또는 닉네임
+           - 직업: STUDENT, ADULT, EMPLOYEE, JOB_SEEKER, OTHER
+           - 관심분야: 다중선택 (APP_DEVELOPMENT, WEB_DEVELOPMENT, PROGRAMMING_LANGUAGE, DEEP_LEARNING, STATISTICS, DATA_ANALYSIS, UI_UX, PLANNING, BUSINESS_PRODUCTIVITY, FOREIGN_LANGUAGE, CAREER)
+           - 선호 미디어: VIDEO, TEXT
            
            [선택 입력]
            - 프로필 이미지 URL
            
            [주의사항]
-           - 이메일/이름은 구글 계정 정보 사용
+           - 이메일은 구글 계정 정보 사용
            - 이미지 미입력시 기본 이미지 사용
            """)
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
