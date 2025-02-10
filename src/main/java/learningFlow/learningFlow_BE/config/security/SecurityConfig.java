@@ -53,7 +53,8 @@ public class SecurityConfig {
                                 "/search/**",
                                 "/",
                                 "/collections/{collectionId:[\\d]+}",
-                                 "/image/upload" //이미지 업로드는 허용
+                                "/image/upload", //이미지 업로드는 허용
+                                "/favicon.ico"
                         ).permitAll()
                         .requestMatchers(
                                 "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
@@ -105,7 +106,11 @@ public class SecurityConfig {
                 "Authorization",
                 "Refresh-Token",
                 "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
+                "Access-Control-Allow-Credentials",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With"
         ));
         configuration.setMaxAge(86400L);
 
