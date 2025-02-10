@@ -28,10 +28,13 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
     private final QCollection collection = QCollection.collection;
 
     @Override
-    public List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Long lastId, Pageable pageable) {
+    public List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Pageable pageable) {
+
+        int skip = pageable.getPageNumber() * pageable.getPageSize();
 
         BooleanExpression searchConditions = createSearchConditions(condition);
 
+/*
         if (lastId == 0L) {
             return jpaQueryFactory
                     .select(episode.collection)
@@ -53,6 +56,16 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
         }
 
         return searchNextPage(condition, lastCollection, pageable);
+*/
+        return jpaQueryFactory
+                .select(episode.collection)
+                .from(episode)
+                .where(searchConditions)
+                .groupBy(episode.collection.id)
+                .orderBy(createOrderSpecifier(condition.getSortType()))
+                .offset(skip)  // ✅ added: 시작 위치 설정
+                .limit(pageable.getPageSize())
+                .fetch();
     }
 
     private OrderSpecifier<?>[] createOrderSpecifier(Integer sortType) {  // 반환 타입을 배열로 변경
@@ -84,21 +97,6 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
                 .where(createSearchConditions(condition))
                 .fetchOne();
         return count != null ? count.intValue() : 0;
-    }
-
-    @Override
-    public List<Collection> searchNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection, Pageable pageable) {
-        BooleanExpression searchConditions = createSearchConditions(condition);
-        BooleanExpression cursorCondition = createCursorCondition(condition.getSortType(), lastCollection);
-
-        return jpaQueryFactory
-                .select(episode.collection)
-                .from(episode)
-                .where(searchConditions, cursorCondition)
-                .groupBy(episode.collection.id)
-                .orderBy(createOrderSpecifier(condition.getSortType()))
-                .limit(pageable.getPageSize())
-                .fetch();
     }
 
     private BooleanExpression createCursorCondition(Integer sortType, Collection lastCollection) {
