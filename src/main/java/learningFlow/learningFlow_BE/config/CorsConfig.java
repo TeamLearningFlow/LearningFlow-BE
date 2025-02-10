@@ -1,3 +1,4 @@
+/*
 package learningFlow.learningFlow_BE.config;
 
 //Spring Security까지 CORS 적용 목적
@@ -41,3 +42,4 @@ public class CorsConfig {
         return new CorsFilter(source);
     }
 }
+*/
