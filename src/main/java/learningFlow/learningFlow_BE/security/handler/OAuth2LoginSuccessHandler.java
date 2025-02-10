@@ -63,6 +63,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("Authorization Header: {}", response.getHeader("Authorization"));
         log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
 
+        response.addHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
+
 /*
         UserResponseDTO.UserLoginResponseDTO loginResponse =
                 toUserLoginResponseDTO(principalDetails.getUser());
