@@ -1,3 +1,4 @@
+/*
 package learningFlow.learningFlow_BE.config;
 
 import org.springframework.context.annotation.Configuration;
@@ -25,3 +26,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .maxAge(86400L);
     }
 }
+*/
