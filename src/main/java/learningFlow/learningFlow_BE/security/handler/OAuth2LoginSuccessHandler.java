@@ -63,6 +63,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("Authorization Header: {}", response.getHeader("Authorization"));
         log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
 
+        // ✅ 임시: Access-Control-Allow-Origin 헤더 명시적 추가
+        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); // 개발 환경
+        // response.setHeader("Access-Control-Allow-Origin", "http://your-frontend-domain.com"); // 배포 환경
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+
+
 /*
         UserResponseDTO.UserLoginResponseDTO loginResponse =
                 toUserLoginResponseDTO(principalDetails.getUser());
