@@ -9,9 +9,8 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface CollectionRepositoryCustom {
-    List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Long lastId, Pageable pageable);
+    List<Collection> searchCollections(SearchRequestDTO.SearchConditionDTO condition, Pageable pageable);
     Integer getTotalCount(SearchRequestDTO.SearchConditionDTO condition);
-    List<Collection> searchNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection, Pageable pageable);
     Integer getCountGreaterThanBookmark(Integer bookmarkCount, Long lastId, SearchRequestDTO.SearchConditionDTO condition);
     List<Collection> findTopBookmarkedCollections(int limit);
     List<Collection> findByInterestFieldAndPreferType(List<InterestField> interestFields,

@@ -68,22 +68,23 @@ public class CollectionService {
                 .toList();
     }
 
-    public CollectionResponseDTO.SearchResultDTO search(SearchRequestDTO.SearchConditionDTO condition, Long lastId, PrincipalDetails principalDetails) {
+    public CollectionResponseDTO.SearchResultDTO search(SearchRequestDTO.SearchConditionDTO condition, Integer page, PrincipalDetails principalDetails) {
 
         Authentication authentication = (principalDetails != null) ? SecurityContextHolder.getContext().getAuthentication() : null;
 
-        PageRequest pageRequest = PageRequest.of(0, PAGE_SIZE);
-        List<Collection> collections = collectionRepository.searchCollections(condition, lastId, pageRequest);
+        PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE);
+        List<Collection> collections = collectionRepository.searchCollections(condition, pageRequest);
 
         if (collections.isEmpty()) {
-            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, null, null);
+            return CollectionConverter.toSearchResultDTO(collections, false, 0, 0, null, null, 0);
         }
 
         Collection lastCollection = collections.getLast();
-        boolean hasNext = hasNextPage(condition, lastCollection);
 
         Integer totalCount = collectionRepository.getTotalCount(condition);
+
         int totalPages = (int) Math.ceil((double) totalCount / PAGE_SIZE);
+        boolean hasNext = page < totalPages;
 
         int currentPage = calculateCurrentPage(condition, lastCollection);
 
@@ -102,12 +103,12 @@ public class CollectionService {
 
         return CollectionConverter.toSearchResultDTO(
                 collections,
-                lastCollection.getId(),
                 hasNext,
                 totalPages,
                 currentPage,
                 currentUser,
-                learningInfoMap
+                learningInfoMap,
+                totalCount
         );
     }
 
@@ -289,9 +290,5 @@ public class CollectionService {
 
     private int calculateCurrentPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection) {
         return collectionRepository.getCountGreaterThanBookmark(lastCollection.getBookmarkCount(),lastCollection.getId(), condition) / PAGE_SIZE + 1;
-    }
-
-    private boolean hasNextPage(SearchRequestDTO.SearchConditionDTO condition, Collection lastCollection) {
-        return !collectionRepository.searchNextPage(condition, lastCollection, PageRequest.of(0, 1)).isEmpty();
     }
 }
