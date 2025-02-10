@@ -53,11 +53,10 @@ public class SecurityConfig {
                                 "/search/**",
                                 "/",
                                 "/collections/{collectionId:[\\d]+}",
-                                "/image/upload", //이미지 업로드는 허용
-                                "/favicon.ico"
+                                "/image/upload" //이미지 업로드는 허용
                         ).permitAll()
                         .requestMatchers(
-                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
+                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId:[\\d]+}/likes", "/logout/**").authenticated()
                         .anyRequest().permitAll()
@@ -73,7 +72,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(authenticationEntryPoint));
-
         return http.build();
     }
 
