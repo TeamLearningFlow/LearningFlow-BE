@@ -11,6 +11,7 @@ import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -62,6 +63,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("Authorization Header: {}", response.getHeader("Authorization"));
         log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
 
+/*
         UserResponseDTO.UserLoginResponseDTO loginResponse =
                 toUserLoginResponseDTO(principalDetails.getUser());
 
@@ -69,5 +71,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.setCharacterEncoding("UTF-8");
         String jsonResponse = new ObjectMapper().writeValueAsString(ApiResponse.onSuccess(loginResponse));
         response.getWriter().write(jsonResponse);
+*/
+        response.setStatus(HttpStatus.OK.value());
     }
 }
