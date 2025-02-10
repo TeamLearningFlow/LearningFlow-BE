@@ -47,12 +47,12 @@ public class CollectionConverter {
 
     public static CollectionResponseDTO.SearchResultDTO toSearchResultDTO(
             List<Collection> collections,
-            Long lastId,
             boolean hasNext,
             int totalPages,
             int currentPage,
             User currentUser,
-            Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap
+            Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap,
+            int totalCount
     ) {
         List<CollectionResponseDTO.CollectionPreviewDTO> list = collections.stream()
                 .map(collection -> toCollectionPreviewDTO(
@@ -63,10 +63,10 @@ public class CollectionConverter {
 
         return CollectionResponseDTO.SearchResultDTO.builder()
                 .searchResults(list)
-                .lastId(lastId)
                 .hasNext(hasNext)
                 .currentPage(currentPage)
                 .totalPages(totalPages)
+                .totalCount(totalCount)
                 .build();
     }
 

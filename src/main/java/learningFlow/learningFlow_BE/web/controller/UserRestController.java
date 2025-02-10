@@ -202,9 +202,7 @@ public class UserRestController {
               - 본인의 좋아요 상태
            
            [페이지네이션]
-           - 무한 스크롤 방식
-           - lastId: 마지막으로 조회된 컬렉션 ID
-           - 첫 페이지는 lastId=0
+           - 커서 기반 페이징
            - 한 페이지당 8개 조회
            - 좋아요 시간 기준 내림차순 정렬
            """)
@@ -213,14 +211,14 @@ public class UserRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.")
     })
     @Parameters({
-            @Parameter(name = "lastId", description = "마지막으로 조회된 컬렉션 ID (첫 페이지: 0)", example = "0")
+            @Parameter(name = "page", description = "페이지 번호 (1부터 시작)")
     })
     public ApiResponse<CollectionResponseDTO.SearchResultDTO> getBookmarkedCollections(
-            @RequestParam(required = false, defaultValue = "0") Long lastId,
+            @RequestParam(required = false, defaultValue = "1") Integer page,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(
-                userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), lastId)
+                userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), page)
         );
     }
 }
