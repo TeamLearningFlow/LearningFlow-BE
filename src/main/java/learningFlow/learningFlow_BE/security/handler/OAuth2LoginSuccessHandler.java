@@ -53,17 +53,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         //Access Token 생성
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         log.info("Access 토큰 발급 : {}", accessToken);
-        response.addHeader("Authorization", "Bearer " + accessToken);
+        response.setHeader("Authorization", "Bearer " + accessToken);
 
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
         log.info("자동 로그인 활성화, Refresh Token 발급 : {}", refreshToken);
-        response.addHeader("Refresh-Token", refreshToken);
+        response.setHeader("Refresh-Token", refreshToken);
 
         // 헤더 설정 확인 로깅
         log.info("Authorization Header: {}", response.getHeader("Authorization"));
         log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
 
-        response.addHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
 
 /*
         UserResponseDTO.UserLoginResponseDTO loginResponse =
