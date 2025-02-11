@@ -20,7 +20,10 @@ import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -120,8 +123,16 @@ public class LoginController {
      */
     @GetMapping("/login/google")
     @Operation(summary = "구글 로그인 리다이렉트", description = "구글 로그인 페이지로 리다이렉트하는 API\n"+"리다이렉트해야하므로 swagger에서는 테스트 불가!")
-    public void googleLogin(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/oauth2/authorization/google");
+    public ResponseEntity<String> googleLogin(HttpServletResponse response) throws IOException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccessControlAllowOrigin("*");
+        headers.setAccessControlAllowCredentials(true);
+        headers.set("Location", "/oauth2/authorization/google");
+
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+
+//        response.sendRedirect("/oauth2/authorization/google");
     }
 
     /**
