@@ -123,16 +123,8 @@ public class LoginController {
      */
     @GetMapping("/login/google")
     @Operation(summary = "구글 로그인 리다이렉트", description = "구글 로그인 페이지로 리다이렉트하는 API\n"+"리다이렉트해야하므로 swagger에서는 테스트 불가!")
-    public ResponseEntity<String> googleLogin(HttpServletResponse response) throws IOException {
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccessControlAllowOrigin("*");
-        headers.setAccessControlAllowCredentials(true);
-        headers.set("Location", "/oauth2/authorization/google");
-
-        return new ResponseEntity<>(headers, HttpStatus.FOUND);
-
-//        response.sendRedirect("/oauth2/authorization/google");
+    public void googleLogin(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/oauth2/authorization/google");
     }
 
     /**
