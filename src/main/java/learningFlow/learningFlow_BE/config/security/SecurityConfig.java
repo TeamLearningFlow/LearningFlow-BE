@@ -54,10 +54,14 @@ public class SecurityConfig {
                                 "/",
                                 "/collections/{collectionId:[\\d]+}",
                                 "/image/upload", //이미지 업로드는 허용
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/register",
+                                "/register/complete",
+                                "/login",
+                                "/login/google",
+                                "/oauth2/**",
+                                "/login/oauth2/**"
                         ).permitAll()
-                        .requestMatchers(
-                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId:[\\d]+}/likes", "/logout/**").authenticated()
                         .anyRequest().permitAll()
