@@ -226,7 +226,6 @@ public class CollectionService {
         CollectionResponseDTO.CollectionPreviewDTO recentLearning = getRecentLearning(user);
 
         // 추천 컬렉션 목록 조회
-
         // 1. interestField와 preferType 모두 충족
         List<Collection> recommendedCollections = new ArrayList<>(collectionRepository.findByInterestFieldAndPreferType(
                 user.getInterestFields(), user.getPreferType(), true, true, HOME_COLLECTION_SIZE
@@ -279,7 +278,7 @@ public class CollectionService {
 
     private CollectionResponseDTO.CollectionPreviewDTO getRecentLearning(User user) {
         return userCollectionRepository
-                .findFirstByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS)
+                .findFirstByUserAndStatusOrderByUpdatedAtDesc(user, UserCollectionStatus.IN_PROGRESS)
                 .map(userCollection -> CollectionConverter.toCollectionPreviewDTO(
                         userCollection.getCollection(),
                         getLearningInfo(userCollection.getCollection(), user, false),
