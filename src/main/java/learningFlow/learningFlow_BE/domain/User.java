@@ -124,6 +124,10 @@ public class User extends BaseEntity {
         this.pw = newEncodedPassword;
     }
 
+    public void changeEmail(String newEmail) {
+        this.email = newEmail;
+    }
+
     public void updateName(String name) {
         this.name = name;
     }
