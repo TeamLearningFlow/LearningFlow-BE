@@ -82,6 +82,7 @@ public class CollectionConverter {
 
         return CollectionResponseDTO.CollectionPreviewDTO.builder()
                 .collectionId(collection.getId())
+                .imageUrl(collection.getCollectionImgUrl())
                 .interestField(collection.getInterestField())
                 .title(collection.getTitle())
                 .creator(collection.getCreator())
