@@ -107,7 +107,7 @@ public class LocalUserAuthService {
             UserRequestDTO.CompleteRegisterDTO requestDTO,
             HttpServletResponse response
     ) {
-        String imageUrl = null;
+//        String profileImgUrl = null;
         //이메일 토큰 검증
         EmailVerificationToken verificationToken = validateRegistrationToken(token);
 
@@ -135,7 +135,7 @@ public class LocalUserAuthService {
                 .preferType(requestDTO.getPreferType())
                 .socialType(SocialType.LOCAL)
                 .role(Role.USER)
-                .profileImgUrl(imageUrl)
+                .profileImgUrl(requestDTO.getImgProfileUrl())
                 .inactive(false)
                 .build();
 
