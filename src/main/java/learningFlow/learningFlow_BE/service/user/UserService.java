@@ -66,8 +66,12 @@ public class UserService {
 //        }
 
         // 각 필드가 null이 아닌 경우에만 업데이트
-        if(updateUserDTO.getImgUrl() != null){
-            user.updateImage(updateUserDTO.getImgUrl());
+        if(updateUserDTO.getImgProfileUrl() != null){
+            user.updateImage(updateUserDTO.getImgProfileUrl());
+        }
+
+        if(updateUserDTO.getImgBannerUrl() != null){
+            user.updateImage(updateUserDTO.getImgBannerUrl());
         }
 
         if (updateUserDTO.getName() != null) {
@@ -131,46 +135,52 @@ public class UserService {
         return new BookmarkDTO.BookmarkResponseDTO(!isCurrentlyBookmarked);
     }
 
-    public CollectionResponseDTO.SearchResultDTO getBookmarkedCollections(String loginId, Long lastId) {
+    public CollectionResponseDTO.SearchResultDTO getBookmarkedCollections(String loginId, Integer page) {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // 북마크된 컬렉션 ID 목록 가져오기
         List<Long> bookmarkedIds = user.getBookmarkedCollectionIds();
+        int totalCount = bookmarkedIds.size();
 
-        if (bookmarkedIds.isEmpty()) {
-            return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user, new HashMap<>());
-        }
-
-        // lastId 이후의 컬렉션만 필터링
-        List<Collection> collections;
-        if (lastId == 0) {
-            collections = collectionRepository.findByIdIn(
-                    bookmarkedIds.stream()
-                            .limit(BOOKMARK_PAGE_SIZE)
-                            .toList()
-            );
-        } else {
-            int startIndex = bookmarkedIds.indexOf(lastId) + 1;
-            if (startIndex == 0 || startIndex >= bookmarkedIds.size()) {
-                return CollectionConverter.toSearchResultDTO(new ArrayList<>(), null, false, 0, 0, user, new HashMap<>());
-            }
-            collections = collectionRepository.findByIdIn(
-                    bookmarkedIds.stream()
-                            .skip(startIndex)
-                            .limit(BOOKMARK_PAGE_SIZE)
-                            .toList()
+        // 북마크가 없는 경우
+        if (totalCount == 0) {
+            return CollectionConverter.toSearchResultDTO(
+                    new ArrayList<>(),
+                    false,
+                    0,
+                    page,
+                    user,
+                    new HashMap<>(),
+                    0
             );
         }
+
+        int totalPages = (int) Math.ceil((double) totalCount / BOOKMARK_PAGE_SIZE);
+
+        // 페이지가 범위를 벗어나면 마지막 페이지 데이터 반환
+        if (page > totalPages) {
+            page = totalPages;
+        }
+
+        int startIndex = (page - 1) * BOOKMARK_PAGE_SIZE;
+        int endIndex = Math.min(startIndex + BOOKMARK_PAGE_SIZE, totalCount);
+
+        List<Long> pageBookmarkIds = bookmarkedIds.subList(startIndex, endIndex);
+        List<Collection> collections = collectionRepository.findByIdIn(pageBookmarkIds);
 
         if (collections.isEmpty()) {
-            return CollectionConverter.toSearchResultDTO(collections, null, false, 0, 0, user, new HashMap<>());
+            return CollectionConverter.toSearchResultDTO(
+                    collections,
+                    false,
+                    totalPages,
+                    page,
+                    user,
+                    new HashMap<>(),
+                    totalCount
+            );
         }
-        Long lastCollectionId = collections.getLast().getId();
-        boolean hasNext = (bookmarkedIds.indexOf(lastCollectionId) + 1) < bookmarkedIds.size();
 
-        int totalPages = (int) Math.ceil((double) bookmarkedIds.size() / BOOKMARK_PAGE_SIZE);
-        int currentPage = (lastId == 0) ? 1 : (bookmarkedIds.indexOf(lastId) / BOOKMARK_PAGE_SIZE) + 2;
+        boolean hasNext = page < totalPages;
 
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
                 .collect(Collectors.toMap(
@@ -180,12 +190,12 @@ public class UserService {
 
         return CollectionConverter.toSearchResultDTO(
                 collections,
-                lastCollectionId,
                 hasNext,
                 totalPages,
-                currentPage,
+                page,
                 user,
-                learningInfoMap
+                learningInfoMap,
+                totalCount
         );
     }
 

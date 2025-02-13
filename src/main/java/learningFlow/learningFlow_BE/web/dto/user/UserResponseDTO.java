@@ -23,9 +23,9 @@ public class UserResponseDTO {
         String email;
         Job job;
         List<InterestField> interestFields;
-        LocalDate birthDay;
         MediaType preferType;
         String profileImgUrl;
+        String bannerImgUrl;
         /**
          * 어떤 필드들을 사용자 정보 조회 시에 보여줘야 할지 아직 안정해서 비워두었습니다.
          */
@@ -42,6 +42,7 @@ public class UserResponseDTO {
         String name;
         Role role;
         SocialType socialType;
+        String profileImgUrl;
     }
 
     @Getter
@@ -63,5 +64,6 @@ public class UserResponseDTO {
         String email;
         String job;
         String profileImgUrl;
+        String bannerImgUrl;
     }
 }

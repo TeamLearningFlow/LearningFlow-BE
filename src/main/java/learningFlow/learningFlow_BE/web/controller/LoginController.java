@@ -20,7 +20,10 @@ import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,9 +71,9 @@ public class LoginController {
            3. 추가 정보 입력 페이지로 이동
            """)
     public ApiResponse<String> goCompleteRegister(
-            @RequestParam String token
+            @RequestParam String emailVerificationCode
     ) {
-        localUserAuthService.validateRegistrationToken(token);
+        localUserAuthService.validateRegistrationToken(emailVerificationCode);
         return ApiResponse.onSuccess("토큰이 유효. 추가 정보를 입력해주세요.");
     }
 
@@ -86,11 +89,11 @@ public class LoginController {
            - 프로필 이미지 URL (이미지 업로드 API로 받은 URL)
            """)
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
-            @RequestParam String token,
+            @RequestParam String emailVerificationCode,
             @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request, // ✅ JSON 데이터 - application/json
             HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, response));
+        return ApiResponse.onSuccess(localUserAuthService.completeRegister(emailVerificationCode, request, response));
     }
 
     @PostMapping("/login")
@@ -150,23 +153,24 @@ public class LoginController {
            OAuth2 회원가입의 추가 정보를 입력받습니다.
            
            [필수 입력]
-           - 직업
-           - 관심분야 (다중선택)
-           - 선호 미디어 타입
+           - 이름: 실명 또는 닉네임
+           - 직업: STUDENT, ADULT, EMPLOYEE, JOB_SEEKER, OTHER
+           - 관심분야: 다중선택 (APP_DEVELOPMENT, WEB_DEVELOPMENT, PROGRAMMING_LANGUAGE, DEEP_LEARNING, STATISTICS, DATA_ANALYSIS, UI_UX, PLANNING, BUSINESS_PRODUCTIVITY, FOREIGN_LANGUAGE, CAREER)
+           - 선호 미디어: VIDEO, TEXT
            
            [선택 입력]
            - 프로필 이미지 URL
            
            [주의사항]
-           - 이메일/이름은 구글 계정 정보 사용
+           - 이메일은 구글 계정 정보 사용
            - 이미지 미입력시 기본 이미지 사용
            """)
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
-            @RequestParam String token,
+            @RequestParam String oauth2RegistrationCode,
             @RequestBody @Valid UserRequestDTO.AdditionalInfoDTO request, // ✅ JSON 데이터 - application/json
             HttpServletResponse response) {
         log.info("put info");
-        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, response));
+        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(oauth2RegistrationCode, request, response));
     }
     //TODO: 해당 DTO에 안 맞으면 500에러 나는데, 400에러이고 왜 회원가입 안되는 건지 구체적인 에러 작성 필요.
 
@@ -184,57 +188,6 @@ public class LoginController {
         return ApiResponse.onSuccess(localUserAuthService.logout(request, response));
     }
 
-    @PostMapping("/send/change-password")
-    @Operation(summary = "비밀번호 재설정 요청 API", description = """
-           비밀번호 변경을 위한 인증 메일을 발송합니다.
-           
-           [처리 과정]
-           1. 로그인 사용자 확인
-           2. 인증 토큰 생성 (30분 유효)
-           3. 이메일 발송
-           """)
-    public ApiResponse<String> sendPasswordResetEmail(
-            @AuthenticationPrincipal PrincipalDetails principalDetails
-    ) {
-        return ApiResponse.onSuccess(localUserAuthService.sendPasswordResetEmail(principalDetails));
-    }
-
-    @GetMapping("/change-password")
-    @Operation(summary = "비밀번호 재설정 요청 API", description = """
-           비밀번호 변경 링크의 토큰을 검증합니다.
-           
-           [검증 항목]
-           - 토큰 유효성
-           - 만료 여부 (30분)
-           - 사용자 매칭
-           """)
-    public ApiResponse<String> goChangePassword(
-            @RequestParam String token
-    ) {
-        localUserAuthService.validatePasswordResetToken(token);
-        return ApiResponse.onSuccess("토큰이 유효합니다. 새로운 비밀번호를 입력해주세요.");
-    }
-
-    @PostMapping("/change-password")
-    @Operation(summary = "비밀번호 재설정 API", description = """
-           새 비밀번호로 변경합니다.
-           
-           [비밀번호 요구사항]
-           - 8-16자
-           - 영문 대/소문자 각 1개 이상
-           - 숫자 1개 이상
-           - 특수문자 1개 이상 (@$!%*?&)
-           
-           [보안 처리]
-           - 이전 비밀번호 재사용 불가
-           - 변경 시 모든 기기 로그아웃
-           """)
-    public ApiResponse<String> changePassword(
-            @RequestParam String token,
-            @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request
-    ) {
-        return ApiResponse.onSuccess(localUserAuthService.resetPassword(token, request));
-    }
 
 /*
    //일단은 사용X

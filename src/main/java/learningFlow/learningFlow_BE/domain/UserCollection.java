@@ -31,7 +31,7 @@ public class UserCollection extends BaseEntity{
     private User user;
 
     @Column(name = "user_collection_status", nullable = false)
-    private Integer userCollectionStatus;
+    private Integer userCollectionStatus; // 가장 최신에 수강한 강의 저장
 
     @Column(name = "completed_time", nullable = false)
     private LocalDate completedTime;

@@ -21,8 +21,23 @@ public enum ErrorStatus implements BaseErrorCode {
 
 
     // 멤버 관려 에러
+    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
+    EMAIL_VERIFICATION_IN_PROGRESS(HttpStatus.BAD_REQUEST, "EMAIL4002", "이미 진행 중인 이메일 인증이 있습니다. 이메일을 확인해주세요."),
+    EMAIL_CHANGE_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "EMAIL4004", "기존과 동일한 이메일로는 변경하실 수 없습니다."),
+    GOOGLE_USER_CANNOT_CHANGE_EMAIL(HttpStatus.BAD_REQUEST,"EMAIL4005","구글 로그인 유저는 이메일 변경을 하실 수 없습니다."),
+    EMAIL_CODE_INVALID(HttpStatus.BAD_REQUEST, "EMAIL4006", "유효하지 않은 이메일 인증 코드입니다."),
+    EMAIL_CODE_EXPIRED(HttpStatus.BAD_REQUEST,"EMAIL4007","만료된 이메일 인증 코드입니다. 이메일 인증을 다시 요청해주세요."),
+
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "사용자를 찾을 수 없습니다."),
     NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "닉네임은 필수 입니다."),
+
+    // 비밀번호 관련 에러 추가
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),
+    PASSWORD_CURRENT_MISMATCH(HttpStatus.BAD_REQUEST, "PASSWORD4002", "현재 비밀번호가 일치하지 않습니다."),
+    PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "PASSWORD4003", "새 비밀번호는 현재 비밀번호와 달라야 합니다."),
+    PASSWORD_RESET_CODE_INVALID(HttpStatus.BAD_REQUEST, "PASSWORD4004", "유효하지 않은 비밀번호 재설정 코드입니다."),
+    PASSWORD_RESET_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "PASSWORD4005", "만료된 비밀번호 재설정 코드입니다. 비밀번호 재설정을 다시 요청해주세요."),
+
 
     //Resources 관련 에어
     RESOURCES_NOT_FOUND(HttpStatus.NOT_FOUND,"RESOURCE4001","강의 에피소드를 찾을 수 없습니다."),
@@ -40,10 +55,6 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 예시,,,
     ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND, "ARTICLE4001", "게시글이 없습니다."),
-
-
-    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
-    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),
 
     //이미지
     IMAGE_FORMAT_BADREQUEST(HttpStatus.BAD_REQUEST,"COMMON400","이미지 파일만 업로드할 수 있습니다."),

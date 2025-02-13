@@ -41,27 +41,25 @@ public class YoutubeUrlEmbedService {
             String host = uri.getHost();
             String query = uri.getQuery();
             String path = uri.getPath();
+            String adExistUrl = null;
             // 기본 형식: https://www.youtube.com/watch?v=<videoId>
             if (host.contains("youtube.com") && query != null && query.contains("v=")){
                 String[] params = query.split("&");
                 for (String param : params) {
                     if (param.startsWith("v=")){
                         String videoId = param.substring(2);
-                        return "https://www.youtube.com/embed/" + videoId;
+                        return  "https:///www.youtube-nocookie.com/embed/" + videoId;
                     }
                 }
             }
             // 축약형: https://youtu.be/<videoId>
             if (host.contains("youtube.be") && path != null && path.length() > 1) {
                 String videoId = path.substring(1); // 맨 앞 "/" 제거
-                return "https://youtu.be/embed/" + videoId;
+                return "https:///www.youtube-nocookie.com/embed/" + videoId;
             }
-
             throw new ResourceHandler(ErrorStatus.YOUTUBE_URI_SYNTAX_ERROR);
         } catch (URISyntaxException e) {
             throw new ResourceHandler(ErrorStatus.URI_SYNTAX_ERROR);
         }
     }
-
-
 }

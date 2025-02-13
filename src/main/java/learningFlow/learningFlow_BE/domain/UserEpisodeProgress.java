@@ -24,9 +24,16 @@ public class UserEpisodeProgress extends BaseEntity {
     @Setter
     private Integer currentProgress;
 
-    @Column(nullable = false)
     private Integer totalProgress;
 
     @Column(nullable = false)
+    private Boolean isComplete = false;
+
+    @Column(nullable = false)
     private ResourceType resourceType;
+
+    public Boolean setIsComplete(Boolean isComplete){
+        this.isComplete = isComplete;
+        return this.isComplete;
+    }
 }

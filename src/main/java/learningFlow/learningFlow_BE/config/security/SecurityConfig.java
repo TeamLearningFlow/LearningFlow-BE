@@ -53,10 +53,16 @@ public class SecurityConfig {
                                 "/search/**",
                                 "/",
                                 "/collections/{collectionId:[\\d]+}",
-                                 "/image/upload" //이미지 업로드는 허용
+                                "/image/upload", //이미지 업로드는 허용
+                                "/favicon.ico",
+                                "/register",
+                                "/register/complete",
+                                "/login",
+                                "/login/google",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
+                                "/user/change-email"
                         ).permitAll()
-                        .requestMatchers(
-                                "/register", "/register/complete", "/login", "/login/google", "/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**", "/resources/**", "/collections/{collectionId:[\\d]+}/likes", "/logout/**").authenticated()
                         .anyRequest().permitAll()
@@ -72,7 +78,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(authenticationEntryPoint));
-
         return http.build();
     }
 
@@ -89,10 +94,37 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // 프론트엔드 주소
+
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000",
+                "http://localhost:8081",
+                "http://onboarding.p-e.kr:8080",
+                "http://54.180.118.227",
+                "https://accounts.google.com"
+        ));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Refresh-Token",
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With"
+        ));
         configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Refresh-Token",
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With"
+        ));
         configuration.setMaxAge(86400L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

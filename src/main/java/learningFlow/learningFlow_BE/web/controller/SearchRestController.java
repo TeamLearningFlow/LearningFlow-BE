@@ -71,9 +71,7 @@ public class SearchRestController {
               - 1: 좋아요순
               
            [페이지네이션]
-           - 무한 스크롤 방식
-           - lastId: 마지막으로 조회된 컬렉션 ID
-           - 첫 페이지는 lastId=0
+           - 커서기반 페이징
            - 8개씩 조회
            
            [응답 정보]
@@ -101,7 +99,7 @@ public class SearchRestController {
             @Parameter(name = "difficulties", description = "난이도 목록 (1:입문, 2:초급, 3:중급, 4:실무)", example = "[1, 2]"),
             @Parameter(name = "amounts", description = "학습량 (SHORT, MEDIUM, LONG)", example = "[\"SHORT\", \"MEDIUM\"]"),
             @Parameter(name = "sortType", description = "정렬 기준 (0:최신순, 1:좋아요순)", example = "0"),
-            @Parameter(name = "lastId", description = "마지막 컬렉션 ID (첫 페이지: 0)", example = "0")
+            @Parameter(name = "page", description = "페이지 번호 (1부터 시작)")
     })
     public ApiResponse<CollectionResponseDTO.SearchResultDTO> searchEpisodes(
             @RequestParam(required = false) String keyword,
@@ -110,13 +108,13 @@ public class SearchRestController {
             @RequestParam(required = false) List<Integer> difficulties,
             @RequestParam(required = false) List<String> amounts,
             @RequestParam(required = false, defaultValue = "0") Integer sortType,
-            @RequestParam(required = false, defaultValue = "0") Long lastId,
+            @RequestParam(required = false, defaultValue = "1") Integer page,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(
                 collectionService.search(
                         CollectionConverter.toSearchConditionDTO(keyword, interestFields, preferMediaType, difficulties, amounts, sortType),
-                        lastId, principalDetails)
+                        page, principalDetails)
         );
     }
 }
