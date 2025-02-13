@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -16,6 +17,8 @@ import com.querydsl.core.types.Path;
 public class QEmailVerificationToken extends EntityPathBase<EmailVerificationToken> {
 
     private static final long serialVersionUID = -1162432526L;
+
+    private static final PathInits INITS = PathInits.DIRECT2;
 
     public static final QEmailVerificationToken emailVerificationToken = new QEmailVerificationToken("emailVerificationToken");
 
@@ -35,18 +38,29 @@ public class QEmailVerificationToken extends EntityPathBase<EmailVerificationTok
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
+    public final QUser user;
+
     public final BooleanPath verified = createBoolean("verified");
 
     public QEmailVerificationToken(String variable) {
-        super(EmailVerificationToken.class, forVariable(variable));
+        this(EmailVerificationToken.class, forVariable(variable), INITS);
     }
 
     public QEmailVerificationToken(Path<? extends EmailVerificationToken> path) {
-        super(path.getType(), path.getMetadata());
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
     public QEmailVerificationToken(PathMetadata metadata) {
-        super(EmailVerificationToken.class, metadata);
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QEmailVerificationToken(PathMetadata metadata, PathInits inits) {
+        this(EmailVerificationToken.class, metadata, inits);
+    }
+
+    public QEmailVerificationToken(Class<? extends EmailVerificationToken> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
     }
 
 }

@@ -1,9 +1,6 @@
 package learningFlow.learningFlow_BE.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -25,6 +22,10 @@ public class EmailVerificationToken extends BaseEntity {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    @OneToOne(fetch = FetchType.LAZY)  // optional = true 제거
+    @JoinColumn(name = "user_id", nullable = true)
+    private User user;
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
