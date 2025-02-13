@@ -33,7 +33,7 @@ public class UserCollection extends BaseEntity{
     @Column(name = "user_collection_status", nullable = false)
     private Integer userCollectionStatus; // 가장 최신에 수강한 강의 저장
 
-    @Column(name = "completed_time", nullable = false)
+    @Column(name = "completed_time")
     private LocalDate completedTime;
 
     @Enumerated(EnumType.STRING)
