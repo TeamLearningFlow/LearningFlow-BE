@@ -11,7 +11,9 @@ import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -53,19 +55,21 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         //Access Token 생성
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         log.info("Access 토큰 발급 : {}", accessToken);
-        response.setHeader("Authorization", "Bearer " + accessToken);
+//        response.setHeader("Authorization", "Bearer " + accessToken);
 
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
         log.info("자동 로그인 활성화, Refresh Token 발급 : {}", refreshToken);
-        response.setHeader("Refresh-Token", refreshToken);
+//        response.setHeader("Refresh-Token", refreshToken);
 
         // 헤더 설정 확인 로깅
         log.info("Authorization Header: {}", response.getHeader("Authorization"));
         log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
 
+/*
         response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
+*/
 
 /*
         UserResponseDTO.UserLoginResponseDTO loginResponse =
@@ -76,6 +80,33 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String jsonResponse = new ObjectMapper().writeValueAsString(ApiResponse.onSuccess(loginResponse));
         response.getWriter().write(jsonResponse);
 */
-        response.setStatus(HttpStatus.OK.value());
+//        response.setStatus(HttpStatus.OK.value());
+
+        // HTTP-Only 쿠키 설정 (Refresh Token)
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true) // HTTPS에서만
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("None")  // 필요하면 Lax, Strict
+                .build();
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+
+        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
+
+
+
+        // ⭐️ 팝업 창을 닫고 부모 창에 메시지 전달하는 스크립트 (프론트엔드 도메인 사용)
+        String redirectScript = "<script>" +
+                "  window.opener.postMessage({" +
+                "    accessToken: '" + accessToken + "'," +
+                "    refreshToken: 'refreshToken'" + "  }, 'http://localhost:3000');" + // ⭐️ 프론트엔드 도메인과 포트
+                "  window.close();" +
+                "</script>";
+        response.setContentType("text/html;charset=UTF-8");
+        response.getWriter().write(redirectScript);
     }
 }
