@@ -60,14 +60,14 @@ public class LocalUserAuthService {
     public void initialRegister(UserRequestDTO.InitialRegisterDTO requestDTO) {
         // 이메일 중복 체크
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
-            throw new RuntimeException("이미 사용중인 이메일입니다.");
+            throw new GeneralException(ErrorStatus.EMAIL_ALREADY_EXISTS);
         }
 
         // 진행 중인 이메일 인증이 있는지 확인
         if (emailVerificationTokenRepository.existsByEmailAndVerifiedFalse(requestDTO.getEmail())) {
-            throw new RuntimeException("이미 진행 중인 이메일 인증이 있습니다. 이메일을 확인해주세요.");
+            throw new GeneralException(ErrorStatus.EMAIL_VERIFICATION_IN_PROGRESS);
         }
-        //TODO: 현재는 진행중이던 이메일이면 500에러가 나는데 400에러가 나야함!
+        //TODO: 현재는 진행중이던 이메일이면 500에러가 나는데 400에러가 나야함! -> 확인 바랍니다!
 
         // 토큰 생성
         String token = UUID.randomUUID().toString();
@@ -88,14 +88,14 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public EmailVerificationToken validateRegistrationToken(String token) {
+    public EmailVerificationToken validateRegistrationToken(String emailVerificationCode) {
         // 토큰 유효성 검증
-        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(token)
-                .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(emailVerificationCode)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_CODE_INVALID));
 
         if (verificationToken.isExpired()) {
             emailVerificationTokenRepository.delete(verificationToken);
-            throw new RuntimeException("만료된 토큰입니다. 회원가입을 다시 진행해주세요.");
+            throw new GeneralException(ErrorStatus.EMAIL_CODE_EXPIRED);
         }
 
         return verificationToken;
@@ -103,13 +103,13 @@ public class LocalUserAuthService {
 
     @Transactional
     public UserResponseDTO.UserLoginResponseDTO completeRegister(
-            String token,
+            String emailVerificationCode,
             UserRequestDTO.CompleteRegisterDTO requestDTO,
             HttpServletResponse response
     ) {
-        String imageUrl = null;
+//        String profileImgUrl = null;
         //이메일 토큰 검증
-        EmailVerificationToken verificationToken = validateRegistrationToken(token);
+        EmailVerificationToken verificationToken = validateRegistrationToken(emailVerificationCode);
 
         // 로그인 ID 생성
         String loginuuid = UUID.randomUUID().toString().substring(0, 8);
@@ -135,7 +135,7 @@ public class LocalUserAuthService {
                 .preferType(requestDTO.getPreferType())
                 .socialType(SocialType.LOCAL)
                 .role(Role.USER)
-                .profileImgUrl(imageUrl)
+                .profileImgUrl(requestDTO.getImgProfileUrl())
                 .inactive(false)
                 .build();
 
@@ -177,10 +177,6 @@ public class LocalUserAuthService {
 //            throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR); // 기타 예외 처리
 //        }
 //    }
-
-
-
-
 
     public UserResponseDTO.UserLoginResponseDTO login(UserRequestDTO.UserLoginDTO request,
                                                       HttpServletResponse response) {
@@ -259,13 +255,13 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public PasswordResetToken validatePasswordResetToken(String token) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
+    public PasswordResetToken validatePasswordResetToken(String passwordResetCode) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(passwordResetCode)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.PASSWORD_RESET_CODE_INVALID));
 
         if (resetToken.isExpired()) {
             tokenRepository.delete(resetToken);
-            throw new RuntimeException("만료된 토큰입니다. 비밀번호 재설정을 다시 요청해주세요.");
+            throw new GeneralException(ErrorStatus.PASSWORD_RESET_CODE_EXPIRED);
         }
 
         return resetToken;
@@ -273,19 +269,19 @@ public class LocalUserAuthService {
 
     @Transactional
     public String resetPassword(
-            String token,
+            String passwordResetCode,
             UserRequestDTO.ResetPasswordDTO request
     ) {
-        PasswordResetToken resetToken = validatePasswordResetToken(token);
+        PasswordResetToken resetToken = validatePasswordResetToken(passwordResetCode);
 
         User user = resetToken.getUser();
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPw())) {
-            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+            throw new GeneralException(ErrorStatus.PASSWORD_CURRENT_MISMATCH);
         }
 
         if (passwordEncoder.matches(request.getNewPassword(), user.getPw())) {
-            throw new RuntimeException("새 비밀번호는 현재 비밀번호와 달라야 합니다.");
+            throw new GeneralException(ErrorStatus.PASSWORD_SAME_AS_CURRENT);
         }
 
         user.changePassword(passwordEncoder.encode(request.getNewPassword()));
@@ -295,6 +291,68 @@ public class LocalUserAuthService {
         log.info("비밀번호 재설정 완료: {}", user.getEmail());
 
         return "비밀번호 재설정이 완료되었습니다.";
+    }
+
+    @Transactional
+    public String sendEmailResetEmail(String email, PrincipalDetails principalDetails) {
+
+        //구글 로그인 유저인지 확인
+        if (principalDetails.getUser().getSocialType().equals(SocialType.GOOGLE)) {
+            throw new GeneralException(ErrorStatus.GOOGLE_USER_CANNOT_CHANGE_EMAIL);
+        }
+
+        // 이메일 중복 체크
+        if (userRepository.existsByEmail(email)) {
+            throw new GeneralException(ErrorStatus.EMAIL_ALREADY_EXISTS);
+        }
+
+        //현재 이메일과 동일한 이메일로는 변경 불가
+        if (principalDetails.getUser().getEmail().equals(email)) {
+            throw new GeneralException(ErrorStatus.EMAIL_CHANGE_SAME_AS_CURRENT);
+        }
+
+        // 진행 중인 이메일 인증이 있는지 확인
+        if (emailVerificationTokenRepository.existsByEmailAndVerifiedFalse(email)) {
+            throw new GeneralException(ErrorStatus.EMAIL_VERIFICATION_IN_PROGRESS);
+        }
+
+        // 토큰 생성
+        String token = UUID.randomUUID().toString();
+
+        // 이메일 인증 토큰 저장
+        EmailVerificationToken verificationToken = EmailVerificationToken.builder()
+                .token(token)
+                .email(email)
+                .password(passwordEncoder.encode(principalDetails.getPassword()))
+                .user(principalDetails.getUser())
+                .expiryDate(LocalDateTime.now().plusHours(24))
+                .verified(false)
+                .build();
+
+        emailVerificationTokenRepository.save(verificationToken);
+
+        // 인증 이메일 발송
+        userVerificationEmailService.sendEmailResetEmail(email, token);
+
+        return "이메일 재설정을 위한 인증 링크를 담은 이메일이 성공적으로 발송되었습니다.";
+    }
+
+    @Transactional
+    public String changeEmail(
+            EmailVerificationToken emailVerificationToken
+    ) {
+        User user = emailVerificationToken.getUser();
+        if (user == null) {
+            throw new GeneralException(ErrorStatus.USER_NOT_FOUND);
+        }
+
+        // 이메일 업데이트
+        user.changeEmail(emailVerificationToken.getEmail());
+
+        // 토큰 삭제
+        emailVerificationTokenRepository.delete(emailVerificationToken);
+
+        return "이메일이 성공적으로 변경되었습니다.";
     }
 
     @Transactional

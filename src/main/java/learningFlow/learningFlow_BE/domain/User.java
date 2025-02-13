@@ -62,6 +62,9 @@ public class User extends BaseEntity {
 
     @Column(nullable = true)
     private String profileImgUrl;
+
+    @Column(nullable = true)
+    private String bannerImgUrl;
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "image_id")
 //    private Image image;
@@ -119,6 +122,10 @@ public class User extends BaseEntity {
 
     public void changePassword(String newEncodedPassword) {
         this.pw = newEncodedPassword;
+    }
+
+    public void changeEmail(String newEmail) {
+        this.email = newEmail;
     }
 
     public void updateName(String name) {

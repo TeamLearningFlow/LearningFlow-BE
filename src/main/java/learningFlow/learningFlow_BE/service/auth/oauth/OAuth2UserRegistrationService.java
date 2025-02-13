@@ -44,7 +44,7 @@ public class OAuth2UserRegistrationService {
         Map<String, Object> response = new HashMap<>();
         response.put("message", "추가 정보 입력이 필요합니다");
         response.put("requiredFields", Arrays.asList(
-                "job", "interestFields", "gender", "preferType"
+                "name", "job", "interestFields", "preferType"
         ));
 
         return response;
@@ -64,7 +64,6 @@ public class OAuth2UserRegistrationService {
 
         Claims claims = jwtTokenProvider.getClaims(temporaryToken);
         String email = claims.getSubject();
-        String name = claims.get("name", String.class);
         String providerId = claims.get("providerId", String.class);
         SocialType socialType = SocialType.valueOf(claims.get("socialType", String.class));
 
@@ -72,14 +71,14 @@ public class OAuth2UserRegistrationService {
         User newUser = User.builder()
                 .loginId(socialType.name() + "_" + providerId)
                 .email(email)
-                .name(name)
+                .name(additionalInfo.getName())
                 .providerId(providerId)
                 .pw("OAUTH2_USER")
                 .socialType(socialType)
                 .job(additionalInfo.getJob())
                 .interestFields(additionalInfo.getInterestFields())
                 .preferType(additionalInfo.getPreferType())
-                .profileImgUrl(imageUrl)
+                .profileImgUrl(additionalInfo.getImgProfileUrl())
                 .role(Role.USER)
                 .inactive(false)
                 .build();

@@ -131,14 +131,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/search") ||
                 requestURI.equals("/reset-password") ||
                 requestURI.matches("/collections/\\d+") ||
+                requestURI.contains("/user/change-email") ||
                 requestURI.startsWith("/user/imgUpload");  // 이미지 업로드는 인증 없이 허용
     }
-
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        boolean shouldSkip = path.equals("/image/upload");
+        boolean shouldSkip = path.equals("/image/upload") || path.equals("/favicon.ico");
         log.info("🛑 [JwtAuthenticationFilter] shouldNotFilter 실행: path={}, shouldSkip={}", path, shouldSkip);
         return shouldSkip;
     }

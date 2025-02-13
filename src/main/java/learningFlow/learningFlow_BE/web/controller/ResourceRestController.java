@@ -35,7 +35,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @Validated
-@RequestMapping("/resources")
+@RequestMapping("/resources/{episodeId}")
 @Slf4j
 @Tag(name = "Resource", description = "Collection 내에 특정 resource 관련해서 기능하는 API")
 public class ResourceRestController {
@@ -45,7 +45,7 @@ public class ResourceRestController {
     private final YoutubeUrlEmbedService youtubeUrlEmbedService;
     private final LambdaService lambdaService;
 
-    @GetMapping("/{episodeId}/youtube")
+    @GetMapping("/youtube")
     @Operation(summary = "강의 시청, 강좌로 이동 API", description = """
            영상 리소스 조회 및 시청 처리 API입니다.
            
@@ -76,11 +76,12 @@ public class ResourceRestController {
         Collection collection = resourceService.getCollection(episodeId);
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
         Resource resource = youtubeUrlEmbedService.getResource(episodeId);
-
-        return ApiResponse.onSuccess(ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo));
+        ResourceResponseDTO.ResourceUrlDTO response =
+                ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo);
+        return ApiResponse.onSuccess(response);
     }
 
-    @GetMapping("/{episodeId}/blog")
+    @GetMapping("/blog")
     @Operation(summary = "블로그 글 조회 API", description = """
            텍스트(블로그) 리소스 조회 API입니다.
            
@@ -115,11 +116,11 @@ public class ResourceRestController {
         Optional<Memo> memo = resourceService.getMemoContents(episodeId);
         String resourceTitle = resourceService.getResource(episodeId).getTitle();
         String blogSourceUrl = "/resources/" + episodeId + "/blog/content";
-        return ApiResponse.onSuccess(ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl, resourceTitle, memo));
+        ResourceResponseDTO.ResourceBlogUrlDTO response = ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl, resourceTitle, memo);
+        return ApiResponse.onSuccess(response);
     }
 
-    // Gzip으로 HTML을 반환하는 API
-    @GetMapping("{episodeId}/blog/content")
+    @GetMapping("/blog/content")
     @Operation(summary = "blog HTML 반환 API", description = """
            블로그 글의 HTML 컨텐츠를 반환하는 API입니다.
            /resources/{episodeId}/blog 호출 이후 사용됩니다.
@@ -129,7 +130,7 @@ public class ResourceRestController {
            - HTML 컨텐츠 가공 및 반환
            
            [응답 형식]
-           - Gzip 압축된 HTML 문자열
+           - S3 객체 URL 반환
            
            [파라미터]
            - width: 컨텐츠 영역 너비 (기본값: 982)
@@ -139,20 +140,6 @@ public class ResourceRestController {
             @PathVariable("episodeId") Long episodeId,
             @RequestParam(defaultValue = "982") int width,
             @RequestParam(defaultValue = "552") int height) {
-        /*       CompletableFuture<byte[]> blogSource = blogEmbedService.getBlogSource(episodeId);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);  // 바이너리 파일 반환
-        headers.add(HttpHeaders.CONTENT_ENCODING, "gzip");  // 올바르게 설정
-
-        try {
-            byte[] blogContent = blogSource.get();  // 예외 처리 추가
-            headers.setContentLength(blogContent.length);
-            return new ResponseEntity<>(blogContent, headers, HttpStatus.OK);
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("블로그 데이터를 가져오는 중 오류 발생: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new byte[0]); // 빈 응답 반환
-        }*/
         Resource resource = resourceService.getResource(episodeId);
         if (resource.getClientUrl() != null) {
             return ApiResponse.onSuccess(resource.getClientUrl());
@@ -160,13 +147,13 @@ public class ResourceRestController {
         return ApiResponse.onSuccess(lambdaService.invokeLambda(resource.getUrl(), width, height, resource));
     }
 
-    @PostMapping("/{episodeId}/save-progress")
+    @PostMapping("/save-progress")
     @Operation(summary = "강의 진도 저장 API", description = """
            리소스 학습 진도를 저장하는 API입니다.
            
            [입력 정보]
            - resourceType: 리소스 유형 (VIDEO/TEXT)
-           - progress: 
+           - progress:
              * VIDEO: 재생 시간(초)
              * TEXT: 스크롤 위치(px)
            
@@ -185,11 +172,34 @@ public class ResourceRestController {
             @Valid @RequestBody ResourceRequestDTO.ProgressRequestDTO request) {
         String loginId = principalDetails.getUser().getLoginId();
         resourceService.saveProgress(request, loginId, episodeId);
-
-        return ApiResponse.onSuccess(ResourceConverter.toSaveProgressResponse(request));
+        ResourceResponseDTO.ProgressResponseDTO response = ResourceConverter.toSaveProgressResponse(request);
+        return ApiResponse.onSuccess(response);
+    }
+    @PostMapping("/update-complete")
+    @Operation(summary = "에피소드 수강 상태 변환", description = """
+           episode 수강 완료일 경우 수강 초기화, 수강 완료 상태가 아닐 경우 수강 완료로 표기하는 API 입니다.
+           
+           [처리 내용]
+           - 에피소드 수강 상태 확인 후 변경
+           
+           [응답 정보]
+           - 바뀐 수강 상태
+           """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "OK, 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "RESOURCE4001", description = "강의 에피소드를 찾을 수 없습니다."),
+    })
+    public ApiResponse<ResourceResponseDTO.changeEpisodeIsCompleteDTO> updateEpisodeStatus(
+            @AuthenticationPrincipal PrincipalDetails principalDetails,
+            @Valid @PathVariable("episodeId") Long episodeId){
+        String loginId = principalDetails.getUser().getLoginId();
+        log.info("로그인 상태 확인 {}", loginId);
+        Boolean isComplete = resourceService.changeEpisodeComplete(episodeId, loginId);
+        ResourceResponseDTO.changeEpisodeIsCompleteDTO response = ResourceConverter.toChangeEpisodeIsCompleteDTO(isComplete);
+        return ApiResponse.onSuccess(response);
     }
 
-    @PostMapping("/{episodeId}/memo")
+    @PostMapping("/memo")
     @Operation(summary = "강의 메모 생성 API", description = """
            리소스에 대한 메모를 작성하는 API입니다.
            
@@ -211,6 +221,7 @@ public class ResourceRestController {
         String loginId = principalDetails.getUser().getLoginId();
         log.info("로그인 상태 확인 {}", loginId);
         memoCommandService.saveMemo(loginId, episodeId, request);
-        return ApiResponse.onSuccess(MemoConverter.createMemo(request)); // 성공 시 200 OK 반환
+        MemoResponseDTO.MemoInfoDTO response = MemoConverter.createMemo(request);
+        return ApiResponse.onSuccess(response); // 성공 시 200 OK 반환
     }
 }
