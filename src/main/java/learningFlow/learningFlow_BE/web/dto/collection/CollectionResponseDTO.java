@@ -33,6 +33,7 @@ public class CollectionResponseDTO {
     @AllArgsConstructor
     public static class CollectionPreviewDTO {
         Long collectionId;
+        String imageUrl;
         InterestField interestField;
         String title;
         String creator;
