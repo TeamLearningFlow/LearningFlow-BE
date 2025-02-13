@@ -19,6 +19,7 @@ public class UserConverter {
                 .name(user.getName())
                 .role(user.getRole())
                 .socialType(user.getSocialType())
+                .profileImgUrl(user.getProfileImgUrl())
                 .build();
     }
 
@@ -30,6 +31,7 @@ public class UserConverter {
                 .interestFields(user.getInterestFields())
                 .preferType(user.getPreferType())
                 .profileImgUrl(user.getProfileImgUrl())
+                .bannerImgUrl(user.getBannerImgUrl())
                 .build();
     }
 
@@ -53,6 +55,7 @@ public class UserConverter {
                 .email(user.getEmail())
                 .job(user.getJob().getDescription())
                 .profileImgUrl(user.getProfileImgUrl())
+                .bannerImgUrl(user.getBannerImgUrl())
                 .build();
     }
 }

@@ -78,7 +78,7 @@ public class OAuth2UserRegistrationService {
                 .job(additionalInfo.getJob())
                 .interestFields(additionalInfo.getInterestFields())
                 .preferType(additionalInfo.getPreferType())
-                .profileImgUrl(imageUrl)
+                .profileImgUrl(additionalInfo.getImgProfileUrl())
                 .role(Role.USER)
                 .inactive(false)
                 .build();

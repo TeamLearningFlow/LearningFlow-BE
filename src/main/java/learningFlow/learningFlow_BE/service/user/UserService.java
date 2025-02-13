@@ -66,8 +66,12 @@ public class UserService {
 //        }
 
         // 각 필드가 null이 아닌 경우에만 업데이트
-        if(updateUserDTO.getImgUrl() != null){
-            user.updateImage(updateUserDTO.getImgUrl());
+        if(updateUserDTO.getImgProfileUrl() != null){
+            user.updateImage(updateUserDTO.getImgProfileUrl());
+        }
+
+        if(updateUserDTO.getImgBannerUrl() != null){
+            user.updateImage(updateUserDTO.getImgBannerUrl());
         }
 
         if (updateUserDTO.getName() != null) {

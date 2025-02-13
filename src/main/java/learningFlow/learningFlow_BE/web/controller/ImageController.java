@@ -34,12 +34,9 @@ public class ImageController {
             [파일 요구사항]
             - 형식: JPG, JPEG, PNG
             - 최대 크기: 5MB
-            - 최소 해상도: 100x100
-            - 최대 해상도: 2000x2000
             
             [주의사항]
             - 반환된 URL은 회원가입/정보수정 API 호출 시 필요
-            - 미사용 이미지는 24시간 후 자동 삭제
             """)
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
