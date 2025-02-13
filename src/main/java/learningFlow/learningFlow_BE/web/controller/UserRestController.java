@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.service.auth.local.LocalUserAuthService;
 import learningFlow.learningFlow_BE.service.user.UserService;
 import learningFlow.learningFlow_BE.web.dto.collection.CollectionResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserRequestDTO;
@@ -34,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserRestController {
 
     private final UserService userService;
+    private final LocalUserAuthService localUserAuthService;
     private final AmazonS3Manager amazonS3Manager;
 
 //    @PostMapping(value = "/imgUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -220,5 +222,57 @@ public class UserRestController {
         return ApiResponse.onSuccess(
                 userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), page)
         );
+    }
+
+    @PostMapping("/send/change-password")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = """
+           비밀번호 변경을 위한 인증 메일을 발송합니다.
+           
+           [처리 과정]
+           1. 로그인 사용자 확인
+           2. 인증 토큰 생성 (30분 유효)
+           3. 이메일 발송
+           """)
+    public ApiResponse<String> sendPasswordResetEmail(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        return ApiResponse.onSuccess(localUserAuthService.sendPasswordResetEmail(principalDetails));
+    }
+
+    @GetMapping("/change-password")
+    @Operation(summary = "비밀번호 재설정 요청 API", description = """
+           비밀번호 변경 링크의 토큰을 검증합니다.
+           
+           [검증 항목]
+           - 토큰 유효성
+           - 만료 여부 (30분)
+           - 사용자 매칭
+           """)
+    public ApiResponse<String> goChangePassword(
+            @RequestParam String passwordResetCode
+    ) {
+        localUserAuthService.validatePasswordResetToken(passwordResetCode);
+        return ApiResponse.onSuccess("토큰이 유효합니다. 새로운 비밀번호를 입력해주세요.");
+    }
+
+    @PostMapping("/change-password")
+    @Operation(summary = "비밀번호 재설정 API", description = """
+           새 비밀번호로 변경합니다.
+           
+           [비밀번호 요구사항]
+           - 8-16자
+           - 영문 대/소문자 각 1개 이상
+           - 숫자 1개 이상
+           - 특수문자 1개 이상 (@$!%*?&)
+           
+           [보안 처리]
+           - 이전 비밀번호 재사용 불가
+           - 변경 시 모든 기기 로그아웃
+           """)
+    public ApiResponse<String> changePassword(
+            @RequestParam String passwordResetCode,
+            @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request
+    ) {
+        return ApiResponse.onSuccess(localUserAuthService.resetPassword(passwordResetCode, request));
     }
 }
