@@ -39,7 +39,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // Principal 타입 확인, 첫 로그인인 경우 회원가입으로 이동
         if (authentication.getPrincipal() instanceof OAuth2UserTemp oAuth2UserTemp) {
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
-            String redirectUrl = frontendUrl + "/oauth2/additional-info?token=" + temporaryToken;
+            String redirectUrl = frontendUrl + "/oauth2/additional-info?oauth2RegistrationCode=" + temporaryToken;
             response.sendRedirect(redirectUrl);
             return;
         }

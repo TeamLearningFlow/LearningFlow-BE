@@ -88,9 +88,9 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public EmailVerificationToken validateRegistrationToken(String token) {
+    public EmailVerificationToken validateRegistrationToken(String emailVerificationCode) {
         // 토큰 유효성 검증
-        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(token)
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(emailVerificationCode)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
 
         if (verificationToken.isExpired()) {
@@ -103,13 +103,13 @@ public class LocalUserAuthService {
 
     @Transactional
     public UserResponseDTO.UserLoginResponseDTO completeRegister(
-            String token,
+            String emailVerificationCode,
             UserRequestDTO.CompleteRegisterDTO requestDTO,
             HttpServletResponse response
     ) {
         String imageUrl = null;
         //이메일 토큰 검증
-        EmailVerificationToken verificationToken = validateRegistrationToken(token);
+        EmailVerificationToken verificationToken = validateRegistrationToken(emailVerificationCode);
 
         // 로그인 ID 생성
         String loginuuid = UUID.randomUUID().toString().substring(0, 8);
@@ -259,8 +259,8 @@ public class LocalUserAuthService {
     }
 
     @Transactional
-    public PasswordResetToken validatePasswordResetToken(String token) {
-        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+    public PasswordResetToken validatePasswordResetToken(String passwordResetCode) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(passwordResetCode)
                 .orElseThrow(() -> new RuntimeException("유효하지 않은 토큰입니다."));
 
         if (resetToken.isExpired()) {
@@ -273,10 +273,10 @@ public class LocalUserAuthService {
 
     @Transactional
     public String resetPassword(
-            String token,
+            String passwordResetCode,
             UserRequestDTO.ResetPasswordDTO request
     ) {
-        PasswordResetToken resetToken = validatePasswordResetToken(token);
+        PasswordResetToken resetToken = validatePasswordResetToken(passwordResetCode);
 
         User user = resetToken.getUser();
 

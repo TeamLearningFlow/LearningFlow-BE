@@ -71,9 +71,9 @@ public class LoginController {
            3. 추가 정보 입력 페이지로 이동
            """)
     public ApiResponse<String> goCompleteRegister(
-            @RequestParam String token
+            @RequestParam String emailVerificationCode
     ) {
-        localUserAuthService.validateRegistrationToken(token);
+        localUserAuthService.validateRegistrationToken(emailVerificationCode);
         return ApiResponse.onSuccess("토큰이 유효. 추가 정보를 입력해주세요.");
     }
 
@@ -89,11 +89,11 @@ public class LoginController {
            - 프로필 이미지 URL (이미지 업로드 API로 받은 URL)
            """)
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> completeRegister(
-            @RequestParam String token,
+            @RequestParam String emailVerificationCode,
             @Valid @RequestBody UserRequestDTO.CompleteRegisterDTO request, // ✅ JSON 데이터 - application/json
             HttpServletResponse response
     ) {
-        return ApiResponse.onSuccess(localUserAuthService.completeRegister(token, request, response));
+        return ApiResponse.onSuccess(localUserAuthService.completeRegister(emailVerificationCode, request, response));
     }
 
     @PostMapping("/login")
@@ -166,11 +166,11 @@ public class LoginController {
            - 이미지 미입력시 기본 이미지 사용
            """)
     public ApiResponse<UserResponseDTO.UserLoginResponseDTO> updateAdditionalInfo(
-            @RequestParam String token,
+            @RequestParam String oauth2RegistrationCode,
             @RequestBody @Valid UserRequestDTO.AdditionalInfoDTO request, // ✅ JSON 데이터 - application/json
             HttpServletResponse response) {
         log.info("put info");
-        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(token, request, response));
+        return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(oauth2RegistrationCode, request, response));
     }
     //TODO: 해당 DTO에 안 맞으면 500에러 나는데, 400에러이고 왜 회원가입 안되는 건지 구체적인 에러 작성 필요.
 
@@ -213,9 +213,9 @@ public class LoginController {
            - 사용자 매칭
            """)
     public ApiResponse<String> goChangePassword(
-            @RequestParam String token
+            @RequestParam String passwordResetCode
     ) {
-        localUserAuthService.validatePasswordResetToken(token);
+        localUserAuthService.validatePasswordResetToken(passwordResetCode);
         return ApiResponse.onSuccess("토큰이 유효합니다. 새로운 비밀번호를 입력해주세요.");
     }
 
@@ -234,10 +234,10 @@ public class LoginController {
            - 변경 시 모든 기기 로그아웃
            """)
     public ApiResponse<String> changePassword(
-            @RequestParam String token,
+            @RequestParam String passwordResetCode,
             @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request
     ) {
-        return ApiResponse.onSuccess(localUserAuthService.resetPassword(token, request));
+        return ApiResponse.onSuccess(localUserAuthService.resetPassword(passwordResetCode, request));
     }
 
 /*
