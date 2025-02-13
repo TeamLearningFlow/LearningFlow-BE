@@ -48,7 +48,7 @@ public class YoutubeUrlEmbedService {
                 for (String param : params) {
                     if (param.startsWith("v=")){
                         String videoId = param.substring(2);
-                        return  "https:///www.youtube-nocookie.com/embed" + videoId;
+                        return  "https:///www.youtube-nocookie.com/embed/" + videoId;
                     }
                 }
             }
