@@ -97,6 +97,13 @@ public class UserRequestDTO {
     }
 
     @Getter
+    public static class ResetEmailDTO {
+        @Email(message = "올바른 이메일 형식이어야 합니다")
+        @NotBlank(message = "이메일은 필수 입력값입니다")
+        String email;
+    }
+
+    @Getter
     public static class ResetPasswordDTO {
         @NotBlank(message = "현재 비밀번호는 필수 입력값입니다")
         String currentPassword;

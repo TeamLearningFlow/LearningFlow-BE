@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
+import learningFlow.learningFlow_BE.domain.EmailVerificationToken;
 import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.service.auth.local.LocalUserAuthService;
@@ -230,7 +231,7 @@ public class UserRestController {
            
            [처리 과정]
            1. 로그인 사용자 확인
-           2. 인증 토큰 생성 (30분 유효)
+           2. 인증 코드 생성 (30분 유효)
            3. 이메일 발송
            """)
     public ApiResponse<String> sendPasswordResetEmail(
@@ -240,11 +241,11 @@ public class UserRestController {
     }
 
     @GetMapping("/change-password")
-    @Operation(summary = "비밀번호 재설정 요청 API", description = """
-           비밀번호 변경 링크의 토큰을 검증합니다.
+    @Operation(summary = "비밀번호 재설정 링크 클릭 후 이동하는 페이지에서 쿼리로 전달된 코드 유효성 검증하는 API", description = """
+           비밀번호 변경 링크의 코드을 검증합니다.
            
            [검증 항목]
-           - 토큰 유효성
+           - 코드 유효성
            - 만료 여부 (30분)
            - 사용자 매칭
            """)
@@ -252,7 +253,7 @@ public class UserRestController {
             @RequestParam String passwordResetCode
     ) {
         localUserAuthService.validatePasswordResetToken(passwordResetCode);
-        return ApiResponse.onSuccess("토큰이 유효합니다. 새로운 비밀번호를 입력해주세요.");
+        return ApiResponse.onSuccess("코드가 유효합니다. 새로운 비밀번호를 입력해주세요.");
     }
 
     @PostMapping("/change-password")
@@ -274,5 +275,38 @@ public class UserRestController {
             @Valid @RequestBody UserRequestDTO.ResetPasswordDTO request
     ) {
         return ApiResponse.onSuccess(localUserAuthService.resetPassword(passwordResetCode, request));
+    }
+
+    @PostMapping("/send/change-email")
+    @Operation(summary = "이메일 재설정 요청 API", description = """
+           이메일 변경을 위한 인증 메일을 발송합니다.
+           
+           [처리 과정]
+           1. 로그인 사용자 확인
+           2. 인증 코드 생성 (30분 유효)
+           3. 이메일 발송
+           """)
+    public ApiResponse<String> sendEmailResetEmail(
+            @RequestBody UserRequestDTO.ResetEmailDTO request,
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        return ApiResponse.onSuccess(localUserAuthService.sendEmailResetEmail(request.getEmail(), principalDetails));
+    }
+
+    @GetMapping("/change-email")
+    @Operation(summary = "이메일 재설정 링크 클릭 후 이동하는 페이지에서 쿼리로 전달된 코드 유효성 검증하고 이메일 재설정이 완료되는 API", description = """
+           이메일 변경 링크의 코드를 검증합니다.
+           그 후 코드의 유효성이 검증되면 자동으로 이메일 재설정이 완료됩니다.
+           
+           [검증 항목]
+           - 코드 유효성
+           - 만료 여부 (30분)
+           - 사용자 매칭
+           """)
+    public ApiResponse<String> goChangeEmail(
+            @RequestParam String emailResetCode
+    ) {
+        EmailVerificationToken verificationToken = localUserAuthService.validateRegistrationToken(emailResetCode);
+        return ApiResponse.onSuccess(localUserAuthService.changeEmail(verificationToken));
     }
 }

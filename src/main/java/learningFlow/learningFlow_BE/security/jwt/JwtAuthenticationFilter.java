@@ -131,6 +131,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/search") ||
                 requestURI.equals("/reset-password") ||
                 requestURI.matches("/collections/\\d+") ||
+                requestURI.contains("/user/change-email") ||
                 requestURI.startsWith("/user/imgUpload");  // 이미지 업로드는 인증 없이 허용
     }
 
