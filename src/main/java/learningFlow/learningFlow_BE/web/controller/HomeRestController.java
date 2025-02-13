@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.domain.enums.InterestField;
@@ -29,25 +30,37 @@ public class HomeRestController {
 
     @GetMapping
     @Operation(summary = "홈 화면 API", description = """
-            홈 화면 정보를 제공하는 API입니다.
+            사용자의 인증 상태에 따라 맞춤형 홈 화면을 제공합니다.
             
+            인증 헤더:
             [비로그인 사용자]
-            - 인기 컬렉션 6개 제공
-            - 각 컬렉션당 처음 4개 리소스 미리보기
+            - 인증 헤더 없음
             
             [로그인 사용자]
+            - Authorization: Bearer {access_token} (필수)
+            - Refresh-Token: {refresh_token} (필수)
+            
+            [비로그인 사용자 응답]
+            - Authorization 헤더 없음
+            1. 추천 컬렉션 (6개)
+                - 북마크 수 기준 상위 6개 컬렉션 제공
+                - 각 컬렉션의 첫 4개 에피소드 프리뷰 제공
+            
+            [로그인 사용자 응답]
+            - 유효한 Authorization 토큰 필요
             1. 최근 학습 컬렉션
-               - 가장 최근 학습 중인 컬렉션
-               - 현재 진행률, 최근 리소스 정보
+               - 가장 최근 'IN_PROGRESS' 상태의 컬렉션
+               - 학습 시작일, 현재 진행률, 현재 에피소드 정보 포함
+               - 현재 에피소드부터 최대 4개의 에피소드 정보 제공
                
-            2. 맞춤 추천 컬렉션 6개
-               - 관심분야/선호타입 기반 추천
-               - 추천 우선순위:
-                 a) 관심분야 + 선호타입 일치
-                 b) 관심분야만 일치
-                 c) 선호타입만 일치
-                 d) 인기순
-            """)
+            2. 추천 컬렉션 (6개)
+               추천 우선순위:
+               1) 관심분야 + 선호타입 모두 일치
+               2) 관심분야만 일치
+               3) 선호타입만 일치
+               4) 북마크 수 기준
+            """
+    )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "COMMON200",
