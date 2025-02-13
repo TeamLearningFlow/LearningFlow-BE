@@ -31,8 +31,8 @@ public class HomeRestController {
     @GetMapping
     @Operation(summary = "홈 화면 API", description = """
             사용자의 인증 상태에 따라 맞춤형 홈 화면을 제공합니다.
-            
-            인증 헤더:
+            ---
+            [인증 헤더]\n
             [비로그인 사용자]
             - 인증 헤더 없음
             
@@ -40,6 +40,8 @@ public class HomeRestController {
             - Authorization: Bearer {access_token} (필수)
             - Refresh-Token: {refresh_token} (필수)
             
+            ---
+            [응답 정보]\n
             [비로그인 사용자 응답]
             - Authorization 헤더 없음
             1. 추천 컬렉션 (6개)
