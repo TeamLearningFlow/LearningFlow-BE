@@ -279,4 +279,44 @@ public class UserRestController {
         EmailVerificationToken verificationToken = localUserAuthService.validateRegistrationToken(emailResetCode);
         return ApiResponse.onSuccess(localUserAuthService.changeEmail(verificationToken));
     }
+
+    @DeleteMapping("/withdraw")
+    @Operation(summary = "회원 탈퇴 API", description = """
+        회원 탈퇴를 처리합니다.
+        
+        [처리 내용]
+        - 계정 영구 삭제
+        - 모든 개인 데이터 삭제
+          * 학습 데이터
+          * 메모
+          * 북마크
+          * 프로필 정보
+        
+        [주의사항]
+        - 탈퇴 후 데이터 복구 불가능
+        - 탈퇴 후 동일 이메일로 새로운 계정 생성 가능
+        """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "탈퇴 성공"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "로그인이 필요한 서비스입니다.",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "계정 탈퇴 처리 중 오류가 발생했습니다.",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            )
+    })
+    public ApiResponse<String> withdrawUser(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        userService.withdrawUser(principalDetails.getUser().getLoginId());
+        return ApiResponse.onSuccess("회원 탈퇴가 완료되었습니다.");
+    }
+
 }
