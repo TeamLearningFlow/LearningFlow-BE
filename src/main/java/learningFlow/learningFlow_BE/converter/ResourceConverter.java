@@ -105,17 +105,19 @@ public class ResourceConverter {
 
     public static List<ResourceResponseDTO.SearchResultResourceDTO> convertToResourceDTOWithToday(
             List<CollectionEpisode> episodes,
-            int nextEpisodeNumber
+            int nextEpisodeNumber,
+            int lastCompletedEpisode
     ) {
         return episodes.stream()
                 .map(episode -> ResourceResponseDTO.SearchResultResourceDTO.builder()
-                            .episodeId(episode.getId())
-                            .episodeName(episode.getEpisodeName())
-                            .url(episode.getResource().getUrl())
-                            .resourceSource(extractResourceSource(episode.getResource().getUrl()))
-                            .episodeNumber(episode.getEpisodeNumber())
-                            .today(episode.getEpisodeNumber().equals(nextEpisodeNumber))
-                            .build())
+                        .episodeId(episode.getId())
+                        .episodeName(episode.getEpisodeName())
+                        .url(episode.getResource().getUrl())
+                        .resourceSource(extractResourceSource(episode.getResource().getUrl()))
+                        .episodeNumber(episode.getEpisodeNumber())
+                        .today(episode.getEpisodeNumber().equals(nextEpisodeNumber))
+                        .completed(episode.getEpisodeNumber() <= lastCompletedEpisode)
+                        .build())
                 .toList();
     }
 
