@@ -76,7 +76,7 @@ public class ResourceConverter {
 
     public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(CollectionEpisode episode) {
         return ResourceResponseDTO.SearchResultResourceDTO.builder()
-                .resourceId(episode.getId())
+                .episodeId(episode.getId())
                 .episodeName(episode.getEpisodeName())
                 .url(episode.getResource().getUrl())
                 .resourceSource(extractResourceSource(episode.getResource().getUrl()))
