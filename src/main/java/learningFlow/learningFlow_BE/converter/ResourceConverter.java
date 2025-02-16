@@ -74,7 +74,9 @@ public class ResourceConverter {
                 .build();
     }
 
-    public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(CollectionEpisode episode) {
+    public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(
+            CollectionEpisode episode
+    ) {
         return ResourceResponseDTO.SearchResultResourceDTO.builder()
                 .episodeId(episode.getId())
                 .episodeName(episode.getEpisodeName())
@@ -99,6 +101,22 @@ public class ResourceConverter {
                 .currentProgress(userEpisodeProgress.getCurrentProgress())
                 .totalProgress(userEpisodeProgress.getTotalProgress())
                 .build();
+    }
+
+    public static List<ResourceResponseDTO.SearchResultResourceDTO> convertToResourceDTOWithToday(
+            List<CollectionEpisode> episodes,
+            int nextEpisodeNumber
+    ) {
+        return episodes.stream()
+                .map(episode -> ResourceResponseDTO.SearchResultResourceDTO.builder()
+                            .episodeId(episode.getId())
+                            .episodeName(episode.getEpisodeName())
+                            .url(episode.getResource().getUrl())
+                            .resourceSource(extractResourceSource(episode.getResource().getUrl()))
+                            .episodeNumber(episode.getEpisodeNumber())
+                            .today(episode.getEpisodeNumber().equals(nextEpisodeNumber))
+                            .build())
+                .toList();
     }
 
     private static String extractResourceSource(String url) {
