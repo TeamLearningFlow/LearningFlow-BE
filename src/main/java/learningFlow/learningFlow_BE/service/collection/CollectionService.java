@@ -277,13 +277,48 @@ public class CollectionService {
     }
 
     private CollectionResponseDTO.CollectionPreviewDTO getRecentLearning(User user) {
+
         return userCollectionRepository
                 .findFirstByUserAndStatusOrderByUpdatedAtDesc(user, UserCollectionStatus.IN_PROGRESS)
-                .map(userCollection -> CollectionConverter.toCollectionPreviewDTO(
-                        userCollection.getCollection(),
-                        getLearningInfo(userCollection.getCollection(), user, false),
-                        user
-                ))
+                .map(userCollection -> {
+                    Collection collection = userCollection.getCollection();
+
+                    List<CollectionEpisode> episodes = collection.getEpisodes();
+                    int totalEpisodes = episodes.size();
+                    int currentEpisode = userCollection.getUserCollectionStatus();
+                    int nextEpisode = currentEpisode + 1;
+
+                    List<CollectionEpisode> selectedEpisodes = new ArrayList<>();
+                    if (totalEpisodes <= 4) {
+                        // 4회차 이하의 컬렉션은 전체 표시
+                        selectedEpisodes.addAll(episodes);
+                    } else {
+                        // 5회차 이상의 컬렉션
+                        // today 에피소드(다음 에피소드)가 가능한 2번째에 오도록 계산
+                        int idealStart = nextEpisode - 2; // today가 2번째에 오기 위한 이상적인 시작 인덱스
+
+                        // 실제 시작 인덱스 계산 (0 이상, totalEpisodes-4 이하)
+                        int startIdx = Math.max(0, Math.min(idealStart, totalEpisodes - 4));
+
+                        // 4개의 에피소드 선택
+                        for (int i = 0; i < 4; i++) {
+                            selectedEpisodes.add(episodes.get(startIdx + i));
+                        }
+                    }
+
+                    CollectionResponseDTO.CollectionLearningInfo learningInfo = CollectionResponseDTO.CollectionLearningInfo.builder()
+                            .learningStatus("IN_PROGRESS")
+                            .progressRate(calculateProgressRate(userCollection))
+                            .startDate(userCollection.getCreatedAt().toLocalDate())
+                            .currentEpisode(currentEpisode)
+                            .resourceDTOList(ResourceConverter.convertToResourceDTOWithToday(
+                                    selectedEpisodes,
+                                    nextEpisode
+                            ))
+                            .build();
+
+                    return CollectionConverter.toCollectionPreviewDTO(collection, learningInfo, user);
+                })
                 .orElse(null);
     }
 
