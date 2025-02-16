@@ -64,6 +64,7 @@ public class ResourceResponseDTO {
         String url;
         String resourceSource;
         Integer episodeNumber;
+        Boolean today;
     }
 
     @Getter
