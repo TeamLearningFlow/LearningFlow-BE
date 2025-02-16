@@ -52,6 +52,7 @@ public class ResourceConverter {
 
         for (CollectionEpisode episode : collection.getEpisodes()) {
             episodeInformationList.add(new ResourceResponseDTO.episodeInformation(
+                    episode.getId(),
                     episode.getEpisodeNumber(),
                     episode.getResource().getTitle(),
                     userEpisodeProgress.getIsComplete()
