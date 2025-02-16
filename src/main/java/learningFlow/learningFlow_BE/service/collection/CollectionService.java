@@ -313,7 +313,8 @@ public class CollectionService {
                             .currentEpisode(currentEpisode)
                             .resourceDTOList(ResourceConverter.convertToResourceDTOWithToday(
                                     selectedEpisodes,
-                                    nextEpisode
+                                    nextEpisode,
+                                    currentEpisode
                             ))
                             .build();
 
