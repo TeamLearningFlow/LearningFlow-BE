@@ -59,7 +59,7 @@ public class ResourceResponseDTO {
     @NoArgsConstructor
     @Builder
     public static class SearchResultResourceDTO {
-        Long resourceId;
+        Long episodeId;
         String episodeName;
         String url;
         String resourceSource;
