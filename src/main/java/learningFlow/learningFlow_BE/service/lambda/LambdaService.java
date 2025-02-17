@@ -32,7 +32,6 @@ public class LambdaService {
         try {
             String payload = String.format("{\"url\":\"%s\", \"width\":%d, \"height\":%d}", url, width, height);
             SdkBytes payloadBytes = SdkBytes.fromUtf8String(payload);
-
             // Lambda 요청
             InvokeRequest request = InvokeRequest.builder()
                     .functionName("docker-selenium-lambda-prod-demo")
@@ -47,7 +46,6 @@ public class LambdaService {
                 log.error("❌ Lambda 내부 오류 발생: {}", response.functionError());
                 throw new RuntimeException("Lambda 내부 오류: " + response.functionError());
             }
-
             // ✅ Lambda 응답을 JSON으로 변환
             JsonNode jsonResponse = objectMapper.readTree(responseJson);
 
@@ -78,5 +76,4 @@ public class LambdaService {
             return null;
         }
     }
-
 }

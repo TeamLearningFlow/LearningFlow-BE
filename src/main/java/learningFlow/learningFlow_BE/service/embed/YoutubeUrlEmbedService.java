@@ -48,14 +48,14 @@ public class YoutubeUrlEmbedService {
                 for (String param : params) {
                     if (param.startsWith("v=")){
                         String videoId = param.substring(2);
-                        return  "https:///www.youtube-nocookie.com/embed/" + videoId;
+                        return  "https://www.youtube-nocookie.com/embed/" + videoId;
                     }
                 }
             }
             // 축약형: https://youtu.be/<videoId>
             if (host.contains("youtube.be") && path != null && path.length() > 1) {
                 String videoId = path.substring(1); // 맨 앞 "/" 제거
-                return "https:///www.youtube-nocookie.com/embed/" + videoId;
+                return "https://www.youtube-nocookie.com/embed/" + videoId;
             }
             throw new ResourceHandler(ErrorStatus.YOUTUBE_URI_SYNTAX_ERROR);
         } catch (URISyntaxException e) {
