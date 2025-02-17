@@ -80,6 +80,11 @@ public class CollectionConverter {
 
         Integer videoCount = countResourcesByType(collection, ResourceType.VIDEO);
 
+        List<String> resourceSourceTypes = collection.getEpisodes().stream()
+                .map(episode -> ResourceConverter.extractResourceSource(episode.getResource().getUrl()))
+                .distinct()
+                .toList();
+
         return CollectionResponseDTO.CollectionPreviewDTO.builder()
                 .collectionId(collection.getId())
                 .imageUrl(collection.getCollectionImgUrl())
@@ -92,6 +97,7 @@ public class CollectionConverter {
                 .runtime(getTotalHours(collection))
                 .textCount(textCount)
                 .videoCount(videoCount)
+                .resourceSourceTypes(resourceSourceTypes)
                 .resource(learningInfo.getResourceDTOList())
                 .likesCount(collection.getBookmarkCount()) //북마크 -> 좋아요로 이름만 변경 
                 .isLiked(currentUser != null && currentUser.hasBookmarked(collection.getId())) //북마크 -> 좋아요로 이름만 변경
