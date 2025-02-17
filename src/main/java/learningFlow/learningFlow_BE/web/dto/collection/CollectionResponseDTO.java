@@ -43,6 +43,7 @@ public class CollectionResponseDTO {
         Integer runtime; //TODO : 필드 이름 수정 필요, 해당 컬렉션 수강 전체에 드느 시간이기 때문에 좀 더 좋은 필드 이름으로..
         Integer textCount;
         Integer videoCount;
+        List<String> resourceSourceTypes;
         List<ResourceResponseDTO.SearchResultResourceDTO> resource;
         Integer likesCount; //북마크 -> 좋아요로 이름만 변경 
         boolean isLiked; //북마크 -> 좋아요로 이름만 변경

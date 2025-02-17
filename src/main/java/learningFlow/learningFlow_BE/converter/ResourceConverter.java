@@ -123,7 +123,7 @@ public class ResourceConverter {
                 .toList();
     }
 
-    private static String extractResourceSource(String url) {
+    public static String extractResourceSource(String url) {
 
         String lowerCaseUrl = url.toLowerCase();
 
