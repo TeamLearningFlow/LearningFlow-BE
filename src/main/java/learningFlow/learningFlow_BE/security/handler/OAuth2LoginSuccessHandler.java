@@ -1,18 +1,14 @@
 package learningFlow.learningFlow_BE.security.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import learningFlow.learningFlow_BE.apiPayload.ApiResponse;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserTemp;
-import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,8 +16,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-
-import static learningFlow.learningFlow_BE.converter.UserConverter.toUserLoginResponseDTO;
 
 @Component
 @RequiredArgsConstructor
@@ -103,7 +97,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String redirectScript = "<script>" +
                 "  window.opener.postMessage({" +
                 "    accessToken: '" + accessToken + "'," +
-                "    refreshToken: 'refreshToken'" + "  }, 'http://localhost:3000');" + // ⭐️ 프론트엔드 도메인과 포트
+                "    refreshToken: 'refreshToken'" + "  }, 'https://onboarding-kappa.vercel.app/');" + // ⭐️ 프론트엔드 도메인과 포트
                 "  window.close();" +
                 "</script>";
         response.setContentType("text/html;charset=UTF-8");
