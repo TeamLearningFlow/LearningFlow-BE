@@ -55,7 +55,8 @@ public class ResourceConverter {
                     episode.getId(),
                     episode.getEpisodeNumber(),
                     episode.getResource().getTitle(),
-                    userEpisodeProgress.getIsComplete()
+                    userEpisodeProgress.getIsComplete(),
+                    episode.getResource().getType()
             ));
         }
         episodeInformationList.sort(Comparator.comparingInt(ResourceResponseDTO.episodeInformation::getEpisodeNumber));
