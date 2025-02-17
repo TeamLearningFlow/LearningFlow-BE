@@ -53,6 +53,7 @@ public class ResourceResponseDTO {
         Integer episodeNumber;
         String urlTitle;
         Boolean isCompleted;
+        ResourceType resourceType;
     }
 
     @Getter
