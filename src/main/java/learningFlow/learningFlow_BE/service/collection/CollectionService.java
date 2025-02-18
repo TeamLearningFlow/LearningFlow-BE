@@ -5,12 +5,11 @@ import learningFlow.learningFlow_BE.apiPayload.exception.handler.CollectionHandl
 import learningFlow.learningFlow_BE.converter.CollectionConverter;
 import learningFlow.learningFlow_BE.converter.HomeConverter;
 import learningFlow.learningFlow_BE.converter.ResourceConverter;
+import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.Collection;
-import learningFlow.learningFlow_BE.domain.CollectionEpisode;
-import learningFlow.learningFlow_BE.domain.User;
-import learningFlow.learningFlow_BE.domain.UserCollection;
 import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
 import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
+import learningFlow.learningFlow_BE.repository.UserEpisodeProgressRepository;
 import learningFlow.learningFlow_BE.repository.collection.CollectionRepository;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.web.dto.home.HomeResponseDTO;
@@ -34,6 +33,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CollectionService {
 
+    private final UserEpisodeProgressRepository userEpisodeProgressRepository;
     private final CollectionRepository collectionRepository;
     private final UserCollectionRepository userCollectionRepository;
     private static final int PAGE_SIZE = 8;
@@ -65,6 +65,25 @@ public class CollectionService {
         return episodes.stream()
                 .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
                 .map(ResourceConverter::convertToResourceDTO)
+                .toList();
+    }
+
+    private List<ResourceResponseDTO.SearchResultResourceDTO> getAllResources(
+            Collection collection,
+            User user
+    ) {
+        List<CollectionEpisode> episodes = collection.getEpisodes();
+
+        return episodes.stream()
+                .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
+                .map(episode -> {
+                    UserEpisodeProgress progress = null;
+                    if (user != null) {
+                        UserEpisodeProgressId progressId = new UserEpisodeProgressId(episode.getId(), user.getLoginId());
+                        progress = userEpisodeProgressRepository.findById(progressId).orElse(null);
+                    }
+                    return ResourceConverter.convertToResourceDTO(episode, progress);
+                })
                 .toList();
     }
 
@@ -122,7 +141,7 @@ public class CollectionService {
                     .learningStatus("BEFORE")
                     .progressRate(null)
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection) :  // 상세 조회면 전체 리소스
+                            getAllResources(collection, null) :  // 상세 조회면 전체 리소스
                             getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
                     .build();
         }
@@ -134,7 +153,7 @@ public class CollectionService {
                     .learningStatus("BEFORE")
                     .progressRate(null)
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection) :  // 상세 조회면 전체 리소스
+                            getAllResources(collection, user) :  // 상세 조회면 전체 리소스
                             getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
                     .build();
         }
@@ -159,7 +178,7 @@ public class CollectionService {
                 .startDate(realUserCollection.getCreatedAt().toLocalDate())
                 .currentEpisode(realUserCollection.getUserCollectionStatus())
                 .resourceDTOList(isDetailView ?
-                        getAllResources(collection) :
+                        getAllResources(collection, user) :
                         getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                 .build();
     }
