@@ -100,7 +100,8 @@ public class SecurityConfig {
                 "http://localhost:8081",
                 "http://onboarding.p-e.kr:8080",
                 "http://54.180.118.227",
-                "https://accounts.google.com"
+                "https://accounts.google.com",
+                "https://onboarding-kappa.vercel.app/"
         ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
