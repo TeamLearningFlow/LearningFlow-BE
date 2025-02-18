@@ -77,7 +77,8 @@ public class ResourceConverter {
     }
 
     public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(
-            CollectionEpisode episode
+            CollectionEpisode episode,
+            UserEpisodeProgress progress
     ) {
         return ResourceResponseDTO.SearchResultResourceDTO.builder()
                 .episodeId(episode.getId())
@@ -85,7 +86,14 @@ public class ResourceConverter {
                 .url(episode.getResource().getUrl())
                 .resourceSource(extractResourceSource(episode.getResource().getUrl()))
                 .episodeNumber(episode.getEpisodeNumber())
+                .progress(progress != null ? progress.getCurrentProgress() : null)
                 .build();
+    }
+
+    public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(
+            CollectionEpisode episode
+    ) {
+        return convertToResourceDTO(episode, null);
     }
 
     public static ResourceResponseDTO.RecentlyWatchedEpisodeDTO convertToRecentlyWatchedEpisodeDTO(
