@@ -49,9 +49,11 @@ public class ResourceResponseDTO {
     @NoArgsConstructor
     @Builder
     public static class episodeInformation {
+        Long episodeId;
         Integer episodeNumber;
         String urlTitle;
         Boolean isCompleted;
+        ResourceType resourceType;
     }
 
     @Getter

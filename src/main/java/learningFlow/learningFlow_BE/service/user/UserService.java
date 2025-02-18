@@ -10,6 +10,7 @@ import learningFlow.learningFlow_BE.domain.*;
 import learningFlow.learningFlow_BE.domain.Collection;
 import learningFlow.learningFlow_BE.domain.enums.UserCollectionStatus;
 import learningFlow.learningFlow_BE.domain.uuid.UuidRepository;
+import learningFlow.learningFlow_BE.repository.MemoRepository;
 import learningFlow.learningFlow_BE.repository.UserCollectionRepository;
 import learningFlow.learningFlow_BE.repository.UserEpisodeProgressRepository;
 import learningFlow.learningFlow_BE.repository.UserRepository;
@@ -43,6 +44,7 @@ public class UserService {
     private final UuidRepository uuidRepository;
     private final CollectionService collectionService;
     private final UserEpisodeProgressRepository userEpisodeProgressRepository;
+    private final MemoRepository memoRepository;
 
     private static final int BOOKMARK_PAGE_SIZE = 8;
 
@@ -66,8 +68,12 @@ public class UserService {
 //        }
 
         // 각 필드가 null이 아닌 경우에만 업데이트
-        if(updateUserDTO.getImgUrl() != null){
-            user.updateImage(updateUserDTO.getImgUrl());
+        if(updateUserDTO.getImgProfileUrl() != null){
+            user.updateImage(updateUserDTO.getImgProfileUrl());
+        }
+
+        if(updateUserDTO.getImgBannerUrl() != null){
+            user.updateImage(updateUserDTO.getImgBannerUrl());
         }
 
         if (updateUserDTO.getName() != null) {
@@ -234,4 +240,28 @@ public class UserService {
 
         return UserConverter.convertToUserMyPageResponseDTO(user, recentlyWatchedEpisodeDTOList, completedCollectionList);
     }
+
+    @Transactional
+    public void withdrawUser(String loginId) {
+        User user = userRepository.findById(loginId)
+                .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
+
+        try {
+            // 유저의 메모 삭제
+            memoRepository.deleteAllByUserId(loginId);
+
+            // 유저의 학습 진도 삭제
+            userEpisodeProgressRepository.deleteAllByUserId(loginId);
+
+            // 유저의 컬렉션 관계 삭제
+            userCollectionRepository.deleteAllByUserId(loginId);
+
+            // 유저 완전 삭제
+            userRepository.delete(user);
+
+        } catch (Exception e) {
+            throw new UserHandler(ErrorStatus.WITHDRAWAL_FAILED);
+        }
+    }
+
 }

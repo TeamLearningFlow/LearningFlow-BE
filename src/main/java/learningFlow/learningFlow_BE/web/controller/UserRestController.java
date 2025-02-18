@@ -76,7 +76,11 @@ public class UserRestController {
                
             4. 프로필 이미지 URL (선택)
                - 이미지 업로드 API를 통해 받은 URL 사용
-               - 미입력시 기존 이미지 유지
+               - 미입력시 기존(기본) 이미지 유지
+               
+            5. 배너 이미지 URL (선택)
+               - 이미지 업로드 API를 통해 받은 URL 사용
+               - 미입력시 기존(기본) 이미지 유지
             
             [응답 정보]
             수정된 사용자 정보 반환:
@@ -99,41 +103,7 @@ public class UserRestController {
     }
 
     @GetMapping
-    @Operation(summary = "사용자 정보 조회 API", description = """
-           로그인한 사용자의 상세 프로필 정보를 조회합니다.
-           
-           [조회 정보]
-           1. 기본 정보
-              - 이름
-              - 이메일
-              - 직업
-                * STUDENT: 대학생(휴학생)
-                * ADULT: 성인
-                * EMPLOYEE: 직장인
-                * JOB_SEEKER: 이직/취업 준비생
-                * OTHER: 기타
-              
-           2. 관심분야 목록
-              - APP_DEVELOPMENT: 앱개발
-              - WEB_DEVELOPMENT: 웹개발
-              - PROGRAMMING_LANGUAGE: 컴퓨터언어
-              - DEEP_LEARNING: 딥러닝
-              - STATISTICS: 통계
-              - DATA_ANALYSIS: 데이터분석
-              - UI_UX: UX/UI
-              - PLANNING: 기획
-              - BUSINESS_PRODUCTIVITY: 업무생산성
-              - FOREIGN_LANGUAGE: 외국어
-              - CAREER: 취업
-              
-           3. 학습 설정
-              - 선호 미디어 타입 (VIDEO/TEXT)
-              - 프로필 이미지 URL
-              
-           [접근 권한]
-           - 로그인한 사용자만 조회 가능
-           - 본인 정보만 조회 가능
-           """)
+    @Operation(summary = "사용자 조회 API", description = "사용자를 찾기 위한 API 입니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "COMMON200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "USER4001", description = "사용자를 찾을 수 없습니다."),
@@ -309,4 +279,44 @@ public class UserRestController {
         EmailVerificationToken verificationToken = localUserAuthService.validateRegistrationToken(emailResetCode);
         return ApiResponse.onSuccess(localUserAuthService.changeEmail(verificationToken));
     }
+
+    @DeleteMapping("/withdraw")
+    @Operation(summary = "회원 탈퇴 API", description = """
+        회원 탈퇴를 처리합니다.
+        
+        [처리 내용]
+        - 계정 영구 삭제
+        - 모든 개인 데이터 삭제
+          * 학습 데이터
+          * 메모
+          * 북마크
+          * 프로필 정보
+        
+        [주의사항]
+        - 탈퇴 후 데이터 복구 불가능
+        - 탈퇴 후 동일 이메일로 새로운 계정 생성 가능
+        """)
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "탈퇴 성공"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "로그인이 필요한 서비스입니다.",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "500",
+                    description = "계정 탈퇴 처리 중 오류가 발생했습니다.",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            )
+    })
+    public ApiResponse<String> withdrawUser(
+            @AuthenticationPrincipal PrincipalDetails principalDetails
+    ) {
+        userService.withdrawUser(principalDetails.getUser().getLoginId());
+        return ApiResponse.onSuccess("회원 탈퇴가 완료되었습니다.");
+    }
+
 }

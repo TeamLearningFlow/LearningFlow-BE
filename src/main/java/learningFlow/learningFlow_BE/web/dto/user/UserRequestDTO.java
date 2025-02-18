@@ -43,7 +43,20 @@ public class UserRequestDTO {
         MediaType preferType;
 
         @NotEmpty
-        String imgUrl;
+        String imgProfileUrl;
+
+        // ✅ 기본 생성자에서 기본값 설정
+        public CompleteRegisterDTO() {
+            this.imgProfileUrl = "https://learningflow.s3.ap-northeast-2.amazonaws.com/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%8E%98%EC%9D%B4%EC%A7%80%EC%9A%A9.svg";
+        }
+
+        // ✅ @JsonSetter 사용 (JSON에서 필드가 누락된 경우 기본값 설정)
+        @JsonSetter
+        public void setImgProfileUrl(String imgProfileUrl) {
+            this.imgProfileUrl = (imgProfileUrl == null || imgProfileUrl.isEmpty())
+                    ? "https://learningflow.s3.ap-northeast-2.amazonaws.com/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%8E%98%EC%9D%B4%EC%A7%80%EC%9A%A9.svg"
+                    : imgProfileUrl;
+        }
     }
 
     @Getter
@@ -72,20 +85,20 @@ public class UserRequestDTO {
         @NotNull(message = "선호하는 미디어 타입은 필수 선택값입니다")
         MediaType preferType;
 
-        private String imgUrl;
+        private String imgProfileUrl;
 
 
         // ✅ 기본 생성자에서 기본값 설정
         public AdditionalInfoDTO() {
-            this.imgUrl = "https://learningflow.s3.ap-northeast-2.amazonaws.com/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%8E%98%EC%9D%B4%EC%A7%80%EC%9A%A9.svg";
+            this.imgProfileUrl = "https://learningflow.s3.ap-northeast-2.amazonaws.com/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%8E%98%EC%9D%B4%EC%A7%80%EC%9A%A9.svg";
         }
 
         // ✅ @JsonSetter 사용 (JSON에서 필드가 누락된 경우 기본값 설정)
         @JsonSetter
-        public void setImgUrl(String imgUrl) {
-            this.imgUrl = (imgUrl == null || imgUrl.isEmpty())
+        public void setImgProfileUrlUrl(String imgProfileUrl) {
+            this.imgProfileUrl = (imgProfileUrl == null || imgProfileUrl.isEmpty())
                     ? "https://learningflow.s3.ap-northeast-2.amazonaws.com/%EC%98%A8%EB%B3%B4%EB%94%A9+%ED%8E%98%EC%9D%B4%EC%A7%80%EC%9A%A9.svg"
-                    : imgUrl;
+                    : imgProfileUrl;
         }
     }
 
@@ -119,7 +132,8 @@ public class UserRequestDTO {
         String name;
         Job job;
         List<InterestField> interestFields;
-        private String imgUrl;
+        String imgProfileUrl;
+        String imgBannerUrl;
 
     }
 }
