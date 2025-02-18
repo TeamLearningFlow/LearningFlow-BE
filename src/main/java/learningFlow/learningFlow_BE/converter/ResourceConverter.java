@@ -144,7 +144,7 @@ public class ResourceConverter {
         } else if (lowerCaseUrl.contains("tistory")) {
             return "tistory";
         } else {
-            return "unknown";
+            return "tistory";
         }
     }
 
