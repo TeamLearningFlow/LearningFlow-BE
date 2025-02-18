@@ -68,6 +68,7 @@ public class ResourceResponseDTO {
         Integer episodeNumber;
         Boolean today;
         Boolean completed;
+        Integer progress;
     }
 
     @Getter
