@@ -76,22 +76,19 @@ public class ResourceService {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_NOT_FOUND));
 
-        // UserCollection 조회
         Optional<UserCollection> optionalUserCollection = userCollectionRepository.findByUserAndCollection(user, collection);
         Integer episodeNumber = episode.getEpisodeNumber();
 
         UserCollection userCollection;
-
         if (optionalUserCollection.isPresent()) {
-            // UserCollection 이 존재하는 경우 episodeNumber 만 업데이트
             userCollection = optionalUserCollection.get();
 
             userCollection.updateUserCollection(episodeNumber);
         } else {
-            // UserCollection 이 존재하지 않는 경우 새로 생성
             userCollection = new UserCollection();
             userCollection.setUserCollection(user, collection, episodeNumber);
         }
+        userCollectionRepository.save(userCollection);
     }
     @Transactional
     public Boolean saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
@@ -102,6 +99,7 @@ public class ResourceService {
         Integer requestProgress = request.getProgress();
         if (requestProgress >= 80) userEpisode.setIsComplete(true);
         userEpisode.setCurrentProgress(requestProgress);
+        userEpisodeProgressRepository.save(userEpisode);
         return userEpisode.getIsComplete();
     }
 
@@ -114,6 +112,7 @@ public class ResourceService {
         if (isComplete.equals(true)) isComplete = userEpisodeProgress.setIsComplete(false);
         else isComplete = userEpisodeProgress.setIsComplete(true);
         userEpisodeProgress.setCurrentProgress(0);
+        userEpisodeProgressRepository.save(userEpisodeProgress);
         return isComplete;
     }
 }
