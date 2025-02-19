@@ -18,4 +18,5 @@ public interface CollectionRepositoryCustom {
                                                       boolean matchInterest,
                                                       boolean matchPreferType,
                                                       int limit);
+    List<Collection> findBookmarkedCollections(List<Long> bookmarkedIds, Integer sortType, Pageable pageable);
 }

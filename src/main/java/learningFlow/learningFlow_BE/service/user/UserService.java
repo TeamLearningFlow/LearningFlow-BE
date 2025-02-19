@@ -25,6 +25,7 @@ import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO;
 import learningFlow.learningFlow_BE.web.dto.user.UserResponseDTO.UserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,7 +138,10 @@ public class UserService {
         return new BookmarkDTO.BookmarkResponseDTO(!isCurrentlyBookmarked);
     }
 
-    public CollectionResponseDTO.SearchResultDTO getBookmarkedCollections(String loginId, Integer page) {
+    public CollectionResponseDTO.SearchResultDTO getBookmarkedCollections(
+            String loginId,
+            Integer sortType,
+            Integer page) {
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
@@ -164,11 +168,12 @@ public class UserService {
             page = totalPages;
         }
 
-        int startIndex = (page - 1) * BOOKMARK_PAGE_SIZE;
-        int endIndex = Math.min(startIndex + BOOKMARK_PAGE_SIZE, totalCount);
-
-        List<Long> pageBookmarkIds = bookmarkedIds.subList(startIndex, endIndex);
-        List<Collection> collections = collectionRepository.findByIdIn(pageBookmarkIds);
+        PageRequest pageRequest = PageRequest.of(page - 1, BOOKMARK_PAGE_SIZE);
+        List<Collection> collections = collectionRepository.findBookmarkedCollections(
+                bookmarkedIds,
+                sortType,
+                pageRequest
+        );
 
         if (collections.isEmpty()) {
             return CollectionConverter.toSearchResultDTO(

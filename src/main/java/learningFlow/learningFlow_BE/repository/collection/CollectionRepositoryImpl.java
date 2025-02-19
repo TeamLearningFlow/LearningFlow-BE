@@ -169,6 +169,29 @@ public class CollectionRepositoryImpl implements CollectionRepositoryCustom {
                 .fetch();
     }
 
+    @Override
+    public List<Collection> findBookmarkedCollections(List<Long> bookmarkedIds, Integer sortType, Pageable pageable) {
+        int skip = pageable.getPageNumber() * pageable.getPageSize();
+
+        return jpaQueryFactory
+                .selectFrom(collection)
+                .where(collection.id.in(bookmarkedIds))
+                .orderBy(createBookmarkOrderSpecifier(sortType))
+                .offset(skip)
+                .limit(pageable.getPageSize())
+                .fetch();
+    }
+
+    private OrderSpecifier<?>[] createBookmarkOrderSpecifier(Integer sortType) {
+        if (sortType == null || sortType == 0) {
+            return new OrderSpecifier[]{ collection.createdAt.desc() };
+        }
+        return new OrderSpecifier[]{
+                collection.bookmarkCount.desc(),
+                collection.id.desc()
+        };
+    }
+
     private BooleanExpression createDynamicInterestFields(InterestField interestFields) {
         if (interestFields == null) {
             return null;

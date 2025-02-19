@@ -158,6 +158,10 @@ public class UserRestController {
     @Operation(summary = "좋아요한 컬렉션 조회 API", description = """
            사용자가 좋아요 표시한 컬렉션 목록을 조회합니다.
            
+           [정렬 기준]
+           - sortType = 0: 최신순 (기본값)
+           - sortType = 1: 좋아요순
+           
            [조회 결과]
            1. 컬렉션 기본 정보
               - ID, 제목, 생성자
@@ -184,14 +188,16 @@ public class UserRestController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "AUTH4001", description = "로그인이 필요한 서비스입니다.")
     })
     @Parameters({
+            @Parameter(name = "sortType", description = "정렬 기준 (0:최신순, 1:좋아요순)", example = "0"),
             @Parameter(name = "page", description = "페이지 번호 (1부터 시작)")
     })
     public ApiResponse<CollectionResponseDTO.SearchResultDTO> getBookmarkedCollections(
+            @RequestParam(required = false, defaultValue = "0") Integer sortType,
             @RequestParam(required = false, defaultValue = "1") Integer page,
             @AuthenticationPrincipal PrincipalDetails principalDetails
     ) {
         return ApiResponse.onSuccess(
-                userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), page)
+                userService.getBookmarkedCollections(principalDetails.getUser().getLoginId(), sortType, page)
         );
     }
 
