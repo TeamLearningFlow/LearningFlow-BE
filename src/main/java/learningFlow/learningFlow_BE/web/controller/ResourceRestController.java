@@ -171,8 +171,8 @@ public class ResourceRestController {
             @PathVariable("episodeId") Long episodeId,
             @Valid @RequestBody ResourceRequestDTO.ProgressRequestDTO request) {
         String loginId = principalDetails.getUser().getLoginId();
-        resourceService.saveProgress(request, loginId, episodeId);
-        ResourceResponseDTO.ProgressResponseDTO response = ResourceConverter.toSaveProgressResponse(request);
+        Boolean isCompleted = resourceService.saveProgress(request, loginId, episodeId);
+        ResourceResponseDTO.ProgressResponseDTO response = ResourceConverter.toSaveProgressResponse(request, isCompleted);
         return ApiResponse.onSuccess(response);
     }
     @PostMapping("/update-complete")

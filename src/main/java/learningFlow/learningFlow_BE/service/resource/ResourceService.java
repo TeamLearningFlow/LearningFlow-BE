@@ -94,7 +94,7 @@ public class ResourceService {
         }
     }
     @Transactional
-    public void saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
+    public Boolean saveProgress(ResourceRequestDTO.ProgressRequestDTO request, String userId, Long episodeId) {
         UserEpisodeProgressId userEpisodeId = new UserEpisodeProgressId(episodeId, userId);
         UserEpisodeProgress userEpisode = userEpisodeProgressRepository.findById(userEpisodeId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
@@ -102,6 +102,7 @@ public class ResourceService {
         Integer requestProgress = request.getProgress();
         if (requestProgress >= 80) userEpisode.setIsComplete(true);
         userEpisode.setCurrentProgress(requestProgress);
+        return userEpisode.getIsComplete();
     }
 
     @Transactional
