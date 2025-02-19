@@ -1,7 +1,5 @@
 HELP.md
-
 .gradle
-learningFlow/learningFlow-BE/.gradle
 
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -22,7 +20,7 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
-#../.idea
+../.idea
 
 *.iws
 *.iml
@@ -42,3 +40,9 @@ out/
 .vscode/
 .idea/
 .DS_Store
+
+### gradle ###
+.gradle/
+
+### 환경변수 ###
+.env
