@@ -141,8 +141,8 @@ public class CollectionService {
                     .learningStatus("BEFORE")
                     .progressRate(null)
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection, null) :  // 상세 조회면 전체 리소스
-                            getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
+                            getAllResourcesWithProgress(collection, null, 0) :
+                            getFilteredResources(collection, null, 0))
                     .build();
         }
 
@@ -153,8 +153,8 @@ public class CollectionService {
                     .learningStatus("BEFORE")
                     .progressRate(null)
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection, user) :  // 상세 조회면 전체 리소스
-                            getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
+                            getAllResourcesWithProgress(collection, null, 0) :
+                            getFilteredResources(collection, null, 0))
                     .build();
         }
 
@@ -166,8 +166,8 @@ public class CollectionService {
                     .startDate(realUserCollection.getCreatedAt().toLocalDate())
                     .completedDate(realUserCollection.getCompletedTime())
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection) :  // 상세 조회면 전체 리소스
-                            new ArrayList<>())  // 아니면 빈 리스트
+                            getAllResourcesWithProgress(collection, user, realUserCollection.getUserCollectionStatus()) :
+                            new ArrayList<>())
                     .build();
         }
 
@@ -178,9 +178,32 @@ public class CollectionService {
                 .startDate(realUserCollection.getCreatedAt().toLocalDate())
                 .currentEpisode(realUserCollection.getUserCollectionStatus())
                 .resourceDTOList(isDetailView ?
-                        getAllResources(collection, user) :
+                        getAllResourcesWithProgress(collection, user, realUserCollection.getUserCollectionStatus()) :
                         getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                 .build();
+    }
+
+    private List<ResourceResponseDTO.SearchResultResourceDTO> getAllResourcesWithProgress(
+            Collection collection,
+            User user,
+            int currentEpisodeNumber
+    ) {
+        return collection.getEpisodes().stream()
+                .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
+                .map(episode -> {
+                    UserEpisodeProgress progress = null;
+                    if (user != null) {
+                        progress = userEpisodeProgressRepository.findById(
+                                new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                        ).orElse(null);
+                    }
+                    return ResourceConverter.convertToResourceDTO(
+                            episode,
+                            progress,
+                            currentEpisodeNumber
+                    );
+                })
+                .toList();
     }
 
     private int calculateProgressRate(UserCollection userCollection) {
@@ -216,9 +239,23 @@ public class CollectionService {
                     .limit(4)
                     .toList();
         }
-
-        return filteredEpisodes.stream()
+/*        return filteredEpisodes.stream()
                 .map(ResourceConverter::convertToResourceDTO)
+                .toList();*/
+        return filteredEpisodes.stream()
+                .map(episode -> {
+                    UserEpisodeProgress progress = null;
+                    if (user != null) {
+                        progress = userEpisodeProgressRepository.findById(
+                                new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                        ).orElse(null);
+                    }
+                    return ResourceConverter.convertToResourceDTO(
+                            episode,
+                            progress,
+                            currentEpisode
+                    );
+                })
                 .toList();
     }
 
