@@ -78,6 +78,7 @@ public class ResourceResponseDTO {
     public static class ProgressResponseDTO {
         private ResourceType resourceType;
         private Integer progress;
+        private Boolean isCompleted;
     }
 
     @Getter
