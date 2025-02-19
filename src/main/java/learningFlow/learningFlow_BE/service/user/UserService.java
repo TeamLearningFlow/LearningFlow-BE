@@ -47,7 +47,7 @@ public class UserService {
     private final UserEpisodeProgressRepository userEpisodeProgressRepository;
     private final MemoRepository memoRepository;
 
-    private static final int BOOKMARK_PAGE_SIZE = 8;
+    private static final int BOOKMARK_PAGE_SIZE = 12;
 
     public UserInfoDTO getUserInfo(String loginId) {
         User user = userRepository.findById(loginId)
