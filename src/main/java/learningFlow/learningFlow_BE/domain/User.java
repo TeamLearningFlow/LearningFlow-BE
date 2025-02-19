@@ -151,4 +151,8 @@ public class User extends BaseEntity {
     public void updatePreferType(MediaType preferType) {
         this.preferType = preferType;
     }
+
+    public void updateBannerImage(String bannerImgUrl) {
+        this.bannerImgUrl = bannerImgUrl;
+    }
 }
