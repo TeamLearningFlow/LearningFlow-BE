@@ -63,10 +63,11 @@ public class ResourceConverter {
         return episodeInformationList;
     }
 
-    public static ResourceResponseDTO.ProgressResponseDTO toSaveProgressResponse(ResourceRequestDTO.ProgressRequestDTO request) {
+    public static ResourceResponseDTO.ProgressResponseDTO toSaveProgressResponse(ResourceRequestDTO.ProgressRequestDTO request, Boolean isCompleted) {
         return ResourceResponseDTO.ProgressResponseDTO.builder()
                 .progress(request.getProgress())
                 .resourceType(request.getResourceType())
+                .isCompleted(isCompleted)
                 .build();
     }
 
