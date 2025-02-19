@@ -132,9 +132,9 @@ public class UserRequestDTO {
         String name;
         Job job;
         List<InterestField> interestFields;
-        String imgProfileUrl;
-        String imgBannerUrl;
-
+        String profileImgUrl;
+        String bannerImgUrl;
+        MediaType preferType;
     }
 }
 

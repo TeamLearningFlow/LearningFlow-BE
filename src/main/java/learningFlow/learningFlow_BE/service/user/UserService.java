@@ -69,12 +69,12 @@ public class UserService {
 //        }
 
         // 각 필드가 null이 아닌 경우에만 업데이트
-        if(updateUserDTO.getImgProfileUrl() != null){
-            user.updateImage(updateUserDTO.getImgProfileUrl());
+        if(updateUserDTO.getProfileImgUrl() != null){
+            user.updateImage(updateUserDTO.getProfileImgUrl());
         }
 
-        if(updateUserDTO.getImgBannerUrl() != null){
-            user.updateImage(updateUserDTO.getImgBannerUrl());
+        if(updateUserDTO.getBannerImgUrl() != null){
+            user.updateBannerImage(updateUserDTO.getBannerImgUrl());
         }
 
         if (updateUserDTO.getName() != null) {
@@ -85,6 +85,9 @@ public class UserService {
         }
         if (updateUserDTO.getInterestFields() != null && !updateUserDTO.getInterestFields().isEmpty()) {
             user.updateInterestFields(updateUserDTO.getInterestFields());
+        }
+        if (updateUserDTO.getPreferType() != null) {
+            user.updatePreferType(updateUserDTO.getPreferType());
         }
 
         return getUserInfo(loginId);
