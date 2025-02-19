@@ -180,7 +180,7 @@ public class UserRestController {
            
            [페이지네이션]
            - 커서 기반 페이징
-           - 한 페이지당 8개 조회
+           - 한 페이지당 12개 조회
            - 좋아요 시간 기준 내림차순 정렬
            """)
     @ApiResponses({
