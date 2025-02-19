@@ -78,6 +78,26 @@ public class ResourceConverter {
 
     public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(
             CollectionEpisode episode,
+            UserEpisodeProgress userProgress, // added: 사용자 진도 정보 추가
+            Integer currentEpisodeNumber    // added: 현재 학습 중인 에피소드 번호 추가
+    ) {
+        return ResourceResponseDTO.SearchResultResourceDTO.builder()
+                .episodeId(episode.getId())
+                .episodeName(episode.getEpisodeName())
+                .url(episode.getResource().getUrl())
+                .resourceSource(extractResourceSource(episode.getResource().getUrl()))
+                .episodeNumber(episode.getEpisodeNumber())
+                // added: today 값 설정 - 다음 학습할 에피소드인지 확인
+                .today(episode.getEpisodeNumber().equals(currentEpisodeNumber + 1))
+                // added: completed 값 설정 - 현재 에피소드보다 번호가 작으면 완료된 것
+                .completed(episode.getEpisodeNumber() <= currentEpisodeNumber)
+                // added: progress 값 설정 - 해당 에피소드의 진도율
+                .progress(userProgress != null ? userProgress.getCurrentProgress() : null)
+                .build();
+    }
+
+    public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(
+            CollectionEpisode episode,
             UserEpisodeProgress progress
     ) {
         return ResourceResponseDTO.SearchResultResourceDTO.builder()
