@@ -211,7 +211,7 @@ public class UserService {
                 .orElseThrow(() -> new UserHandler(ErrorStatus.USER_NOT_FOUND));
 
         List<UserCollection> inProgressUserCollectionList
-                = userCollectionRepository.findByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.IN_PROGRESS);
+                = userCollectionRepository.findByUserAndStatusOrderByUpdatedAtDesc(user, UserCollectionStatus.IN_PROGRESS);
 
         List<ResourceResponseDTO.RecentlyWatchedEpisodeDTO> recentlyWatchedEpisodeDTOList = inProgressUserCollectionList.stream()
                 .map(userCollection -> {
@@ -234,7 +234,7 @@ public class UserService {
 
 
         List<UserCollection> completedUserCollectionList
-                = userCollectionRepository.findByUserAndStatusOrderByCompletedTimeDesc(user, UserCollectionStatus.COMPLETED);
+                = userCollectionRepository.findByUserAndStatusOrderByUpdatedAtDesc(user, UserCollectionStatus.COMPLETED);
 
         List<CollectionResponseDTO.CollectionPreviewDTO> completedCollectionList = completedUserCollectionList.stream()
                 .map(userCollection -> {
