@@ -67,8 +67,9 @@ public class ResourceService {
     }
 
     @Transactional
-    public Optional<Memo> getMemoContents(Long episodeId){
-        return memoRepository.findByEpisodeId(episodeId);
+    public Optional<Memo> getMemoContents(Long episodeId, String loginId){
+        MemoId memoId = new MemoId(episodeId, loginId);
+        return memoRepository.findById(memoId);
     }
 
     @Transactional
