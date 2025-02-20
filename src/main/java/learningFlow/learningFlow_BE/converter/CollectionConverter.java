@@ -102,7 +102,7 @@ public class CollectionConverter {
                 .likesCount(collection.getBookmarkCount()) //북마크 -> 좋아요로 이름만 변경 
                 .isLiked(currentUser != null && currentUser.hasBookmarked(collection.getId())) //북마크 -> 좋아요로 이름만 변경
                 .progressRatePercentage(learningInfo.getProgressRate())
-                .progressRatio(calculateProgressRatio(collection, learningInfo))
+                .progressRatio(learningInfo.getProgressRatio())
                 .learningStatus(learningInfo.getLearningStatus())
                 .startDate(learningInfo.getStartDate())
                 .completedDate(learningInfo.getCompletedDate())
