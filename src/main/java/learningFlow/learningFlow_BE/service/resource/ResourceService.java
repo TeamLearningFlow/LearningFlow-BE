@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +69,20 @@ public class ResourceService {
     @Transactional
     public Optional<Memo> getMemoContents(Long episodeId){
         return memoRepository.findByEpisodeId(episodeId);
+    }
+
+    @Transactional
+    public List<UserEpisodeProgress> getEpisodeProgress(String loginId, Long episodeId){
+        CollectionEpisode episode = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND));
+        Collection collection = episode.getCollection();
+        List<CollectionEpisode> episodes = collectionEpisodeRepository.findByCollection(collection);
+        List<Long> episodeIds = episodes.stream()
+                .map(CollectionEpisode::getId)
+                .collect(Collectors.toList());
+
+        return userEpisodeProgressRepository
+                .findByUserEpisodeProgressId_UserIdAndUserEpisodeProgressId_CollectionEpisodeIdIn(loginId, episodeIds);
     }
 
     @Transactional
