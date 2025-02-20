@@ -21,16 +21,18 @@ public enum ErrorStatus implements BaseErrorCode {
 
 
     // 멤버 관려 에러
-    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4001" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
-    EMAIL_VERIFICATION_IN_PROGRESS(HttpStatus.BAD_REQUEST, "EMAIL4002", "이미 진행 중인 이메일 인증이 있습니다. 이메일을 확인해주세요."),
-    EMAIL_CHANGE_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "EMAIL4004", "기존과 동일한 이메일로는 변경하실 수 없습니다."),
-    GOOGLE_USER_CANNOT_CHANGE_EMAIL(HttpStatus.BAD_REQUEST,"EMAIL4005","구글 로그인 유저는 이메일 변경을 하실 수 없습니다."),
+    EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"EMAIL4003" ,"이미 동일한 이메일로 생성된 계정이 존재합니다."),
+    EMAIL_VERIFICATION_IN_PROGRESS(HttpStatus.BAD_REQUEST, "EMAIL4003", "이미 진행 중인 이메일 인증이 있습니다. 이메일을 확인해주세요."),
+    EMAIL_CHANGE_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "EMAIL4003", "기존과 동일한 이메일로는 변경하실 수 없습니다."),
+    GOOGLE_USER_CANNOT_CHANGE_EMAIL(HttpStatus.BAD_REQUEST,"EMAIL4003","구글 로그인 유저는 이메일 변경을 하실 수 없습니다."),
+    GOOGLE_USER_CANNOT_CHANGE_PW(HttpStatus.BAD_REQUEST,"EMAIL4003","구글 로그인 유저는 비밀번호 변경을 하실 수 없습니다."),
     EMAIL_CODE_INVALID(HttpStatus.BAD_REQUEST, "EMAIL4006", "유효하지 않은 이메일 인증 코드입니다."),
     EMAIL_CODE_EXPIRED(HttpStatus.BAD_REQUEST,"EMAIL4007","만료된 이메일 인증 코드입니다. 이메일 인증을 다시 요청해주세요."),
 
     USER_NOT_FOUND(HttpStatus.BAD_REQUEST, "USER4001", "사용자를 찾을 수 없습니다."),
-    NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4002", "닉네임은 필수 입니다."),
+    NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER4000", "닉네임은 필수 입니다."),
     WITHDRAWAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "USER5001", "계정 탈퇴 처리 중 오류가 발생했습니다."),
+    ALREADY_LOGGED_OUT(HttpStatus.BAD_REQUEST, "USER4000", "이미 로그아웃된 사용자입니다."),
 
     // 비밀번호 관련 에러 추가
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "PASSWORD4001", "유효하지 않은 비밀번호입니다."),
@@ -70,6 +72,9 @@ public enum ErrorStatus implements BaseErrorCode {
     YOUTUBE_URI_SYNTAX_ERROR(HttpStatus.BAD_REQUEST, "EMBED4001", "유튜브 URI 형식이 아닙니다."),
     UNSUPPORTED_BLOG_PLATFORM(HttpStatus.BAD_REQUEST, "EMBED4002", "지원하지 않는 블로그 플랫폼입니다."),
     BLOG_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PORXY5001", "블로그 데이터를 가져오는 과정에서 오류가 발생했습니다."),
+
+    //memo
+    MEMO_SAVE_FAILED(HttpStatus.BAD_REQUEST, "MEMO4000", "올바른 형식의 메모를 입력해주세요"),
 
 
     // Resource 에러

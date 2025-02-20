@@ -58,6 +58,10 @@ public class LocalUserAuthService {
 
     @Transactional
     public void initialRegister(UserRequestDTO.InitialRegisterDTO requestDTO) {
+        if (requestDTO == null || requestDTO.getEmail() == null || requestDTO.getPassword() == null) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST);
+        }
+
         // 이메일 중복 체크
         if (userRepository.existsByEmail(requestDTO.getEmail())) {
             throw new GeneralException(ErrorStatus.EMAIL_ALREADY_EXISTS);
@@ -67,7 +71,6 @@ public class LocalUserAuthService {
         if (emailVerificationTokenRepository.existsByEmailAndVerifiedFalse(requestDTO.getEmail())) {
             throw new GeneralException(ErrorStatus.EMAIL_VERIFICATION_IN_PROGRESS);
         }
-        //TODO: 현재는 진행중이던 이메일이면 500에러가 나는데 400에러가 나야함! -> 확인 바랍니다!
 
         // 토큰 생성
         String token = UUID.randomUUID().toString();
@@ -89,6 +92,9 @@ public class LocalUserAuthService {
 
     @Transactional
     public EmailVerificationToken validateRegistrationToken(String emailVerificationCode) {
+        if (emailVerificationCode == null || emailVerificationCode.isEmpty()) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST, "이메일 인증 코드가 필요합니다.");
+        }
         // 토큰 유효성 검증
         EmailVerificationToken verificationToken = emailVerificationTokenRepository.findByTokenAndVerifiedFalse(emailVerificationCode)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EMAIL_CODE_INVALID));
@@ -107,21 +113,16 @@ public class LocalUserAuthService {
             UserRequestDTO.CompleteRegisterDTO requestDTO,
             HttpServletResponse response
     ) {
-//        String profileImgUrl = null;
+
+        if (emailVerificationCode == null || requestDTO == null) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST, "입력값이 올바르지 않습니다.");
+        }
         //이메일 토큰 검증
         EmailVerificationToken verificationToken = validateRegistrationToken(emailVerificationCode);
 
         // 로그인 ID 생성
         String loginuuid = UUID.randomUUID().toString().substring(0, 8);
         String loginId = "LOCAL_" + loginuuid;
-
-//        //이미지 파일
-//        if (imageFile != null && !imageFile.isEmpty()) {
-//            log.info("이미지 업로드 요청 발생");
-//            imageUrl = s3Manager.uploadImageToS3(imageFile);
-//            // user 엔티티에 이미지 URL 업데이트
-//            //user.updateImage(imageUrl);
-//        }
 
 
         // 새로운 유저 생성
@@ -180,6 +181,7 @@ public class LocalUserAuthService {
 
     public UserResponseDTO.UserLoginResponseDTO login(UserRequestDTO.UserLoginDTO request,
                                                       HttpServletResponse response) {
+
         try {
             UsernamePasswordAuthenticationToken authRequest =
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
@@ -211,7 +213,7 @@ public class LocalUserAuthService {
             return toUserLoginResponseDTO(principalDetails.getUser());
         } catch (AuthenticationException e) {
             log.error("로그인 실패: {}", e.getMessage());
-            throw new RuntimeException("이메일 또는 비밀번호가 잘못되었습니다.");
+            throw new GeneralException(ErrorStatus._BAD_REQUEST, "이메일 또는 비밀번호가 잘못되었습니다.");
         }
     }
 
@@ -229,7 +231,7 @@ public class LocalUserAuthService {
 */
 
         if (user.getSocialType() != SocialType.LOCAL) {
-            throw new RuntimeException("구글 로그인으로 가입된 계정입니다.");
+            throw new GeneralException(ErrorStatus.GOOGLE_USER_CANNOT_CHANGE_EMAIL,"구글 로그인으로 가입된 계정입니다.");
         }
 
         // 기존 토큰이 있다면 제거
@@ -296,6 +298,11 @@ public class LocalUserAuthService {
     @Transactional
     public String sendEmailResetEmail(String email, PrincipalDetails principalDetails) {
 
+        if (principalDetails == null || principalDetails.getUser() == null) {
+            log.error("비밀번호 재설정 실패: 사용자를 찾을 수 없음");
+            throw new GeneralException(ErrorStatus.USER_NOT_FOUND);
+        }
+
         //구글 로그인 유저인지 확인
         if (principalDetails.getUser().getSocialType().equals(SocialType.GOOGLE)) {
             throw new GeneralException(ErrorStatus.GOOGLE_USER_CANNOT_CHANGE_EMAIL);
@@ -330,6 +337,7 @@ public class LocalUserAuthService {
                 .build();
 
         emailVerificationTokenRepository.save(verificationToken);
+        log.info("새로운 비밀번호 재설정 토큰 생성됨: email={}, token={}", email, token);
 
         // 인증 이메일 발송
         userVerificationEmailService.sendEmailResetEmail(email, token);
@@ -358,21 +366,16 @@ public class LocalUserAuthService {
     @Transactional
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
 
-            log.info("로그아웃 전 Authorization 헤더: {}", request.getHeader("Authorization"));
-            log.info("로그아웃 전 Refresh-Token 헤더: {}", request.getHeader("Refresh-Token"));
-
-            jwtLogoutHandler.logout(request, response, authentication);
-
-            log.info("로그아웃 후 Authorization 헤더: {}", response.getHeader("Authorization"));
-            log.info("로그아웃 후 Refresh-Token 헤더: {}", response.getHeader("Refresh-Token"));
-            log.info("로그아웃 완료: {}", authentication.getName());
-
-            return "로그아웃 성공";
-        } else {
-            log.info("이미 로그아웃된 상태입니다");
-            return "이미 로그아웃된 상태입니다";
+        if (authentication == null) {
+            log.info("로그아웃 실패: 이미 로그아웃된 상태");
+            throw new GeneralException(ErrorStatus.ALREADY_LOGGED_OUT);
         }
+
+        log.info("로그아웃 시도: email={}", authentication.getName());
+        jwtLogoutHandler.logout(request, response, authentication);
+        log.info("로그아웃 완료: email={}", authentication.getName());
+
+        return "로그아웃이 성공적으로 처리되었습니다.";
     }
 }
