@@ -90,7 +90,7 @@ public class ResourceConverter {
                 // added: today 값 설정 - 다음 학습할 에피소드인지 확인
                 .today(episode.getEpisodeNumber().equals(currentEpisodeNumber + 1))
                 // added: completed 값 설정 - 현재 에피소드보다 번호가 작으면 완료된 것
-                .completed(episode.getEpisodeNumber() <= currentEpisodeNumber)
+                .completed(userProgress != null && userProgress.getIsComplete())
                 // added: progress 값 설정 - 해당 에피소드의 진도율
                 .progress(userProgress != null ? userProgress.getCurrentProgress() : null)
                 .build();
