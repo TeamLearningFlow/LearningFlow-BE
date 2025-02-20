@@ -137,12 +137,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 "</script>";
 */
 
+        // ✅ refreshToken도 postMessage로 전달하도록 수정
         String redirectScript = "<script>" +
                 "  window.opener.postMessage({" +
-                "    accessToken: '" + accessToken + "'" +
-                "  }, 'https://onboarding-kappa.vercel.app');" + // 프론트엔드 origin
+                "    accessToken: '" + accessToken + "'," +
+                "    refreshToken: '" + refreshToken + "'" +  // ✅ refreshToken 추가
+                "  }, 'https://onboarding-kappa.vercel.app');" +
                 "  window.close();" +
                 "</script>";
+
         response.setContentType("text/html;charset=UTF-8");
         response.getWriter().write(redirectScript);
     }

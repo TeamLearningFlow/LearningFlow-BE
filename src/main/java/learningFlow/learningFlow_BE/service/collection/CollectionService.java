@@ -447,6 +447,7 @@ public class CollectionService {
                     CollectionResponseDTO.CollectionLearningInfo learningInfo = CollectionResponseDTO.CollectionLearningInfo.builder()
                             .learningStatus("IN_PROGRESS")
                             .progressRate(calculateProgressRate(userCollection))
+                            .progressRatio(calculateProgressRatio(userCollection))
                             .startDate(userCollection.getCreatedAt().toLocalDate())
                             .currentEpisode(currentEpisode)
                             .resourceDTOList(ResourceConverter.convertToResourceDTOWithToday(
