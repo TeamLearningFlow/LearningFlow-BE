@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         log.info("인증 정보 SecurityContext에 저장");
     }
 
-    private void processExpiredToken(HttpServletRequest request, HttpServletResponse response) {
+    private void processExpiredToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String refreshToken = request.getHeader("Refresh-Token");
         log.info("전달받은 Refresh Token: {}", refreshToken);
 
@@ -92,6 +92,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.info("새로운 Access Token으로 인증 정보를 업데이트 완료");
+        }
+        else{
+            if (!isPermitAllUrl(request.getRequestURI())) {
+                log.error("❌ [JwtAuthenticationFilter] 인증되지 않은 요청 → 401 반환");
+                handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
+            }
         }
     }
 

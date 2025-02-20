@@ -73,6 +73,9 @@ public enum ErrorStatus implements BaseErrorCode {
     UNSUPPORTED_BLOG_PLATFORM(HttpStatus.BAD_REQUEST, "EMBED4002", "지원하지 않는 블로그 플랫폼입니다."),
     BLOG_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "PORXY5001", "블로그 데이터를 가져오는 과정에서 오류가 발생했습니다."),
 
+    //memo
+    MEMO_SAVE_FAILED(HttpStatus.BAD_REQUEST, "MEMO4000", "올바른 형식의 메모를 입력해주세요"),
+
 
     // Resource 에러
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다."),
