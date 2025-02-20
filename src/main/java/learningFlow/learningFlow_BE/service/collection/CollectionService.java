@@ -345,48 +345,64 @@ public class CollectionService {
     public HomeResponseDTO.UserHomeInfoDTO getUserHomeCollections(User user) {
         // 최근 학습 컬렉션 조회
         CollectionResponseDTO.CollectionPreviewDTO recentLearning = getRecentLearning(user);
+        List<Collection> recommendedCollections = new ArrayList<>();
 
-        // 추천 컬렉션 목록 조회
-        // 1. interestField와 preferType 모두 충족
-        List<Collection> recommendedCollections = new ArrayList<>(collectionRepository.findByInterestFieldAndPreferType(
+        // 1단계: interestField와 preferType 모두 충족하는 컬렉션 추가
+        recommendedCollections.addAll(collectionRepository.findByInterestFieldAndPreferType(
                 user.getInterestFields(), user.getPreferType(), true, true, HOME_COLLECTION_SIZE
         ));
 
-        // 2. interestField만 충족
+        // 중복 제거
+        recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                .distinct()
+                .toList());
+
+        // 2단계: interestField만 충족하는 컬렉션 추가
         if (recommendedCollections.size() < HOME_COLLECTION_SIZE) {
-            recommendedCollections.addAll(
-                    collectionRepository.findByInterestFieldAndPreferType(
-                            user.getInterestFields(), user.getPreferType(), true, false,
-                            HOME_COLLECTION_SIZE - recommendedCollections.size()
-                    )
+            List<Collection> interestFieldCollections = collectionRepository.findByInterestFieldAndPreferType(
+                    user.getInterestFields(), user.getPreferType(), true, false,
+                    HOME_COLLECTION_SIZE - recommendedCollections.size()
             );
+            recommendedCollections.addAll(interestFieldCollections);
+
+            // 중복 제거
+            recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                    .distinct()
+                    .toList());
         }
 
-        // 3. preferType만 충족
+        // 3단계: preferType만 충족하는 컬렉션 추가
         if (recommendedCollections.size() < HOME_COLLECTION_SIZE) {
-            recommendedCollections.addAll(
-                    collectionRepository.findByInterestFieldAndPreferType(
-                            user.getInterestFields(), user.getPreferType(), false, true,
-                            HOME_COLLECTION_SIZE - recommendedCollections.size()
-                    )
+            List<Collection> preferTypeCollections = collectionRepository.findByInterestFieldAndPreferType(
+                    user.getInterestFields(), user.getPreferType(), false, true,
+                    HOME_COLLECTION_SIZE - recommendedCollections.size()
             );
+            recommendedCollections.addAll(preferTypeCollections);
+
+            // 중복 제거
+            recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                    .distinct()
+                    .toList());
         }
 
-        // 4. 모두 불충족
+        // 4단계: 나머지 컬렉션 추가
         if (recommendedCollections.size() < HOME_COLLECTION_SIZE) {
-            recommendedCollections.addAll(
-                    collectionRepository.findByInterestFieldAndPreferType(
-                            user.getInterestFields(), user.getPreferType(), false, false,
-                            HOME_COLLECTION_SIZE - recommendedCollections.size()
-                    )
+            List<Collection> remainingCollections = collectionRepository.findByInterestFieldAndPreferType(
+                    user.getInterestFields(), user.getPreferType(), false, false,
+                    HOME_COLLECTION_SIZE - recommendedCollections.size()
             );
+            recommendedCollections.addAll(remainingCollections);
+
+            // 마지막 중복 제거
+            recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                    .distinct()
+                    .toList());
         }
 
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = recommendedCollections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> getLearningInfo(collection, user, false),
-                        (existing, replacement) -> replacement  // added: 중복 키가 있을 경우 새 값 사용
+                        collection -> getLearningInfo(collection, user, false)
                 ));
 
         return HomeConverter.convertToUserHomeInfoDTO(
