@@ -113,16 +113,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 */
 //        response.setStatus(HttpStatus.OK.value());
 
-        // HTTP-Only 쿠키 설정 (Refresh Token)
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(true) // HTTPS에서만
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("None")  // 필요하면 Lax, Strict
-                .build();
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
         response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
