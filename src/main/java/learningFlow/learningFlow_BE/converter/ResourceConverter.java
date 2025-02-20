@@ -63,16 +63,37 @@ public class ResourceConverter {
         return episodeInformationList;
     }
 
-    public static ResourceResponseDTO.ProgressResponseDTO toSaveProgressResponse(ResourceRequestDTO.ProgressRequestDTO request) {
+    public static ResourceResponseDTO.ProgressResponseDTO toSaveProgressResponse(ResourceRequestDTO.ProgressRequestDTO request, Boolean isCompleted) {
         return ResourceResponseDTO.ProgressResponseDTO.builder()
                 .progress(request.getProgress())
                 .resourceType(request.getResourceType())
+                .isCompleted(isCompleted)
                 .build();
     }
 
     public static ResourceResponseDTO.changeEpisodeIsCompleteDTO toChangeEpisodeIsCompleteDTO(Boolean isComplete){
         return ResourceResponseDTO.changeEpisodeIsCompleteDTO.builder()
                 .isComplete(isComplete)
+                .build();
+    }
+
+    public static ResourceResponseDTO.SearchResultResourceDTO convertToResourceDTO(
+            CollectionEpisode episode,
+            UserEpisodeProgress userProgress, // added: 사용자 진도 정보 추가
+            Integer currentEpisodeNumber    // added: 현재 학습 중인 에피소드 번호 추가
+    ) {
+        return ResourceResponseDTO.SearchResultResourceDTO.builder()
+                .episodeId(episode.getId())
+                .episodeName(episode.getEpisodeName())
+                .url(episode.getResource().getUrl())
+                .resourceSource(extractResourceSource(episode.getResource().getUrl()))
+                .episodeNumber(episode.getEpisodeNumber())
+                // added: today 값 설정 - 다음 학습할 에피소드인지 확인
+                .today(episode.getEpisodeNumber().equals(currentEpisodeNumber + 1))
+                // added: completed 값 설정 - 현재 에피소드보다 번호가 작으면 완료된 것
+                .completed(userProgress != null && userProgress.getIsComplete())
+                // added: progress 값 설정 - 해당 에피소드의 진도율
+                .progress(userProgress != null ? userProgress.getCurrentProgress() : null)
                 .build();
     }
 
@@ -101,16 +122,25 @@ public class ResourceConverter {
             UserEpisodeProgress userEpisodeProgress
     ) {
         return ResourceResponseDTO.RecentlyWatchedEpisodeDTO.builder()
-                .resourceId(getResourceId(userCollection))
+                .episodeId(getEpisodeId(userCollection))
                 .collectionId(userCollection.getCollection().getId())
                 .collectionTitle(userCollection.getCollection().getTitle())
                 .resourceSource(extractResourceSource(getResourceUrl(userCollection)))
                 .episodeNumber(userCollection.getUserCollectionStatus())
                 .episodeName(getEpisodeName(userCollection))
                 .progressRatio(calculateProgressRatio(userCollection))
-                .currentProgress(userEpisodeProgress.getCurrentProgress())
-                .totalProgress(userEpisodeProgress.getTotalProgress())
+                .currentProgress(userEpisodeProgress != null ? userEpisodeProgress.getCurrentProgress() : 0)
+                .totalProgress(userEpisodeProgress != null ? userEpisodeProgress.getTotalProgress() : 0)
                 .build();
+    }
+
+    private static Long getEpisodeId(UserCollection userCollection) {
+        // added: episodeId를 찾는 메소드 추가
+        return userCollection.getCollection().getEpisodes().stream()
+                .filter(episode -> episode.getEpisodeNumber().equals(userCollection.getUserCollectionStatus()))
+                .findFirst()
+                .map(CollectionEpisode::getId)
+                .orElse(null);
     }
 
     public static List<ResourceResponseDTO.SearchResultResourceDTO> convertToResourceDTOWithToday(
@@ -129,6 +159,29 @@ public class ResourceConverter {
                         .completed(episode.getEpisodeNumber() <= lastCompletedEpisode)
                         .build())
                 .toList();
+    }
+
+    public static ResourceResponseDTO.RecentlyWatchedEpisodeDTO convertToRecentlyWatchedEpisodeDTO(
+            UserCollection userCollection,
+            UserEpisodeProgress userEpisodeProgress,
+            CollectionEpisode currentEpisode,  // added: 파라미터 추가
+            int totalEpisodes,                 // added: 파라미터 추가
+            double progressPercentage          // added: 파라미터 추가
+    ) {
+        return ResourceResponseDTO.RecentlyWatchedEpisodeDTO.builder()
+                .episodeId(currentEpisode.getId())
+                .collectionId(userCollection.getCollection().getId())
+                .collectionTitle(userCollection.getCollection().getTitle())
+                .resourceSource(extractResourceSource(currentEpisode.getResource().getUrl()))
+                .episodeNumber(userCollection.getUserCollectionStatus())
+                .episodeName(currentEpisode.getEpisodeName())
+                .progressRatio(String.format("%d / %d회차 (%.0f%%)",
+                        userCollection.getUserCollectionStatus(),
+                        totalEpisodes,
+                        progressPercentage))
+                .currentProgress(userEpisodeProgress != null ? userEpisodeProgress.getCurrentProgress() : 0)
+                .totalProgress(userEpisodeProgress != null ? userEpisodeProgress.getTotalProgress() : 0)
+                .build();
     }
 
     public static String extractResourceSource(String url) {

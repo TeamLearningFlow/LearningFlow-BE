@@ -86,12 +86,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .build();
         response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-
         response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
-
-
 
         // ⭐️ 팝업 창을 닫고 부모 창에 메시지 전달하는 스크립트 (프론트엔드 도메인 사용)
         String redirectScript = "<script>" +

@@ -9,5 +9,5 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "custom.jwt")
 public class JwtProperties {
     private long accessTokenValidityInSeconds = 3600; // 1시간
-    private long refreshTokenValidityInSeconds = 604800; // 1주일
+    //private long refreshTokenValidityInSeconds = 604800; // 1주일
 }

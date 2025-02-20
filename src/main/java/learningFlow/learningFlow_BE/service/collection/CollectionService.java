@@ -117,7 +117,8 @@ public class CollectionService {
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> getLearningInfo(collection, currentUser, false)
+                        collection -> getLearningInfo(collection, currentUser, false),
+                        (existing, replacement) -> replacement  // added: 중복 키가 있을 경우 새 값 사용
                 ));
 
         return CollectionConverter.toSearchResultDTO(
@@ -141,8 +142,8 @@ public class CollectionService {
                     .learningStatus("BEFORE")
                     .progressRate(null)
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection, null) :  // 상세 조회면 전체 리소스
-                            getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
+                            getAllResourcesWithProgress(collection, null, 0) :
+                            getFilteredResources(collection, null, 0))
                     .build();
         }
 
@@ -153,8 +154,8 @@ public class CollectionService {
                     .learningStatus("BEFORE")
                     .progressRate(null)
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection, user) :  // 상세 조회면 전체 리소스
-                            getFilteredResources(collection, null, 0))  // 아니면 필터링된 리소스
+                            getAllResourcesWithProgress(collection, null, 0) :
+                            getFilteredResources(collection, null, 0))
                     .build();
         }
 
@@ -163,11 +164,12 @@ public class CollectionService {
             return CollectionResponseDTO.CollectionLearningInfo.builder()
                     .learningStatus("COMPLETED")
                     .progressRate(100)
+                    .progressRatio(calculateProgressRatio(realUserCollection))
                     .startDate(realUserCollection.getCreatedAt().toLocalDate())
                     .completedDate(realUserCollection.getCompletedTime())
                     .resourceDTOList(isDetailView ?
-                            getAllResources(collection) :  // 상세 조회면 전체 리소스
-                            new ArrayList<>())  // 아니면 빈 리스트
+                            getAllResourcesWithProgress(collection, user, realUserCollection.getUserCollectionStatus()) :
+                            new ArrayList<>())
                     .build();
         }
 
@@ -175,17 +177,103 @@ public class CollectionService {
         return CollectionResponseDTO.CollectionLearningInfo.builder()
                 .learningStatus("IN_PROGRESS")
                 .progressRate(progressRate)
+                .progressRatio(calculateProgressRatio(realUserCollection))
                 .startDate(realUserCollection.getCreatedAt().toLocalDate())
                 .currentEpisode(realUserCollection.getUserCollectionStatus())
                 .resourceDTOList(isDetailView ?
-                        getAllResources(collection, user) :
+                        getAllResourcesWithProgress(collection, user, realUserCollection.getUserCollectionStatus()) :
                         getFilteredResources(collection, user, realUserCollection.getUserCollectionStatus()))
                 .build();
     }
 
+    private List<ResourceResponseDTO.SearchResultResourceDTO> getAllResourcesWithProgress(
+            Collection collection,
+            User user,
+            int currentEpisodeNumber
+    ) {
+        return collection.getEpisodes().stream()
+                .sorted(Comparator.comparing(CollectionEpisode::getEpisodeNumber))
+                .map(episode -> {
+                    UserEpisodeProgress progress = null;
+                    if (user != null) {
+                        progress = userEpisodeProgressRepository.findById(
+                                new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                        ).orElse(null);
+                    }
+                    return ResourceConverter.convertToResourceDTO(
+                            episode,
+                            progress,
+                            currentEpisodeNumber
+                    );
+                })
+                .toList();
+    }
+
     private int calculateProgressRate(UserCollection userCollection) {
+/*
         return (int) Math.round((double) userCollection.getUserCollectionStatus() /
                 userCollection.getCollection().getEpisodes().size() * 100);
+*/
+        if (userCollection.getStatus() == UserCollectionStatus.COMPLETED) {
+            return 100;
+        }
+
+        Collection collection = userCollection.getCollection();
+        User user = userCollection.getUser();
+
+        // 전체 에피소드 수
+        int totalEpisodes = collection.getEpisodes().size();
+
+        // 완료된 에피소드 수 계산
+        long completedEpisodes = collection.getEpisodes().stream()
+                .map(episode -> userEpisodeProgressRepository.findById(
+                        new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                ))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(progress ->
+                        progress.getIsComplete() ||
+                                (progress.getCurrentProgress() != null && progress.getCurrentProgress() >= 100)
+                )
+                .count();
+/*                .filter(UserEpisodeProgress::getIsComplete)
+                .count();*/
+
+        return (int) Math.round((double) completedEpisodes / totalEpisodes * 100);
+    }
+
+    private String calculateProgressRatio(UserCollection userCollection) {
+        if (userCollection.getStatus() == UserCollectionStatus.COMPLETED) {
+            int totalEpisodes = userCollection.getCollection().getEpisodes().size();
+            return String.format("%d / %d회차 (100%%)", totalEpisodes, totalEpisodes);
+        }
+
+        Collection collection = userCollection.getCollection();
+        User user = userCollection.getUser();
+
+        int totalEpisodes = collection.getEpisodes().size();
+        int currentEpisode = userCollection.getUserCollectionStatus();
+
+        long completedEpisodes = collection.getEpisodes().stream()
+                .map(episode -> userEpisodeProgressRepository.findById(
+                        new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                ))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(progress ->
+                        progress.getIsComplete() ||
+                                (progress.getCurrentProgress() != null && progress.getCurrentProgress() >= 100)
+                )
+                .count();
+/*                .filter(UserEpisodeProgress::getIsComplete)
+                .count();*/
+
+        double progressPercentage = (double) completedEpisodes / totalEpisodes * 100;
+
+        return String.format("%d / %d회차 (%.0f%%)",
+                currentEpisode,
+                totalEpisodes,
+                progressPercentage);
     }
 
     private List<ResourceResponseDTO.SearchResultResourceDTO> getFilteredResources(
@@ -216,9 +304,23 @@ public class CollectionService {
                     .limit(4)
                     .toList();
         }
-
-        return filteredEpisodes.stream()
+/*        return filteredEpisodes.stream()
                 .map(ResourceConverter::convertToResourceDTO)
+                .toList();*/
+        return filteredEpisodes.stream()
+                .map(episode -> {
+                    UserEpisodeProgress progress = null;
+                    if (user != null) {
+                        progress = userEpisodeProgressRepository.findById(
+                                new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                        ).orElse(null);
+                    }
+                    return ResourceConverter.convertToResourceDTO(
+                            episode,
+                            progress,
+                            currentEpisode
+                    );
+                })
                 .toList();
     }
 
@@ -243,41 +345,58 @@ public class CollectionService {
     public HomeResponseDTO.UserHomeInfoDTO getUserHomeCollections(User user) {
         // 최근 학습 컬렉션 조회
         CollectionResponseDTO.CollectionPreviewDTO recentLearning = getRecentLearning(user);
+        List<Collection> recommendedCollections = new ArrayList<>();
 
-        // 추천 컬렉션 목록 조회
-        // 1. interestField와 preferType 모두 충족
-        List<Collection> recommendedCollections = new ArrayList<>(collectionRepository.findByInterestFieldAndPreferType(
+        // 1단계: interestField와 preferType 모두 충족하는 컬렉션 추가
+        recommendedCollections.addAll(collectionRepository.findByInterestFieldAndPreferType(
                 user.getInterestFields(), user.getPreferType(), true, true, HOME_COLLECTION_SIZE
         ));
 
-        // 2. interestField만 충족
+        // 중복 제거
+        recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                .distinct()
+                .toList());
+
+        // 2단계: interestField만 충족하는 컬렉션 추가
         if (recommendedCollections.size() < HOME_COLLECTION_SIZE) {
-            recommendedCollections.addAll(
-                    collectionRepository.findByInterestFieldAndPreferType(
-                            user.getInterestFields(), user.getPreferType(), true, false,
-                            HOME_COLLECTION_SIZE - recommendedCollections.size()
-                    )
+            List<Collection> interestFieldCollections = collectionRepository.findByInterestFieldAndPreferType(
+                    user.getInterestFields(), user.getPreferType(), true, false,
+                    HOME_COLLECTION_SIZE - recommendedCollections.size()
             );
+            recommendedCollections.addAll(interestFieldCollections);
+
+            // 중복 제거
+            recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                    .distinct()
+                    .toList());
         }
 
-        // 3. preferType만 충족
+        // 3단계: preferType만 충족하는 컬렉션 추가
         if (recommendedCollections.size() < HOME_COLLECTION_SIZE) {
-            recommendedCollections.addAll(
-                    collectionRepository.findByInterestFieldAndPreferType(
-                            user.getInterestFields(), user.getPreferType(), false, true,
-                            HOME_COLLECTION_SIZE - recommendedCollections.size()
-                    )
+            List<Collection> preferTypeCollections = collectionRepository.findByInterestFieldAndPreferType(
+                    user.getInterestFields(), user.getPreferType(), false, true,
+                    HOME_COLLECTION_SIZE - recommendedCollections.size()
             );
+            recommendedCollections.addAll(preferTypeCollections);
+
+            // 중복 제거
+            recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                    .distinct()
+                    .toList());
         }
 
-        // 4. 모두 불충족
+        // 4단계: 나머지 컬렉션 추가
         if (recommendedCollections.size() < HOME_COLLECTION_SIZE) {
-            recommendedCollections.addAll(
-                    collectionRepository.findByInterestFieldAndPreferType(
-                            user.getInterestFields(), user.getPreferType(), false, false,
-                            HOME_COLLECTION_SIZE - recommendedCollections.size()
-                    )
+            List<Collection> remainingCollections = collectionRepository.findByInterestFieldAndPreferType(
+                    user.getInterestFields(), user.getPreferType(), false, false,
+                    HOME_COLLECTION_SIZE - recommendedCollections.size()
             );
+            recommendedCollections.addAll(remainingCollections);
+
+            // 마지막 중복 제거
+            recommendedCollections = new ArrayList<>(recommendedCollections.stream()
+                    .distinct()
+                    .toList());
         }
 
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = recommendedCollections.stream()
