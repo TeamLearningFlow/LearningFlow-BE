@@ -117,7 +117,8 @@ public class CollectionService {
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = collections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> getLearningInfo(collection, currentUser, false)
+                        collection -> getLearningInfo(collection, currentUser, false),
+                        (existing, replacement) -> replacement  // added: 중복 키가 있을 경우 새 값 사용
                 ));
 
         return CollectionConverter.toSearchResultDTO(
@@ -384,7 +385,8 @@ public class CollectionService {
         Map<Long, CollectionResponseDTO.CollectionLearningInfo> learningInfoMap = recommendedCollections.stream()
                 .collect(Collectors.toMap(
                         Collection::getId,
-                        collection -> getLearningInfo(collection, user, false)
+                        collection -> getLearningInfo(collection, user, false),
+                        (existing, replacement) -> replacement  // added: 중복 키가 있을 경우 새 값 사용
                 ));
 
         return HomeConverter.convertToUserHomeInfoDTO(
