@@ -70,7 +70,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     window.close();
                 }
             </script>
-            """, "http://localhost:3000", temporaryToken);
+            """, frontendUrl, temporaryToken);
 
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(redirectScript);
@@ -140,7 +140,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String redirectScript = "<script>" +
                 "  window.opener.postMessage({" +
                 "    accessToken: '" + accessToken + "'" +
-                "  }, 'http://localhost:3000');" + // 프론트엔드 origin
+                "  }, 'https://onboarding-kappa.vercel.app');" + // 프론트엔드 origin
                 "  window.close();" +
                 "</script>";
         response.setContentType("text/html;charset=UTF-8");
