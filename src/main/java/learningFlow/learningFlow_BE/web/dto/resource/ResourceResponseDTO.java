@@ -85,7 +85,7 @@ public class ResourceResponseDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class RecentlyWatchedEpisodeDTO {
-        Long resourceId;
+        Long episodeId;
         Long collectionId;
         String collectionTitle;
         String resourceSource;
