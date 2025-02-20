@@ -43,7 +43,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 */
             // ⭐️ 신규 회원: 팝업 닫기 + 부모 창 리디렉션
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
-            String redirectUrl = UriComponentsBuilder.fromUriString("https://onboarding-kappa.vercel.app/landing") // ⭐️ 추가 정보 입력 페이지
+            String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/landing") // ⭐️ 추가 정보 입력 페이지
                     .queryParam("oauth2RegistrationCode", temporaryToken) // ⭐️ 임시 토큰 전달
                     .build().toUriString();
 
@@ -120,7 +120,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String redirectScript = "<script>" +
                 "  window.opener.postMessage({" +
                 "    accessToken: '" + accessToken + "'" +
-                "  }, 'https://onboarding-kappa.vercel.app');" + // 프론트엔드 origin
+                "  }, 'http://localhost:3000');" + // 프론트엔드 origin
                 "  window.close();" +
                 "</script>";
         response.setContentType("text/html;charset=UTF-8");
