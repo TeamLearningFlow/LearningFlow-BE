@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -34,9 +35,25 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // Principal 타입 확인, 첫 로그인인 경우 회원가입으로 이동
         if (authentication.getPrincipal() instanceof OAuth2UserTemp oAuth2UserTemp) {
+/*
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
             String redirectUrl = frontendUrl + "/oauth2/additional-info?oauth2RegistrationCode=" + temporaryToken;
             response.sendRedirect(redirectUrl);
+            return;
+*/
+            // ⭐️ 신규 회원: 팝업 닫기 + 부모 창 리디렉션
+            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
+            String redirectUrl = UriComponentsBuilder.fromUriString("https://onboarding-kappa.vercel.app/landing") // ⭐️ 추가 정보 입력 페이지
+                    .queryParam("oauth2RegistrationCode", temporaryToken) // ⭐️ 임시 토큰 전달
+                    .build().toUriString();
+
+            String redirectScript = "<script>" +
+                    "  window.opener.location.href = '" + redirectUrl + "';" + // ⭐️ 부모 창 리디렉션
+                    "  window.close();" + // ⭐️ 팝업 닫기
+                    "</script>";
+
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(redirectScript);
             return;
         }
 
