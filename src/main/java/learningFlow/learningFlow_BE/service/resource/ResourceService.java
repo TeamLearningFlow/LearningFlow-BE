@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -71,7 +72,6 @@ public class ResourceService {
 
     @Transactional
     public void updateUserCollection(CollectionEpisode episode, String loginId) {
-        // UserCollection 조회
         Collection collection = episode.getCollection();
         User user = userRepository.findById(loginId)
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_NOT_FOUND));
@@ -97,7 +97,10 @@ public class ResourceService {
                 .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
         // 만약 진도가 80이상인 경우 완료로 저장
         Integer requestProgress = request.getProgress();
-        if (requestProgress >= 80) userEpisode.setIsComplete(true);
+        if (requestProgress >= 80) {
+            userEpisode.setIsComplete(true);
+            checkUserCollectionComplete(episodeId, userId);
+        }
         userEpisode.setCurrentProgress(requestProgress);
         userEpisodeProgressRepository.save(userEpisode);
         return userEpisode.getIsComplete();
@@ -114,5 +117,31 @@ public class ResourceService {
         userEpisodeProgress.setCurrentProgress(0);
         userEpisodeProgressRepository.save(userEpisodeProgress);
         return isComplete;
+    }
+
+    @Transactional
+    public void checkUserCollectionComplete(Long episodeId, String loginId){
+        Collection collection = collectionEpisodeRepository.findById(episodeId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.EPISODE_NOT_FOUND))
+                .getCollection();
+        User user = userRepository.findById(loginId)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_NOT_FOUND));
+        UserCollection userCollection = userCollectionRepository.findByUserAndCollection(user, collection)
+                .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_COLLECTION_NOT_FOUND));
+        List<CollectionEpisode> episodes = collection.getEpisodes();
+        boolean allCompleted = true;
+        for (CollectionEpisode episode : episodes) {
+            UserEpisodeProgressId userEpisodeProgressId = new UserEpisodeProgressId(episode.getId(), loginId);
+            UserEpisodeProgress userEpisodeProgress = userEpisodeProgressRepository.findById(userEpisodeProgressId)
+                    .orElseThrow(() -> new ResourceHandler(ErrorStatus.USER_PROGRESS_NOT_FOUND));
+            if (!userEpisodeProgress.getIsComplete().equals(Boolean.TRUE)) {
+                allCompleted = false;
+                break;
+            }
+        }
+        if (allCompleted){
+            userCollection.CompleteUserCollection();
+            userCollectionRepository.save(userCollection);
+        }
     }
 }

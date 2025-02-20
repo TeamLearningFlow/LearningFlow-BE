@@ -75,6 +75,8 @@ public enum ErrorStatus implements BaseErrorCode {
     // Resource 에러
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스 입니다."),
 
+    USER_COLLECTION_NOT_FOUND(HttpStatus.NOT_FOUND, "USER COLLECTION4001", "존재하지 않는 리소스 입니다."),
+
     // User Progress
     USER_PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "USER-PROGRESS4001", "진도 값이 null 인 상태입니다.");
     private final HttpStatus httpStatus;

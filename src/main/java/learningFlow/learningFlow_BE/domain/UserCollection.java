@@ -75,5 +75,9 @@ public class UserCollection extends BaseEntity{
         this.userCollectionStatus = userCollectionStatus;
         this.completedTime = LocalDate.now();
     }
+    public void CompleteUserCollection(){
+        this.status = UserCollectionStatus.COMPLETED;
+        this.completedTime = LocalDate.now();
+    }
 }
 
