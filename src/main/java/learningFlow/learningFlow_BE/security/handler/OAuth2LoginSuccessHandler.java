@@ -70,7 +70,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     window.close();
                 }
             </script>
-            """, frontendUrl, temporaryToken);
+            """, "http://localhost:3000", temporaryToken);
 
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(redirectScript);
