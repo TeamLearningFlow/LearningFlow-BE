@@ -64,6 +64,7 @@ public class CollectionResponseDTO {
     public static class CollectionLearningInfo {
         String learningStatus;
         Integer progressRate;
+        String progressRatio;
         Integer currentEpisode;
         LocalDate startDate;
         LocalDate completedDate;

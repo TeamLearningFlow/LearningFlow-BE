@@ -163,6 +163,7 @@ public class CollectionService {
             return CollectionResponseDTO.CollectionLearningInfo.builder()
                     .learningStatus("COMPLETED")
                     .progressRate(100)
+                    .progressRatio(calculateProgressRatio(realUserCollection))
                     .startDate(realUserCollection.getCreatedAt().toLocalDate())
                     .completedDate(realUserCollection.getCompletedTime())
                     .resourceDTOList(isDetailView ?
@@ -175,6 +176,7 @@ public class CollectionService {
         return CollectionResponseDTO.CollectionLearningInfo.builder()
                 .learningStatus("IN_PROGRESS")
                 .progressRate(progressRate)
+                .progressRatio(calculateProgressRatio(realUserCollection))
                 .startDate(realUserCollection.getCreatedAt().toLocalDate())
                 .currentEpisode(realUserCollection.getUserCollectionStatus())
                 .resourceDTOList(isDetailView ?
@@ -207,8 +209,70 @@ public class CollectionService {
     }
 
     private int calculateProgressRate(UserCollection userCollection) {
+/*
         return (int) Math.round((double) userCollection.getUserCollectionStatus() /
                 userCollection.getCollection().getEpisodes().size() * 100);
+*/
+        if (userCollection.getStatus() == UserCollectionStatus.COMPLETED) {
+            return 100;
+        }
+
+        Collection collection = userCollection.getCollection();
+        User user = userCollection.getUser();
+
+        // 전체 에피소드 수
+        int totalEpisodes = collection.getEpisodes().size();
+
+        // 완료된 에피소드 수 계산
+        long completedEpisodes = collection.getEpisodes().stream()
+                .map(episode -> userEpisodeProgressRepository.findById(
+                        new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                ))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(progress ->
+                        progress.getIsComplete() ||
+                                (progress.getCurrentProgress() != null && progress.getCurrentProgress() >= 100)
+                )
+                .count();
+/*                .filter(UserEpisodeProgress::getIsComplete)
+                .count();*/
+
+        return (int) Math.round((double) completedEpisodes / totalEpisodes * 100);
+    }
+
+    private String calculateProgressRatio(UserCollection userCollection) {
+        if (userCollection.getStatus() == UserCollectionStatus.COMPLETED) {
+            int totalEpisodes = userCollection.getCollection().getEpisodes().size();
+            return String.format("%d / %d회차 (100%%)", totalEpisodes, totalEpisodes);
+        }
+
+        Collection collection = userCollection.getCollection();
+        User user = userCollection.getUser();
+
+        int totalEpisodes = collection.getEpisodes().size();
+        int currentEpisode = userCollection.getUserCollectionStatus();
+
+        long completedEpisodes = collection.getEpisodes().stream()
+                .map(episode -> userEpisodeProgressRepository.findById(
+                        new UserEpisodeProgressId(episode.getId(), user.getLoginId())
+                ))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(progress ->
+                        progress.getIsComplete() ||
+                                (progress.getCurrentProgress() != null && progress.getCurrentProgress() >= 100)
+                )
+                .count();
+/*                .filter(UserEpisodeProgress::getIsComplete)
+                .count();*/
+
+        double progressPercentage = (double) completedEpisodes / totalEpisodes * 100;
+
+        return String.format("%d / %d회차 (%.0f%%)",
+                currentEpisode,
+                totalEpisodes,
+                progressPercentage);
     }
 
     private List<ResourceResponseDTO.SearchResultResourceDTO> getFilteredResources(
