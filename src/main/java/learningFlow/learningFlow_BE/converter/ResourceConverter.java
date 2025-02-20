@@ -167,6 +167,9 @@ public class ResourceConverter {
             int totalEpisodes,                 // added: 파라미터 추가
             double progressPercentage          // added: 파라미터 추가
     ) {
+
+        int progressRatePercentage = (int) Math.round(progressPercentage);
+
         return ResourceResponseDTO.RecentlyWatchedEpisodeDTO.builder()
                 .episodeId(currentEpisode.getId())
                 .collectionId(userCollection.getCollection().getId())
@@ -178,6 +181,7 @@ public class ResourceConverter {
                         userCollection.getUserCollectionStatus(),
                         totalEpisodes,
                         progressPercentage))
+                .progressRatePercentage(progressRatePercentage)
                 .currentProgress(userEpisodeProgress != null ? userEpisodeProgress.getCurrentProgress() : 0)
                 .totalProgress(userEpisodeProgress != null ? userEpisodeProgress.getTotalProgress() : 0)
                 .build();
