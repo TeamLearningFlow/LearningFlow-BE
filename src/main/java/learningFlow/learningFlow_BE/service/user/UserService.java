@@ -227,10 +227,36 @@ public class UserService {
                         return null;
                     }
 
+                    // added: 완료된 에피소드 수 계산
+                    long completedEpisodes = userCollection.getCollection().getEpisodes().stream()
+                            .map(episode -> userEpisodeProgressRepository.findById(
+                                    new UserEpisodeProgressId(episode.getId(), loginId)
+                            ))
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .filter(progress ->
+                                    progress.getIsComplete() ||
+                                            (progress.getCurrentProgress() != null && progress.getCurrentProgress() >= 100)
+                            )
+                            .count();
+
+                    // added: 전체 에피소드 수
+                    int totalEpisodes = userCollection.getCollection().getEpisodes().size();
+
+                    // added: 진행률 계산
+                    double progressPercentage = (double) completedEpisodes / totalEpisodes * 100;
+
+
                     UserEpisodeProgressId progressId = new UserEpisodeProgressId(currentEpisode.getId(), loginId);
                     UserEpisodeProgress userEpisodeProgress = userEpisodeProgressRepository.findById(progressId).orElse(null);
 
-                    return ResourceConverter.convertToRecentlyWatchedEpisodeDTO(userCollection, userEpisodeProgress);
+                    return ResourceConverter.convertToRecentlyWatchedEpisodeDTO(
+                            userCollection,
+                            userEpisodeProgress,
+                            currentEpisode,
+                            totalEpisodes,
+                            progressPercentage
+                    );
                 })
                 .filter(Objects::nonNull)
                 .toList();
