@@ -75,7 +75,7 @@ public class ResourceRestController {
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
-        Optional<Memo> memo = resourceService.getMemoContents(episodeId);
+        Optional<Memo> memo = resourceService.getMemoContents(episodeId, loginId);
         Resource resource = youtubeUrlEmbedService.getResource(episodeId);
         List<UserEpisodeProgress> episodeProgress = resourceService.getEpisodeProgress(loginId, episodeId);
         ResourceResponseDTO.ResourceUrlDTO response =
@@ -115,7 +115,7 @@ public class ResourceRestController {
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
-        Optional<Memo> memo = resourceService.getMemoContents(episodeId);
+        Optional<Memo> memo = resourceService.getMemoContents(episodeId, loginId);
         String resourceTitle = resourceService.getResource(episodeId).getTitle();
         List<UserEpisodeProgress> episodeProgress = resourceService.getEpisodeProgress(loginId, episodeId);
         String blogSourceUrl = "/resources/" + episodeId + "/blog/content";
