@@ -94,7 +94,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String redirectScript = "<script>" +
                 "  window.opener.postMessage({" +
                 "    accessToken: '" + accessToken + "'," +
-                "    refreshToken: 'refreshToken'" + "  }, 'http://localhost:3000');" + // ⭐️ 프론트엔드 도메인과 포트
+                "    refreshToken: 'refreshToken'" + "  }, 'https://onboarding-kappa.vercel.app');" + // ⭐️ 프론트엔드 도메인과 포트
                 "  window.close();" +
                 "</script>";
         response.setContentType("text/html;charset=UTF-8");
