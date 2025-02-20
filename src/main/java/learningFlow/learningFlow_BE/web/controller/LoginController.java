@@ -172,7 +172,6 @@ public class LoginController {
         log.info("put info");
         return ApiResponse.onSuccess(OAuth2UserRegistrationService.updateAdditionalInfo(oauth2RegistrationCode, request, response));
     }
-    //TODO: 해당 DTO에 안 맞으면 500에러 나는데, 400에러이고 왜 회원가입 안되는 건지 구체적인 에러 작성 필요.
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃 API", description = """

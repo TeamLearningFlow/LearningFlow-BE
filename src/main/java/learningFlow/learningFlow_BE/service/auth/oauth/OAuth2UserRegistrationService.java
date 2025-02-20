@@ -3,6 +3,8 @@ package learningFlow.learningFlow_BE.service.auth.oauth;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
+import learningFlow.learningFlow_BE.apiPayload.exception.GeneralException;
 import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
@@ -58,7 +60,7 @@ public class OAuth2UserRegistrationService {
         String imageUrl = null;
 
         if (!jwtTokenProvider.validateToken(temporaryToken) || !jwtTokenProvider.isTemporaryToken(temporaryToken)) {
-            throw new RuntimeException("유효하지 않은 토큰입니다.");
+            throw new GeneralException(ErrorStatus._FORBIDDEN, "유효하지 않은 토큰입니다.");
         }
 
         Claims claims = jwtTokenProvider.getClaims(temporaryToken);

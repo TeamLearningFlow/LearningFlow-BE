@@ -7,6 +7,7 @@ import learningFlow.learningFlow_BE.apiPayload.code.BaseCode;
 import learningFlow.learningFlow_BE.apiPayload.code.status.SuccessStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.http.ResponseEntity;
 
 @Getter
 @AllArgsConstructor
@@ -33,7 +34,20 @@ public class ApiResponse<T> {
 
 
     // 실패한 경우 응답 생성
+    public static <T> ApiResponse<T> onFailure(String code, T data) {
+        return new ApiResponse<>(false, code, "요청 처리 중 오류가 발생했습니다.", data);
+    }
+
     public static <T> ApiResponse<T> onFailure(String code, String message, T data){
         return new ApiResponse<>(false, code, message, data);
+    }
+
+    public static ResponseEntity<ApiResponse> onSuccess(SuccessStatus status, Object result) {
+        return ResponseEntity.ok(
+                new ApiResponse(true, status.getCode(), status.getMessage(), result));
+    }
+
+    public static <T> ApiResponse<T> onSuccess(String code, String message, T data) {
+        return new ApiResponse<>(true, code, message, data);
     }
 }
