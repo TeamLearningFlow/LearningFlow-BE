@@ -93,6 +93,7 @@ public class ResourceResponseDTO {
         Integer episodeNumber;
         String episodeName;
         String progressRatio;
+        Integer progressRatePercentage;
         Integer currentProgress;
         Integer totalProgress;
     }
