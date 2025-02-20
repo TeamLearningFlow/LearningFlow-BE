@@ -7,8 +7,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface UserEpisodeProgressRepository extends JpaRepository<UserEpisodeProgress, UserEpisodeProgressId> {
     @Modifying
     @Query("DELETE FROM UserEpisodeProgress uep WHERE uep.id.userId = :loginId")
     void deleteAllByUserId(@Param("loginId") String loginId);
+
+    List<UserEpisodeProgress> findByUserEpisodeProgressId_UserIdAndUserEpisodeProgressId_CollectionEpisodeIdIn(String loginId, List<Long> episodeId);
 }
