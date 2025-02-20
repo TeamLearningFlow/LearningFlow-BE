@@ -41,6 +41,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             response.sendRedirect(redirectUrl);
             return;
 */
+/*
             // ⭐️ 신규 회원: 팝업 닫기 + 부모 창 리디렉션
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
             String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/landing") // ⭐️ 추가 정보 입력 페이지
@@ -51,6 +52,25 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     "  window.opener.location.href = '" + redirectUrl + "';" + // ⭐️ 부모 창 리디렉션
                     "  window.close();" + // ⭐️ 팝업 닫기
                     "</script>";
+
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(redirectScript);
+            return;
+*/
+            // ✅ 신규 회원: 임시 토큰 생성
+            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
+
+            // ✅ 팝업 창에서 구글 계정 선택 완료 후, 부모 창을 추가정보 입력 페이지로 리다이렉트
+            String redirectScript = String.format("""
+            <script>
+                if (window.opener) {
+                    // 부모 창을 추가정보 입력 페이지로 리다이렉트
+                    window.opener.location.href = '%s/landing?oauth2RegistrationCode=%s';
+                    // 현재 팝업 창 닫기
+                    window.close();
+                }
+            </script>
+            """, frontendUrl, temporaryToken);
 
             response.setContentType("text/html;charset=UTF-8");
             response.getWriter().write(redirectScript);
