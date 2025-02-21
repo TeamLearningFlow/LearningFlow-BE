@@ -200,6 +200,7 @@ public class ResourceConverter {
 
         return ResourceResponseDTO.RecentlyWatchedEpisodeDTO.builder()
                 .episodeId(currentEpisode.getId())
+                .imgUrl(userCollection.getCollection().getCollectionImgUrl())
                 .collectionId(userCollection.getCollection().getId())
                 .collectionTitle(userCollection.getCollection().getTitle())
                 .resourceSource(extractResourceSource(currentEpisode.getResource().getUrl()))
