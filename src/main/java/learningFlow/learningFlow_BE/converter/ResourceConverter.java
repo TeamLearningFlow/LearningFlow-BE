@@ -7,9 +7,12 @@ import learningFlow.learningFlow_BE.web.dto.resource.ResourceResponseDTO;
 import learningFlow.learningFlow_BE.domain.CollectionEpisode;
 import learningFlow.learningFlow_BE.domain.UserCollection;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ResourceConverter {
-    public static ResourceResponseDTO.ResourceUrlDTO watchEpisode(Collection collection, UserEpisodeProgress userProgress, Resource resource, Optional<Memo> memo){
+    public static ResourceResponseDTO.ResourceUrlDTO watchEpisode(Collection collection, UserEpisodeProgress userProgress, Resource resource, Optional<Memo> memo
+                                                                  ,List<UserEpisodeProgress> userEpisodeProgressList){
         String memoContents = "작성하신 글의 첫 줄은 노트의 제목이 됩니다, 최대 2,000자까지 입력하실 수 있어요";
         if (memo.isPresent())
             memoContents = memo.get().getContents();
@@ -21,7 +24,7 @@ public class ResourceConverter {
                 .urlTitle(resource.getTitle())
                 .progress(userProgress.getCurrentProgress())
                 .memoContents(memoContents)
-                .episodeInformationList(episodeInformationList(collection,userProgress))
+                .episodeInformationList(episodeInformationList(collection,userProgress, userEpisodeProgressList))
                 .build();
     }
     public static ResourceResponseDTO.ResourceBlogUrlDTO watchBlogEpisode(
@@ -29,7 +32,8 @@ public class ResourceConverter {
             UserEpisodeProgress userProgress,
             String pageResource,
             String resourceTitle,
-            Optional<Memo> memo){
+            Optional<Memo> memo,
+            List<UserEpisodeProgress> userEpisodeProgressList){
         String memoContents = "작성하신 글의 첫 줄은 노트의 제목이 됩니다, 최대 2,000자까지 입력하실 수 있어요";
         if (memo.isPresent())
             memoContents = memo.get().getContents();
@@ -41,15 +45,38 @@ public class ResourceConverter {
                 .urlTitle(resourceTitle)
                 .progress(userProgress.getCurrentProgress())
                 .memoContents(memoContents)
-                .episodeInformationList(episodeInformationList(collection, userProgress))
+                .episodeInformationList(episodeInformationList(collection, userProgress, userEpisodeProgressList))
                 .build();
     }
 
     public static List<ResourceResponseDTO.episodeInformation> episodeInformationList(
-            Collection collection, UserEpisodeProgress userEpisodeProgress
+            Collection collection, UserEpisodeProgress userEpisodeProgress, List<UserEpisodeProgress> userEpisodeProgressList
     ) {
         List<ResourceResponseDTO.episodeInformation> episodeInformationList = new ArrayList<>();
 
+        // userEpisodeProgressList를 에피소드 ID를 키로 하는 Map으로 변환
+        Map<Long, UserEpisodeProgress> progressMap = userEpisodeProgressList.stream()
+                .collect(Collectors.toMap(
+                        progress -> progress.getUserEpisodeProgressId().getCollectionEpisodeId(),
+                        Function.identity()
+                ));
+
+        // 컬렉션에 속한 각 에피소드마다 진행 상태를 매핑
+        for (CollectionEpisode episode : collection.getEpisodes()) {
+            // 해당 에피소드에 대해 UserEpisodeProgress가 존재하면 isComplete를 가져오고,
+            // 없으면 기본값(false)를 사용
+            Boolean isComplete = progressMap.containsKey(episode.getId())
+                    ? progressMap.get(episode.getId()).getIsComplete() : false;
+
+            episodeInformationList.add(new ResourceResponseDTO.episodeInformation(
+                    episode.getId(),
+                    episode.getEpisodeNumber(),
+                    episode.getResource().getTitle(),
+                    isComplete,
+                    episode.getResource().getType()
+            ));
+        }/*
+        // 유저 episodeProgress에서 가져올 것
         for (CollectionEpisode episode : collection.getEpisodes()) {
             episodeInformationList.add(new ResourceResponseDTO.episodeInformation(
                     episode.getId(),
@@ -58,7 +85,7 @@ public class ResourceConverter {
                     userEpisodeProgress.getIsComplete(),
                     episode.getResource().getType()
             ));
-        }
+        }*/
         episodeInformationList.sort(Comparator.comparingInt(ResourceResponseDTO.episodeInformation::getEpisodeNumber));
         return episodeInformationList;
     }
@@ -168,8 +195,12 @@ public class ResourceConverter {
             int totalEpisodes,                 // added: 파라미터 추가
             double progressPercentage          // added: 파라미터 추가
     ) {
+
+        int progressRatePercentage = (int) Math.round(progressPercentage);
+
         return ResourceResponseDTO.RecentlyWatchedEpisodeDTO.builder()
                 .episodeId(currentEpisode.getId())
+                .imgUrl(userCollection.getCollection().getCollectionImgUrl())
                 .collectionId(userCollection.getCollection().getId())
                 .collectionTitle(userCollection.getCollection().getTitle())
                 .resourceSource(extractResourceSource(currentEpisode.getResource().getUrl()))
@@ -179,6 +210,7 @@ public class ResourceConverter {
                         userCollection.getUserCollectionStatus(),
                         totalEpisodes,
                         progressPercentage))
+                .progressRatePercentage(progressRatePercentage)
                 .currentProgress(userEpisodeProgress != null ? userEpisodeProgress.getCurrentProgress() : 0)
                 .totalProgress(userEpisodeProgress != null ? userEpisodeProgress.getTotalProgress() : 0)
                 .build();

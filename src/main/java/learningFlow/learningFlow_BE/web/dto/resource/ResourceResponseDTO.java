@@ -88,11 +88,13 @@ public class ResourceResponseDTO {
     public static class RecentlyWatchedEpisodeDTO {
         Long episodeId;
         Long collectionId;
+        String imgUrl;
         String collectionTitle;
         String resourceSource;
         Integer episodeNumber;
         String episodeName;
         String progressRatio;
+        Integer progressRatePercentage;
         Integer currentProgress;
         Integer totalProgress;
     }

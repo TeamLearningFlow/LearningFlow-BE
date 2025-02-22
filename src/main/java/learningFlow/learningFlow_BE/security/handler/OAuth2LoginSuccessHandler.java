@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 
@@ -34,9 +35,45 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // Principal 타입 확인, 첫 로그인인 경우 회원가입으로 이동
         if (authentication.getPrincipal() instanceof OAuth2UserTemp oAuth2UserTemp) {
+/*
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
             String redirectUrl = frontendUrl + "/oauth2/additional-info?oauth2RegistrationCode=" + temporaryToken;
             response.sendRedirect(redirectUrl);
+            return;
+*/
+/*
+            // ⭐️ 신규 회원: 팝업 닫기 + 부모 창 리디렉션
+            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
+            String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/landing") // ⭐️ 추가 정보 입력 페이지
+                    .queryParam("oauth2RegistrationCode", temporaryToken) // ⭐️ 임시 토큰 전달
+                    .build().toUriString();
+
+            String redirectScript = "<script>" +
+                    "  window.opener.location.href = '" + redirectUrl + "';" + // ⭐️ 부모 창 리디렉션
+                    "  window.close();" + // ⭐️ 팝업 닫기
+                    "</script>";
+
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(redirectScript);
+            return;
+*/
+            // ✅ 신규 회원: 임시 토큰 생성
+            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
+
+            // ✅ 팝업 창에서 구글 계정 선택 완료 후, 부모 창을 추가정보 입력 페이지로 리다이렉트
+            String redirectScript = String.format("""
+            <script>
+                if (window.opener) {
+                    // 부모 창을 추가정보 입력 페이지로 리다이렉트
+                    window.opener.location.href = '%s/landing?oauth2RegistrationCode=%s';
+                    // 현재 팝업 창 닫기
+                    window.close();
+                }
+            </script>
+            """, frontendUrl, temporaryToken);
+
+            response.setContentType("text/html;charset=UTF-8");
+            response.getWriter().write(redirectScript);
             return;
         }
 
@@ -76,27 +113,29 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 */
 //        response.setStatus(HttpStatus.OK.value());
 
-        // HTTP-Only 쿠키 설정 (Refresh Token)
-        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(true) // HTTPS에서만
-                .path("/")
-                .maxAge(7 * 24 * 60 * 60)
-                .sameSite("None")  // 필요하면 Lax, Strict
-                .build();
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
         response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
 
         // ⭐️ 팝업 창을 닫고 부모 창에 메시지 전달하는 스크립트 (프론트엔드 도메인 사용)
+/*
         String redirectScript = "<script>" +
                 "  window.opener.postMessage({" +
                 "    accessToken: '" + accessToken + "'," +
                 "    refreshToken: 'refreshToken'" + "  }, 'https://onboarding-kappa.vercel.app');" + // ⭐️ 프론트엔드 도메인과 포트
                 "  window.close();" +
                 "</script>";
+*/
+
+        // ✅ refreshToken도 postMessage로 전달하도록 수정
+        String redirectScript = "<script>" +
+                "  window.opener.postMessage({" +
+                "    accessToken: '" + accessToken + "'," +
+                "    refreshToken: '" + refreshToken + "'" +  // ✅ refreshToken 추가
+                "  }, 'https://onboarding-kappa.vercel.app');" +
+                "  window.close();" +
+                "</script>";
+
         response.setContentType("text/html;charset=UTF-8");
         response.getWriter().write(redirectScript);
     }

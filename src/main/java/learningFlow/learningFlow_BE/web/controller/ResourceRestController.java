@@ -30,6 +30,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -74,10 +75,11 @@ public class ResourceRestController {
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
-        Optional<Memo> memo = resourceService.getMemoContents(episodeId);
+        Optional<Memo> memo = resourceService.getMemoContents(episodeId, loginId);
         Resource resource = youtubeUrlEmbedService.getResource(episodeId);
+        List<UserEpisodeProgress> episodeProgress = resourceService.getEpisodeProgress(loginId, episodeId);
         ResourceResponseDTO.ResourceUrlDTO response =
-                ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo);
+                ResourceConverter.watchEpisode(collection, userEpisodeProgress, resource, memo, episodeProgress);
         return ApiResponse.onSuccess(response);
     }
 
@@ -113,10 +115,11 @@ public class ResourceRestController {
         String loginId = principalDetails.getUser().getLoginId();
         UserEpisodeProgress userEpisodeProgress = resourceService.getUserEpisodeProgress(episodeId, loginId);
         Collection collection = resourceService.getCollection(episodeId);
-        Optional<Memo> memo = resourceService.getMemoContents(episodeId);
+        Optional<Memo> memo = resourceService.getMemoContents(episodeId, loginId);
         String resourceTitle = resourceService.getResource(episodeId).getTitle();
+        List<UserEpisodeProgress> episodeProgress = resourceService.getEpisodeProgress(loginId, episodeId);
         String blogSourceUrl = "/resources/" + episodeId + "/blog/content";
-        ResourceResponseDTO.ResourceBlogUrlDTO response = ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl, resourceTitle, memo);
+        ResourceResponseDTO.ResourceBlogUrlDTO response = ResourceConverter.watchBlogEpisode(collection, userEpisodeProgress, blogSourceUrl, resourceTitle, memo, episodeProgress);
         return ApiResponse.onSuccess(response);
     }
 
