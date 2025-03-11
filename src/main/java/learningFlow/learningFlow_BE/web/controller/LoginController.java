@@ -136,7 +136,7 @@ public class LoginController {
      */
     @GetMapping("/oauth2/additional-info")
     @Operation(summary = "추가 정보 입력 페이지", description = "OAuth2 회원가입 시 추가 정보 입력이 필요한 경우 리다이렉트되는 엔드포인트")
-    public ApiResponse<?> getAdditionalInfoPage() {
+    public ApiResponse<?> getAdditionalInfoPage(@RequestParam String oauth2RegistrationCode) {
         log.info("get info");
         return ApiResponse.onSuccess(OAuth2UserRegistrationService.getAdditionalInfoRequirements());
     }
