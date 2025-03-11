@@ -3,10 +3,10 @@ spring:
 #        url: jdbc:mysql://localhost:3307/learningFlow_db  # MySQL
 #        username: learningFlow                           # MySQL
 #        password: learningFlow123                        # MySQL
+#        driver-class-name: com.mysql.cj.jdbc.Driver      # MySQL JDBC
     url: ${DB_URL}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
-#        driver-class-name: com.mysql.cj.jdbc.Driver      # MySQL JDBC
     driver-class-name: software.aws.rds.jdbc.mysql.Driver
   jpa:
     hibernate:
@@ -68,7 +68,7 @@ custom:
   jwt:
     secretKey: ${JWT_SECRET_KEY}
     access-token-validity-in-seconds: 3600    # Access Token 1시간
-    refresh-token-validity-in-seconds: 604800 # Refresh Token 1주일
+    refresh-token-validity-in-seconds: 2592000 # Refresh Token 1주일
 
 app:
   frontend-url: https://onboarding-kappa.vercel.app/ #http://54.180.118.227:8080
