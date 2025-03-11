@@ -1,5 +1,6 @@
 package learningFlow.learningFlow_BE.service.auth.local;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
@@ -10,6 +11,7 @@ import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.apiPayload.exception.handler.LoginHandler;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
 import learningFlow.learningFlow_BE.security.handler.JwtLogoutHandler;
+import learningFlow.learningFlow_BE.security.jwt.JwtProperties;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.EmailVerificationToken;
 import learningFlow.learningFlow_BE.domain.PasswordResetToken;
@@ -53,6 +55,7 @@ public class LocalUserAuthService {
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtLogoutHandler jwtLogoutHandler;
+    private final JwtProperties jwtProperties;
     private final AmazonS3Manager s3Manager;
     private final UuidRepository uuidRepository;
 
@@ -181,7 +184,6 @@ public class LocalUserAuthService {
 
     public UserResponseDTO.UserLoginResponseDTO login(UserRequestDTO.UserLoginDTO request,
                                                       HttpServletResponse response) {
-
         try {
             UsernamePasswordAuthenticationToken authRequest =
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword());
@@ -197,13 +199,25 @@ public class LocalUserAuthService {
 
             String accessToken = jwtTokenProvider.createAccessToken(authentication);
             log.info("사용된 JWT access 토큰: Authorization={}", "Bearer " + accessToken);
-            response.addHeader("Authorization", "Bearer " + accessToken);
+            // 쿠키에 AccessToken 저장
+            Cookie accessCookie = jwtTokenProvider.createCookie(
+                    JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME,
+                    accessToken,
+                    (int) jwtProperties.getAccessTokenValidityInSeconds()
+            );
+            response.addCookie(accessCookie);
 
             if (request.isRemember()) {
                 String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
                 log.info("자동 로그인 활성화: Refresh Token 발급");
                 log.info("사용된 JWT refresh 토큰: Refresh Token={}", refreshToken);
-                response.addHeader("Refresh-Token", refreshToken);
+                // 쿠키에 Refresh Token 저장 (30일)
+                Cookie refreshCookie = jwtTokenProvider.createCookie(
+                        JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+                        refreshToken,
+                        (int) jwtProperties.getRefreshTokenValidityInSeconds()
+                );
+                response.addCookie(refreshCookie);
             }
 
             log.info("로그인 성공: email={}, authorities={}",

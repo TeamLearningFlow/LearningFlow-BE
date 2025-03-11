@@ -1,8 +1,10 @@
 package learningFlow.learningFlow_BE.security.handler;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.jwt.JwtProperties;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.service.auth.oauth.OAuth2UserTemp;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import java.io.IOException;
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtProperties jwtProperties;
 
     @Value("${app.frontend-url}")
     private String frontendUrl;
@@ -33,47 +36,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException {
         log.info("OAuth2 로그인 성공!");
 
-        // Principal 타입 확인, 첫 로그인인 경우 회원가입으로 이동
         if (authentication.getPrincipal() instanceof OAuth2UserTemp oAuth2UserTemp) {
-/*
+            // 신규 회원: 임시 토큰 생성
             String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
-            String redirectUrl = frontendUrl + "/oauth2/additional-info?oauth2RegistrationCode=" + temporaryToken;
+
+            // 추가 정보 입력 페이지로 리다이렉트 - 임시 토큰은 쿼리 파라미터로 전달
+            //String redirectUrl = frontendUrl + "/landing?oauth2RegistrationCode=" + temporaryToken; //배포용
+            String redirectUrl = "http://localhost:8080/oauth2/additional-info?oauth2RegistrationCode=" + temporaryToken; //로컬
             response.sendRedirect(redirectUrl);
-            return;
-*/
-/*
-            // ⭐️ 신규 회원: 팝업 닫기 + 부모 창 리디렉션
-            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
-            String redirectUrl = UriComponentsBuilder.fromUriString("http://localhost:3000/landing") // ⭐️ 추가 정보 입력 페이지
-                    .queryParam("oauth2RegistrationCode", temporaryToken) // ⭐️ 임시 토큰 전달
-                    .build().toUriString();
-
-            String redirectScript = "<script>" +
-                    "  window.opener.location.href = '" + redirectUrl + "';" + // ⭐️ 부모 창 리디렉션
-                    "  window.close();" + // ⭐️ 팝업 닫기
-                    "</script>";
-
-            response.setContentType("text/html;charset=UTF-8");
-            response.getWriter().write(redirectScript);
-            return;
-*/
-            // ✅ 신규 회원: 임시 토큰 생성
-            String temporaryToken = jwtTokenProvider.createTemporaryToken(oAuth2UserTemp);
-
-            // ✅ 팝업 창에서 구글 계정 선택 완료 후, 부모 창을 추가정보 입력 페이지로 리다이렉트
-            String redirectScript = String.format("""
-            <script>
-                if (window.opener) {
-                    // 부모 창을 추가정보 입력 페이지로 리다이렉트
-                    window.opener.location.href = '%s/landing?oauth2RegistrationCode=%s';
-                    // 현재 팝업 창 닫기
-                    window.close();
-                }
-            </script>
-            """, frontendUrl, temporaryToken);
-
-            response.setContentType("text/html;charset=UTF-8");
-            response.getWriter().write(redirectScript);
             return;
         }
 
@@ -86,57 +56,30 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         //Access Token 생성
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
         log.info("Access 토큰 발급 : {}", accessToken);
-//        response.setHeader("Authorization", "Bearer " + accessToken);
 
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
         log.info("자동 로그인 활성화, Refresh Token 발급 : {}", refreshToken);
-//        response.setHeader("Refresh-Token", refreshToken);
 
-        // 헤더 설정 확인 로깅
-        log.info("Authorization Header: {}", response.getHeader("Authorization"));
-        log.info("Refresh-Token Header: {}", response.getHeader("Refresh-Token"));
+        // 쿠키 생성 및 응답에 추가
+        Cookie accessCookie = jwtTokenProvider.createCookie(
+                JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME,
+                accessToken,
+                (int) jwtProperties.getAccessTokenValidityInSeconds()  // 24시간
+        );
 
-/*
-        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
-*/
+        Cookie refreshCookie = jwtTokenProvider.createCookie(
+                JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+                refreshToken,
+                (int) jwtProperties.getRefreshTokenValidityInSeconds()  // 30일
+        );
 
-/*
-        UserResponseDTO.UserLoginResponseDTO loginResponse =
-                toUserLoginResponseDTO(principalDetails.getUser());
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        String jsonResponse = new ObjectMapper().writeValueAsString(ApiResponse.onSuccess(loginResponse));
-        response.getWriter().write(jsonResponse);
-*/
-//        response.setStatus(HttpStatus.OK.value());
+        // 메인 페이지로 리다이렉트 - 배포용
+        //response.sendRedirect(frontendUrl);
 
-        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
-
-        // ⭐️ 팝업 창을 닫고 부모 창에 메시지 전달하는 스크립트 (프론트엔드 도메인 사용)
-/*
-        String redirectScript = "<script>" +
-                "  window.opener.postMessage({" +
-                "    accessToken: '" + accessToken + "'," +
-                "    refreshToken: 'refreshToken'" + "  }, 'https://onboarding-kappa.vercel.app');" + // ⭐️ 프론트엔드 도메인과 포트
-                "  window.close();" +
-                "</script>";
-*/
-
-        // ✅ refreshToken도 postMessage로 전달하도록 수정
-        String redirectScript = "<script>" +
-                "  window.opener.postMessage({" +
-                "    accessToken: '" + accessToken + "'," +
-                "    refreshToken: '" + refreshToken + "'" +  // ✅ refreshToken 추가
-                "  }, 'https://onboarding-kappa.vercel.app');" +
-                "  window.close();" +
-                "</script>";
-
-        response.setContentType("text/html;charset=UTF-8");
-        response.getWriter().write(redirectScript);
+        // 메인 페이지로 리다이렉트 - 로컬
+        response.sendRedirect("/");
     }
 }

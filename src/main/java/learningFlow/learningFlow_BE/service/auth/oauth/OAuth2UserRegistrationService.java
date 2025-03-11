@@ -1,12 +1,14 @@
 package learningFlow.learningFlow_BE.service.auth.oauth;
 
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import learningFlow.learningFlow_BE.apiPayload.code.status.ErrorStatus;
 import learningFlow.learningFlow_BE.apiPayload.exception.GeneralException;
 import learningFlow.learningFlow_BE.s3.AmazonS3Manager;
 import learningFlow.learningFlow_BE.security.auth.PrincipalDetails;
+import learningFlow.learningFlow_BE.security.jwt.JwtProperties;
 import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import learningFlow.learningFlow_BE.domain.User;
 import learningFlow.learningFlow_BE.domain.enums.Role;
@@ -37,6 +39,7 @@ public class OAuth2UserRegistrationService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtProperties jwtProperties;
 //     private final RedisTemplate<String, String> redisTemplate;
     private final AmazonS3Manager s3Manager;
 
@@ -95,12 +98,23 @@ public class OAuth2UserRegistrationService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
-        response.addHeader("Authorization", "Bearer " + accessToken);
         log.info("Access 토큰 발급 : {}", accessToken);
+        Cookie accessCookie = jwtTokenProvider.createCookie(
+                JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME,
+                accessToken,
+                (int) jwtProperties.getAccessTokenValidityInSeconds()
+        );
 
         String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
-        response.addHeader("Refresh-Token", refreshToken);
         log.info("자동 로그인 활성화, Refresh Token 발급 : {}", refreshToken);
+        Cookie refreshCookie = jwtTokenProvider.createCookie(
+                JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME,
+                refreshToken,
+                (int) jwtProperties.getRefreshTokenValidityInSeconds()
+        );
+
+        response.addCookie(accessCookie);
+        response.addCookie(refreshCookie);
 
         return toUserLoginResponseDTO(savedUser);
     }

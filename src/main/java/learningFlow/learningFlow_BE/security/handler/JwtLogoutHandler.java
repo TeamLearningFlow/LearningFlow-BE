@@ -1,7 +1,10 @@
 package learningFlow.learningFlow_BE.security.handler;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import learningFlow.learningFlow_BE.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -16,19 +19,33 @@ public class JwtLogoutHandler implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        //Authentication 객체가 존재하는 경우, 로그아웃 처리
+        SecurityContextHolder.getContextHolderStrategy().getContext().setAuthentication(null);
+
         // SecurityContext 초기화
-        SecurityContextHolder.clearContext();
+        SecurityContextHolder.getContextHolderStrategy().clearContext();
 
-        // Authorization 헤더 제거
-        response.setHeader("Authorization", "");
-        response.setHeader("Refresh-Token", "");
-
-        response.setHeader("Access-Control-Expose-Headers", "Authorization, Refresh-Token");
-
-        log.info("현재 Authorization 헤더 값: {}", response.getHeader("Authorization"));
-        log.info("현재 Refresh-Token 헤더 값: {}", response.getHeader("Refresh-Token"));
+        // 쿠키 삭제
+        deleteTokenCookie(response, JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME);
+        deleteTokenCookie(response, JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
 
         log.info("로그아웃 처리 완료: {}",
                 authentication != null ? authentication.getName() : "Unknown user");
+    }
+
+    private void deleteTokenCookie(HttpServletResponse response, String cookieName) {
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setMaxAge(0); // 즉시 만료
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+        log.info("쿠키 삭제: {}", cookieName);
     }
 }
