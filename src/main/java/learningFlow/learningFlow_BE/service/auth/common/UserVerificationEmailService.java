@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 public class UserVerificationEmailService {
 
     private final JavaMailSender emailSender;
-
     @Value("${app.frontend-url}")
     private String baseUrl;
 
