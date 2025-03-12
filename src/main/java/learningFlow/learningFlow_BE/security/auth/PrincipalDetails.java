@@ -3,6 +3,7 @@ package learningFlow.learningFlow_BE.security.auth;
 import learningFlow.learningFlow_BE.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
@@ -30,7 +31,7 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(() -> "ROLE_" + user.getRole().name());
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
         return authorities;
     }
 

@@ -32,156 +32,213 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("📌 [JWT 필터] ================ 요청 시작: {} {}================", request.getMethod(), request.getRequestURI());
 
-        log.info("🔍 [JwtAuthenticationFilter] 요청 수신: {}", request.getRequestURI());
-        // 토큰 추출 : 기존 헤더사용에서 쿠키사용으로 변경
-        String jwt = extractTokenFromCookies(request);
-        log.info("🟡 [JwtAuthenticationFilter] 추출된 JWT: {}", jwt);
+        try {
+            // ✅ 쿠키에서 토큰 추출 시도
+            String accessToken = extractTokenFromCookies(request, JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME);
+            String refreshToken = extractTokenFromCookies(request, JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
 
-        // JWT 토큰이 있는 경우, URL 상관없이 검증 시도
-        if (StringUtils.hasText(jwt)) {
-            try {
-                // 토큰 유효성 검사 및 인증 처리
-                processToken(request, response, jwt);
-                // 성공적으로 처리된 경우 다음 필터로 진행
-                filterChain.doFilter(request, response);
-                return;
-            } catch (ExpiredJwtException e) {
-                log.info("Access 토큰 만료");
-                // 만료된 쿠키 삭제
-                deleteCookie(response, JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME);
+            log.info("🔍 [JWT 필터] 액세스 토큰: {}", accessToken != null ? "존재함" : "없음");
+            log.info("🔍 [JWT 필터] 리프레시 토큰: {}", refreshToken != null ? "존재함" : "없음");
 
-                // 허용된 URL이 아닌 경우에만 리프레시 시도
-                if (!isPermitAllUrl(request.getRequestURI())) {
-                    // 리프레시 토큰으로 갱신 시도
-                    processExpiredToken(request, response);
+            boolean authenticated = false;
+            boolean isPermitAllUrl = isPermitAllUrl(request.getRequestURI());
+            log.info("🔍 [JWT 필터] 현재 URL '{}' - 인증 필수 여부: {}", request.getRequestURI(), !isPermitAllUrl ? "필수" : "불필요");
+
+            // ✅ 액세스 토큰 처리 로직
+            if (StringUtils.hasText(accessToken)) {
+                log.info("🔄 [JWT 필터] 액세스 토큰 검증 시작");
+                try {
+                    // 액세스 토큰 검증 및 처리
+                    authenticated = processAccessToken(request, accessToken);
+                    log.info("✅ [JWT 필터] 액세스 토큰 검증 결과: {}", authenticated ? "성공" : "실패");
+                } catch (ExpiredJwtException e) {
+                    log.warn("⏰ [JWT 필터] 액세스 토큰 만료됨 - 리프레시 토큰으로 재발급 시도");
+                    // 만료된 액세스 토큰 쿠키 삭제
+                    deleteCookie(response, JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME);
+
+                    // 리프레시 토큰이 있으면 액세스 토큰 재발급 시도
+                    if (StringUtils.hasText(refreshToken)) {
+                        log.info("🔄 [JWT 필터] 리프레시 토큰으로 액세스 토큰 재발급 시도");
+                        authenticated = refreshAccessToken(request, response, refreshToken);
+                        log.info("🔄 [JWT 필터] 토큰 재발급 결과: {}", authenticated ? "성공" : "실패");
+
+                        if (authenticated) {
+                            // 인증 성공 & 토큰 재발급했으므로 현재 요청은 다시 진행하도록 함
+                            log.info("✅ [JWT 필터] 토큰 재발급 성공 - 요청 계속 진행");
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
+                    } else {
+                        log.warn("❌ [JWT 필터] 액세스 토큰 만료됨 & 리프레시 토큰 없음");
+                    }
+                }
+            } else if (StringUtils.hasText(refreshToken)) {
+                // 액세스 토큰은 없지만 리프레시 토큰이 있는 경우
+                log.info("🔄 [JWT 필터] 액세스 토큰 없음, 리프레시 토큰으로 액세스 토큰 발급 시도");
+                authenticated = refreshAccessToken(request, response, refreshToken);
+                log.info("🔄 [JWT 필터] 토큰 발급 결과: {}", authenticated ? "성공" : "실패");
+
+                if (authenticated) {
+                    // 인증 성공 & 토큰 재발급했으므로 현재 요청은 다시 진행
+                    log.info("✅ [JWT 필터] 토큰 발급 성공 - 요청 계속 진행");
+                    filterChain.doFilter(request, response);
                     return;
                 }
-                // 허용된 URL이면 인증 없이 계속 진행
-            } catch (Exception e) {
-                log.error("❌ [JwtAuthenticationFilter] 예외 발생: {}", e.getMessage(), e);
-
-                // 허용된 URL이 아닌 경우에만 에러 응답
-                if (!isPermitAllUrl(request.getRequestURI())) {
-                    handleAuthenticationError(response, "인증 처리 중 오류가 발생했습니다.");
-                    return;
-                }
-                // 허용된 URL이면 인증 없이 계속 진행
+            } else {
+                log.info("ℹ️ [JWT 필터] 액세스 토큰 & 리프레시 토큰 모두 없음");
             }
-        }
 
-        // 토큰이 없거나 검증 실패한 경우
-        if (!isPermitAllUrl(request.getRequestURI())) {
-            // 비허용 URL에 토큰 없이 접근 시 401 에러
-            handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
-            return;
-        }
+            // ✅ 인증 실패 & 회원 전용 URL인 경우 401 에러 반환
+            if (!authenticated && !isPermitAllUrl) {
+                log.warn("⛔ [JWT 필터] 인증 실패 & 인증 필수 URL - 접근 거부");
+                handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
+                return;
+            }
 
-        // 허용된 URL이거나 인증에 성공한 경우 다음 필터로 진행
-        filterChain.doFilter(request, response);
+            // 인증 성공했거나 허용된 URL인 경우 다음 필터로 진행
+            if (authenticated) {
+                log.info("✅ [JWT 필터] 인증 성공 - 요청 계속 진행");
+            } else if (isPermitAllUrl) {
+                log.info("🔓 [JWT 필터] 인증 불필요 URL - 비회원으로 요청 계속 진행");
+            }
+
+            filterChain.doFilter(request, response);
+
+        } catch (Exception e) {
+            log.error("⚠️ [JWT 필터] 예외 발생: {}", e.getMessage(), e);
+
+            // 허용된 URL이 아닌 경우에만 에러 응답
+            if (!isPermitAllUrl(request.getRequestURI())) {
+                log.error("⛔ [JWT 필터] 인증 필수 URL에서 예외 발생 - 접근 거부");
+                handleAuthenticationError(response, "인증 처리 중 오류가 발생했습니다.");
+                return;
+            }
+
+            // 허용된 URL이면 다음 필터로 진행
+            log.info("🔓 [JWT 필터] 인증 불필요 URL에서 예외 발생 - 비회원으로 요청 계속 진행");
+            filterChain.doFilter(request, response);
+        } finally {
+            log.info("📌 [JWT 필터] ================ 요청 처리 완료: {} {} ================", request.getMethod(), request.getRequestURI());
+        }
     }
 
-    //토큰이 유효한지 검증
-    private void processToken(HttpServletRequest request, HttpServletResponse response, String jwt) throws Exception {
-        // 토큰 유효성 검증
-        if (!jwtTokenProvider.validateToken(jwt)) {
-            handleAuthenticationError(response, "유효하지 않은 토큰입니다.");
-            return;
+    // ✅ 액세스 토큰 검증 및 처리
+    private boolean processAccessToken(HttpServletRequest request, String accessToken) {
+        log.info("🔎 [JWT 필터] 액세스 토큰 검증 과정 시작");
+
+        // 액세스 토큰 검증
+        if (!jwtTokenProvider.validateToken(accessToken)) {
+            log.error("❌ [JWT 필터] 액세스 토큰 검증 실패 - 유효하지 않은 토큰");
+            return false;
         }
+        log.info("✓ [JWT 필터] 액세스 토큰 서명 유효성 검증 성공");
 
         // 토큰 종류 확인
-        String category = jwtTokenProvider.getCategory(jwt);
+        String category = jwtTokenProvider.getCategory(accessToken);
         if (!"access".equals(category)) {
-            handleAuthenticationError(response, "유효한 액세스 토큰이 아닙니다.");
-            return;
+            log.error("❌ [JWT 필터] 액세스 토큰 종류 검증 실패 - 현재 종류: {}", category);
+            return false;
         }
+        log.info("✓ [JWT 필터] 액세스 토큰 종류 검증 성공");
 
-        // 만료 여부 확인
-        if (jwtTokenProvider.isExpired(jwt)) {
-            // 만료된 쿠키 삭제
-            deleteCookie(response, JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME);
-            throw new ExpiredJwtException(null, null, "Token has expired");
+        // 만료 여부 확인 (이 부분이 실행되면 이미 validateToken에서 검증되었다는 의미)
+        if (jwtTokenProvider.isExpired(accessToken)) {
+            log.error("❌ [JWT 필터] 액세스 토큰 만료됨");
+            throw new ExpiredJwtException(null, null, "토큰이 만료되었습니다");
         }
+        log.info("✓ [JWT 필터] 액세스 토큰 만료 여부 검증 성공");
 
-        // 유효한 토큰 처리
-        processValidToken(request, jwt);
-    }
+        // 사용자 정보 추출 및 인증 정보 설정
+        String email = jwtTokenProvider.getEmailFromToken(accessToken);
+        log.info("✓ [JWT 필터] 토큰에서 추출한 이메일: {}", email);
 
-    //유효한 토큰 처리
-    private void processValidToken(HttpServletRequest request, String jwt) {
-        String email = jwtTokenProvider.getEmailFromToken(jwt);
-        log.info("토큰에서 추출한 이메일: {}", email);
-
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities());
-
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        log.info("인증 정보 SecurityContext에 저장");
-    }
-
-    private void processExpiredToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-//        String refreshToken = request.getHeader("Refresh-Token");
-        String refreshToken = extractRefreshTokenFromCookies(request);
-        log.info("쿠키에서 가져온 Refresh Token: {}", refreshToken != null ? "존재" : "없음");
-
-        if (StringUtils.hasText(refreshToken) && jwtTokenProvider.validateToken(refreshToken)) {
-
-            // 리프레시 토큰 종류 확인
-            String category = jwtTokenProvider.getCategory(refreshToken);
-            if (!"refresh".equals(category)) {
-                log.error("유효한 리프레시 토큰이 아닙니다.");
-                handleAuthenticationError(response, "유효한 리프레시 토큰이 아닙니다.");
-                return;
-            }
-
-            // 리프레시 토큰 만료 확인
-            if (jwtTokenProvider.isExpired(refreshToken)) {
-                log.error("리프레시 토큰이 만료되었습니다.");
-                deleteCookie(response, JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
-                handleAuthenticationError(response, "리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.");
-                return;
-            }
-
-            // 새 액세스 토큰 발급
-            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+        try {
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+            log.info("✓ [JWT 필터] DB에서 사용자 정보 조회 성공: {}", email);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
 
-            String newAccessToken = jwtTokenProvider.createAccessToken(authentication);
-            log.info("새로 발급된 Access Token: {}", newAccessToken);
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // 쿠키에 새 액세스 토큰 저장
+            log.info("✅ [JWT 필터] 인증 정보 저장 완료: 사용자 {}, 권한: {}", email, userDetails.getAuthorities());
+            return true;
+        } catch (Exception e) {
+            log.error("❌ [JWT 필터] 사용자 정보 조회 또는 인증 설정 실패: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    // ✅ 리프레시 토큰으로 액세스 토큰 재발급
+    private boolean refreshAccessToken(HttpServletRequest request, HttpServletResponse response, String refreshToken) throws IOException {
+        log.info("🔄 [JWT 필터] 리프레시 토큰으로 액세스 토큰 재발급 과정 시작");
+
+        // 리프레시 토큰 검증
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            log.error("❌ [JWT 필터] 리프레시 토큰 검증 실패 - 유효하지 않은 토큰");
+            return false;
+        }
+        log.info("✓ [JWT 필터] 리프레시 토큰 서명 유효성 검증 성공");
+
+        // 리프레시 토큰 종류 확인
+        String category = jwtTokenProvider.getCategory(refreshToken);
+        if (!"refresh".equals(category)) {
+            log.error("❌ [JWT 필터] 리프레시 토큰 종류 검증 실패 - 현재 종류: {}", category);
+            deleteCookie(response, JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
+            return false;
+        }
+        log.info("✓ [JWT 필터] 리프레시 토큰 종류 검증 성공");
+
+        // 리프레시 토큰 만료 확인
+        if (jwtTokenProvider.isExpired(refreshToken)) {
+            log.error("❌ [JWT 필터] 리프레시 토큰 만료됨");
+            deleteCookie(response, JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME);
+            return false;
+        }
+        log.info("✓ [JWT 필터] 리프레시 토큰 만료 여부 검증 성공");
+
+        try {
+            // 사용자 정보 추출 및 인증 정보 설정
+            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+            log.info("✓ [JWT 필터] 리프레시 토큰에서 추출한 이메일: {}", email);
+
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+            log.info("✓ [JWT 필터] DB에서 사용자 정보 조회 성공: {}", email);
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities());
+
+            // 새 액세스 토큰 생성
+            String newAccessToken = jwtTokenProvider.createAccessToken(authentication);
+            log.info("✓ [JWT 필터] 새 액세스 토큰 생성 성공: 사용자 {}", email);
+
+            // 쿠키에 저장
             Cookie accessCookie = jwtTokenProvider.createCookie(
                     JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME,
                     newAccessToken,
                     (int) jwtProperties.getAccessTokenValidityInSeconds()
             );
             response.addCookie(accessCookie);
+            log.info("✓ [JWT 필터] 새 액세스 토큰 쿠키 설정 완료 (유효시간: {}초)", jwtProperties.getAccessTokenValidityInSeconds());
 
-            // 프론트에게 토큰 갱신 알림과 재시도 요청 -> 프론트에서 만약 401에러이고, 헤더에 Access-Token-Renewed가 있으면 재시도
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
-            response.setHeader("Access-Token-Renewed", "true"); // 커스텀 헤더
-            response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write(
-                    new ObjectMapper().writeValueAsString(
-                            ApiResponse.onSuccess("Access Token이 갱신되었습니다. 요청을 다시 시도해주세요.")
-                    )
-            );
-        }
-        else{
-            if (!isPermitAllUrl(request.getRequestURI())) {
-                log.error("❌ [JwtAuthenticationFilter] 인증되지 않은 요청 → 401 반환");
-                handleAuthenticationError(response, "로그인이 필요한 서비스입니다.");
-            }
+            // 인증 정보 설정
+            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.info("✅ [JWT 필터] 인증 정보 저장 완료: 사용자 {}, 권한: {}", email, userDetails.getAuthorities());
+
+            return true;
+        } catch (Exception e) {
+            log.error("❌ [JWT 필터] 액세스 토큰 재발급 과정 중 오류 발생: {}", e.getMessage());
+            return false;
         }
     }
 
+    // ✅ 인증 오류 처리
     private void handleAuthenticationError(HttpServletResponse response, String message) throws IOException {
-        log.error("🚨 [JwtAuthenticationFilter] 인증 실패: {}", message);
+        log.error("⛔ [JWT 필터] 인증 실패 처리: {}", message);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(
@@ -189,50 +246,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         ApiResponse.onFailure("AUTH4001", message, null)
                 )
         );
+        log.info("✓ [JWT 필터] 401 응답 전송 완료: {}", message);
     }
 
-    // 쿠키에서 Access Token 추출
-    private String extractTokenFromCookies(HttpServletRequest request) {
+    // ✅ 쿠키에서 토큰 추출 (개선된 메소드)
+    private String extractTokenFromCookies(HttpServletRequest request, String cookieName) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
-            log.info("요청에 쿠키가 없음");
+            log.info("🍪 [JWT 필터] 요청에 쿠키가 없음");
             return null;
         }
+
         for (Cookie cookie : cookies) {
-            if (JwtTokenProvider.ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
-                log.info("쿠키에서 Access Token 발견");
+            if (cookieName.equals(cookie.getName())) {
+                log.info("🍪 [JWT 필터] 쿠키 '{}' 발견", cookieName);
                 return cookie.getValue();
             }
         }
-        log.info("쿠키는 존재하지만, Access Token 쿠키 없음");
+
+        log.info("🍪 [JWT 필터] 쿠키 '{}' 발견되지 않음", cookieName);
         return null;
     }
 
-    // 쿠키에서 Refresh Token 추출
-    private String extractRefreshTokenFromCookies(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return null;
-        }
-        for (Cookie cookie : cookies) {
-            if (JwtTokenProvider.REFRESH_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
-    }
-
-    // 헤더에서 토큰 추출
-    private String extractTokenFromHeader(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        log.info("🟡 [JwtAuthenticationFilter] Authorization 헤더: {}", bearerToken);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-    // 쿠키 삭제 메서드
+    // ✅ 쿠키 삭제
     private void deleteCookie(HttpServletResponse response, String cookieName) {
         Cookie cookie = new Cookie(cookieName, "");
         cookie.setMaxAge(0); // 즉시 만료
@@ -240,11 +276,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         response.addCookie(cookie);
-        log.info("쿠키 삭제: {}", cookieName);
+        log.info("🍪 [JWT 필터] 쿠키 삭제 완료: {}", cookieName);
     }
 
+    // ✅ 허용된 URL 확인
     private boolean isPermitAllUrl(String requestURI) {
-        return requestURI.equals("/") ||
+        boolean isPermit = requestURI.equals("/") ||
                 requestURI.equals("/login") ||
                 requestURI.equals("/register") ||
                 requestURI.equals("/login/google") ||
@@ -261,13 +298,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 requestURI.startsWith("/user/imgUpload") || // 이미지 업로드는 인증 없이 허용
                 requestURI.contains("/user/change-email") ||
                 requestURI.matches("/collections/\\d+");
+
+        if (isPermit) {
+            log.info("🔓 [JWT 필터] URL '{}': 인증 불필요 URL", requestURI);
+        } else {
+            log.info("🔒 [JWT 필터] URL '{}': 인증 필수 URL", requestURI);
+        }
+
+        return isPermit;
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         boolean shouldSkip = path.equals("/image/upload") || path.equals("/favicon.ico");
-        log.info("🛑 [JwtAuthenticationFilter] shouldNotFilter 실행: path={}, shouldSkip={}", path, shouldSkip);
+        log.info("🔄 [JWT 필터] shouldNotFilter 실행: path={}, 필터 적용 여부: {}", path, !shouldSkip ? "적용" : "적용 안함");
         return shouldSkip;
     }
 }
